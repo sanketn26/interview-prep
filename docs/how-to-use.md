@@ -1,0 +1,135 @@
+---
+title: How to Study
+description: Interview modes, three-level explanation model, and how to get the most from this academy.
+---
+
+# How to Study This Academy
+
+## The Three-Level Model
+
+Every concept has three levels of understanding. Switch between them based on context:
+
+| Level | When to use | Focus |
+|-------|-------------|-------|
+| **Level 1 — Intuition** | Explaining to a non-expert | Simple language, analogies, diagrams |
+| **Level 2 — Engineering** | Technical design discussion | Algorithms, architecture, bottlenecks |
+| **Level 3 — Production** | Staff+ discussions | Scale limits, failures, cost, debugging |
+
+!!! tip "Interview Tip"
+    Start with Level 1 in interviews. Depth-first on what the interviewer probes. Most candidates jump to Level 2 without establishing the mental model — interviewers find this hard to follow.
+
+---
+
+## Interview Modes
+
+Each concept page supports multiple modes:
+
+=== "Learn"
+    Full explanation with all three levels. Read this first.
+
+=== "Interview"
+    How you'd explain it in an interview. Practice speaking it aloud.
+
+=== "Hint"
+    Nudges without full answers. Use after attempting exercises.
+
+=== "Solution"
+    Complete reference answers. Use after your own attempt.
+
+=== "Staff"
+    Staff Engineer lens: organizational constraints, multi-year evolution, cost, compliance.
+
+---
+
+## How to Use the Simulations
+
+1. **Read** the concept explanation first
+2. **Run** the simulation with default parameters
+3. **Experiment** by changing parameters, injecting failures
+4. **Predict** what will happen before clicking "Inject Failure"
+5. **Explain** the observed behaviour in your own words
+
+!!! warning "Common Mistake"
+    Do not click through simulations without reading first. The simulation is for **verification** of your mental model, not a substitute for understanding.
+
+---
+
+## System Design Practice Protocol
+
+For each system design exercise:
+
+1. **Cover** the solution page — work through it yourself first
+2. Start with **clarifying questions** (functional requirements)
+3. State **non-functional requirements** explicitly (latency, QPS, durability)
+4. Do **capacity estimation** (back-of-envelope)
+5. Sketch **API + data model** before architecture
+6. Start with the **simplest possible architecture**
+7. **Identify bottlenecks** before adding components
+8. Add components **only when you can justify them**
+9. Discuss **failure modes** for every major component
+10. Close with **trade-offs and alternatives**
+
+---
+
+## DSA Practice Protocol
+
+1. Read the **problem statement** only
+2. Think for 5–10 minutes (no code)
+3. Identify the **pattern** from clues
+4. Code the **brute force** first
+5. Optimize to target complexity
+6. Handle **edge cases** explicitly
+7. Analyse complexity (time + space)
+
+### Pattern Recognition Clues
+
+| Clue | Pattern |
+|------|---------|
+| "contiguous subarray / window" | Sliding Window |
+| "sorted array, find pair/triplet" | Two Pointers |
+| "find in sorted / minimum value that satisfies" | Binary Search |
+| "shortest path in unweighted graph" | BFS |
+| "all paths / connected components" | DFS |
+| "shortest path in weighted graph" | Dijkstra |
+| "top K elements" | Heap |
+| "dependencies / ordering" | Topological Sort |
+| "all combinations / subsets" | Backtracking |
+| "minimum possible maximum" | Binary Search on Answer |
+| "overlapping subproblems" | Dynamic Programming |
+
+---
+
+## Behavioural Practice Protocol
+
+1. For each theme, draft **3 real stories** from your experience
+2. Apply **STAR + Reflection**: Situation → Task → Action → Result → What I Learned
+3. Calibrate to seniority level (see differentiation guide)
+4. Record yourself and listen back — clarity is a skill
+5. Have **10 core stories** that can be adapted to different questions
+
+---
+
+## Progress Tracking
+
+Use this self-assessment after each module:
+
+- [ ] Can I explain this concept clearly in 2 minutes?
+- [ ] Can I design a system that uses this concept?
+- [ ] Can I identify when this concept applies?
+- [ ] Can I describe when it fails / its limitations?
+- [ ] Can I debug a production issue involving this?
+- [ ] Can I explain the trade-offs vs alternatives?
+
+If any box is unchecked → review that dimension before moving on.
+
+---
+
+## Common Failure Modes in Interviews
+
+!!! failure "What NOT to do"
+    1. **Jumping to architecture** before requirements → interviewer doesn't know what you're optimizing for
+    2. **Naming technologies** without justification → "I'll use Kafka" without explaining why
+    3. **One-size-fits-all designs** → every problem solved with the same stack
+    4. **Ignoring failure modes** → stopping after the happy path
+    5. **No capacity estimation** → can't identify where bottlenecks will appear
+    6. **Memorized designs** → can't adapt when the interviewer changes a constraint

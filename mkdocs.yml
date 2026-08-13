@@ -1,0 +1,182 @@
+site_name: Senior Engineer Academy
+site_description: >-
+  A production-quality interactive learning environment for senior software engineers
+  targeting Staff / Senior / Lead roles — covering System Design, DSA, Distributed
+  Systems, and Behavioural interviews.
+site_url: https://sanketn26.github.io/interview-prep/
+repo_url: https://github.com/sanketn26/interview-prep
+repo_name: sanketn26/interview-prep
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  custom_dir: overrides
+  logo: assets/diagrams/logo.svg
+  favicon: assets/diagrams/logo.svg
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.annotate
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+    - toc.integrate
+
+plugins:
+  - search:
+      lang: en
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+
+extra_css:
+  - assets/css/academy.css
+
+extra_javascript:
+  - assets/js/simulations.js
+  - https://unpkg.com/mermaid@10/dist/mermaid.min.js
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/sanketn26/interview-prep
+  analytics:
+    provider: google
+    property: !ENV [GOOGLE_ANALYTICS_KEY, ""]
+
+nav:
+  - Home: index.md
+  - Start Here:
+    - Roadmap: roadmap.md
+    - How to Study: how-to-use.md
+    - Interview Framework: interview-playbook/framework.md
+  - System Design:
+    - Fundamentals:
+      - foundations/index.md
+      - Requirements & Estimation: foundations/requirements-estimation.md
+      - System Design Framework: foundations/framework.md
+      - Engineering Mathematics: foundations/math.md
+    - Distributed Systems:
+      - distributed-systems/index.md
+      - CAP Theorem: distributed-systems/cap-theorem.md
+      - Consistency Models: distributed-systems/consistency-models.md
+      - Replication: distributed-systems/replication.md
+      - Consensus & Raft: distributed-systems/raft.md
+    - Databases:
+      - databases/index.md
+      - Database Sharding: databases/sharding.md
+      - Consistent Hashing: databases/consistent-hashing.md
+      - SQL vs NoSQL: databases/sql-vs-nosql.md
+      - Indexing & Storage: databases/indexing.md
+    - Caching:
+      - performance/index.md
+      - Cache Stampede: performance/cache-stampede.md
+      - Cache Strategies: performance/cache-strategies.md
+    - Messaging:
+      - messaging/index.md
+      - Kafka Deep Dive: messaging/kafka.md
+      - Message Queue Patterns: messaging/patterns.md
+    - Networking:
+      - networking/index.md
+      - HTTP & TCP Deep Dive: networking/http-tcp.md
+      - Load Balancing: networking/load-balancing.md
+    - Reliability:
+      - reliability/index.md
+      - Circuit Breakers: reliability/circuit-breakers.md
+      - Rate Limiting: reliability/rate-limiting.md
+    - Observability:
+      - observability/index.md
+    - Security:
+      - security/index.md
+    - Cloud & Kubernetes:
+      - cloud/index.md
+      - kubernetes/index.md
+    - AI-Native Systems:
+      - ai-native/index.md
+  - Design Exercises:
+    - system-design-exercises/index.md
+    - Foundation:
+      - URL Shortener: system-design-exercises/url-shortener.md
+      - Rate Limiter: system-design-exercises/rate-limiter.md
+      - Distributed Cache: system-design-exercises/distributed-cache.md
+    - Commerce:
+      - Payment Processing: system-design-exercises/payment-processing.md
+    - Communication:
+      - WhatsApp / Messaging: system-design-exercises/whatsapp.md
+  - DSA:
+    - dsa/index.md
+    - Foundations:
+      - dsa/foundations.md
+    - Patterns:
+      - Sliding Window: dsa/sliding-window.md
+      - Two Pointers: dsa/two-pointers.md
+      - Binary Search: dsa/binary-search.md
+    - Trees & Graphs:
+      - BFS & DFS: dsa/bfs-dfs.md
+      - Dynamic Programming: dsa/dynamic-programming.md
+    - Pattern Recognition: dsa/pattern-recognition.md
+  - Behavioural:
+    - behavioural/index.md
+    - Framework: behavioural/framework.md
+    - Leadership:
+      - Technical Disagreement: behavioural/technical-disagreement.md
+      - Production Incident: behavioural/production-incident.md
+      - Failure & Learning: behavioural/failure-learning.md
+  - Production Engineering:
+    - Failure Library: reliability/failure-library.md
+    - Debugging Playbook: observability/debugging-playbook.md
+  - Reference:
+    - reference/index.md
+    - Cheat Sheets: reference/cheat-sheets.md
+    - Calculators: reference/calculators.md
+    - Glossary: reference/glossary.md
+    - Trade-Off Matrix: reference/tradeoff-matrix.md

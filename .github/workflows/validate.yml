@@ -1,0 +1,26 @@
+name: Validate PR
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build MkDocs (strict mode — fails on warnings)
+        run: mkdocs build --strict
+
+      - name: Check for broken internal links
+        run: |
+          echo "MkDocs build succeeded — internal links validated"
