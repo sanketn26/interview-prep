@@ -272,9 +272,61 @@
 .status-wip { color: var(--academy-warning); font-weight: 600; }
 .status-planned { color: #9e9ec8; }
 
+/* ── Progress tracking & dashboard ── */
+.progress-mark-bar {
+  margin: 1rem 0 1.5rem;
+}
+
+.progress-bar {
+  background: #111133;
+  border: 1px solid #333366;
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+  margin: 0.5rem 0 1rem;
+}
+
+.progress-bar-fill {
+  background: linear-gradient(90deg, var(--academy-primary), var(--academy-accent));
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.progress-section-row { margin-bottom: 1rem; }
+.progress-section-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #9e9ec8;
+  margin-bottom: 0.3rem;
+}
+.progress-section-label span { color: #e0e0ff; font-weight: 600; }
+
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin: 0.75rem 0 1.5rem;
+}
+
+.badge {
+  background: #111133;
+  border: 1px solid #333366;
+  border-radius: 8px;
+  padding: 0.75rem;
+  text-align: center;
+}
+.badge.earned { border-color: #7a7aba; background: #1a1a3a; }
+.badge.locked { opacity: 0.5; }
+.badge-icon { font-size: 1.4rem; margin-bottom: 0.25rem; }
+.badge-label { color: #e0e0ff; font-size: 0.85rem; font-weight: 700; }
+.badge-desc { color: #9e9ec8; font-size: 0.7rem; margin-top: 0.2rem; }
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .sim-container { padding: 1rem; }
   .dsa-cell { height: 40px; width: 40px; font-size: 0.9rem; }
   .sim-stat { min-width: 88px; }
+  .badge-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
 }
