@@ -8,8 +8,8 @@ description: Calculators and cheat sheets. Deep teaching lives on the concept pa
 | Page | Status |
 |------|--------|
 | [Calculators](calculators.md) | First release |
-| [Cheat sheets](cheat-sheets.md) | Planned |
-| [Glossary](glossary.md) | Planned |
-| [Trade-off matrix](tradeoff-matrix.md) | Planned |
+| [Cheat sheets](cheat-sheets.md) | First release |
+| [Glossary](glossary.md) | First release |
+| [Trade-off matrix](tradeoff-matrix.md) | First release |
 
 [Playgrounds](../playgrounds/index.md) lists every working simulation.

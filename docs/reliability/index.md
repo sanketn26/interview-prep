@@ -9,4 +9,4 @@ description: Retries without a budget are an amplifier. Limiters and breakers ar
 |------|--------|
 | [Rate limiting](rate-limiting.md) | Complete + simulator |
 | [Circuit breakers](circuit-breakers.md) | First release + retry-storm sim |
-| [Failure library](failure-library.md) | Planned (scenarios live in the [debugging playbook](../observability/debugging-playbook.md)) |
+| [Failure library](failure-library.md) | Complete |

@@ -11,5 +11,5 @@ A remote call can fail, time out, succeed after you gave up, run twice, or arriv
 |------|--------|
 | [CAP theorem](cap-theorem.md) | Complete |
 | [Raft](raft.md) | First release + simulator |
-| [Consistency models](consistency-models.md) | Planned |
-| [Replication](replication.md) | Planned |
+| [Consistency models](consistency-models.md) | Complete |
+| [Replication](replication.md) | Complete |

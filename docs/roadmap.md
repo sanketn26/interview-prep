@@ -26,11 +26,11 @@ flowchart LR
 
 ### Topics
 
-- [x] Distributed Systems Concepts (CAP; consistency/replication pages still planned)
-- [x] Databases at Scale (sharding + consistent hashing; SQL vs NoSQL / indexing planned)
-- [x] Kafka consumer groups (broader MQ comparison planned)
+- [x] Distributed Systems Concepts (CAP, consistency models, replication)
+- [x] Databases at Scale (sharding, consistent hashing, indexing, SQL vs NoSQL)
+- [x] Kafka consumer groups + broader messaging patterns (queues, pub/sub, DLQs)
 - [x] Networking first slice (HTTP/TCP/DNS + load balancing sims)
-- [x] Cache stampede (full cache-strategy catalog planned)
+- [x] Cache stampede + full cache-strategy catalog (cache-aside, write-through/behind, eviction)
 - [ ] API Design (REST, gRPC, GraphQL, idempotency) — planned
 - [x] System Design Framework + capacity calculator
 
@@ -49,8 +49,8 @@ flowchart LR
 - [ ] Event-Driven Architecture
 - [ ] Event Sourcing & CQRS
 - [x] Saga Pattern (first-release orchestrator simulator)
-- [x] Cache stampede (penetration/avalanche catalog still planned)
-- [x] Circuit breaker + retry storm (bulkheads / shedding planned)
+- [x] Cache stampede + cache-strategy catalog
+- [x] Circuit breaker + retry storm + failure-mode library (cascading failures, resource exhaustion, split brain)
 - [ ] API Gateway & Service Mesh
 - [ ] Observability (metrics, tracing, SLI/SLO) — debugging playbook shipped
 - [ ] Microservices vs Monolith

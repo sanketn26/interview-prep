@@ -49,6 +49,24 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Diagnosing Kafka consumer lag | Complete | Playbook |
 | K8s debugging intro + request-flow sim | Complete | |
 | Load balancer / DNS / TCP / Saga sims | Interactive | Host pages in networking / architecture-patterns |
+| DSA: foundations, two pointers, binary search, pattern recognition | Complete | Written to sliding-window.md bar |
+| Distributed systems: consistency models, replication | Complete | Cross-linked with CAP / Raft |
+| Databases: indexing, SQL vs NoSQL | Complete | |
+| Foundations: engineering mathematics | Complete | Little's Law, percentiles, availability math |
+| Messaging: queue patterns | Complete | Pub/sub, DLQs, delivery semantics, outbox |
+| Performance: cache strategies | Complete | Cache-aside/through/behind, eviction, invalidation |
+| Reliability: failure library | Complete | 14-entry catalog across 5 failure categories |
+| Distributed cache (exercise) | Complete | |
+| Behavioural: failure & learning | Complete | |
+| Reference: cheat sheets, glossary, trade-off matrix | Complete | |
+| Payment processing — Alternative Architectures + Interview Follow-ups | Complete | Backfilled to match sibling exercises |
+| Load balancer (exercise) | Complete | Embeds `LoadBalancerSim` |
+| API gateway (exercise) | Complete | |
+| Notification system (exercise) | Complete | |
+| Web crawler (exercise) | Complete | |
+| Autocomplete / typeahead (exercise) | Complete | |
+| Distributed KV store (exercise) | Complete | Embeds `ConsistentHashingRing`; explicitly differentiated from distributed-cache |
+| Social feed / Twitter-X (exercise) | Complete | |
 
 ---
 
@@ -78,12 +96,17 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 
 Do **not** mass-generate these as stubs.
 
-- Remaining ~35 system-design exercises (Pastebin, Uber, Netflix, …)
-- Streams / Flink, Event Sourcing / CQRS deep dives
-- Cloud vendor catalog, CI/CD & IaC, FinOps, AI-native serving
-- Full failure encyclopedia (beyond the playbook scenarios)
-- Remaining DSA visualizers (heaps, Dijkstra, union-find, backtracking, …)
-- Remaining behavioural themes (hiring, tech debt, influence, …)
+- Remaining ~27 system-design exercises (Pastebin, Uber, Netflix, …)
+- Security & Auth (`security/index.md` is still a 10-line stub — OAuth2/OIDC/JWT/sessions/RBAC/Zero Trust all missing)
+- Event Sourcing & CQRS deep dives (Sagas is the only pattern in this family written so far); Streams/Flink
+- Distributed fundamentals as its own concept page (Lamport/vector clocks, leader election, leases, distributed locks, split-brain — currently only asides inside replication.md/consistency-models.md)
+- Monolith vs Microservices vs Serverless
+- Cloud vendor catalog (`ai-native/`, `cloud/` are still index-only stubs), CI/CD & IaC, FinOps, AI-native serving
+- Capstone project; interview-mode tabs (Learn/Practice/Hint/Interview/Solution/Staff) as a reusable UX pattern; Go example parity for retry/queue/thread-pool/producer-consumer/distributed-lock/WebSocket/gRPC/REST
+- Deeper distributed-systems topics: vector clocks, gossip protocols, Paxos, two-phase commit, CRDTs, distributed locks, service discovery
+- Remaining DSA visualizers and topics (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp)
+- Remaining behavioural themes (hiring, tech debt, influence, mentorship, managing up, saying no, ambiguity)
+- Production/observability depth: SLI/SLO & error budgets, distributed tracing, chaos engineering, capacity/load testing, blameless postmortems
 - Python/Go servers (WebSocket, gRPC) beyond the core library examples
 
 ---

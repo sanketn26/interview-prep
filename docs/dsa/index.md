@@ -14,9 +14,13 @@ Clue → pattern. Code is Python first, Go second. Visualizers: Prev/Next via St
 | [Sliding window](sliding-window.md) | contiguous subarray / longest window | Complete |
 | [BFS & DFS](bfs-dfs.md) | shortest unweighted path / explore all | Complete |
 | [Dynamic programming](dynamic-programming.md) | overlapping subproblems | Complete |
+| [Foundations / Big-O](foundations.md) | how to approach any DSA problem | Complete |
+| [Two pointers](two-pointers.md) | sorted array pair / in-place compaction | Complete |
+| [Binary search](binary-search.md) | sorted / monotonic search space | Complete |
+| [Pattern index](pattern-recognition.md) | which pattern for which clue | Complete |
 
 ## Planned
 
-[Foundations / Big-O](foundations.md), [two pointers](two-pointers.md), [binary search](binary-search.md), [pattern index](pattern-recognition.md), heaps, Dijkstra, union-find, topo sort, backtracking.
+Heaps, Dijkstra, union-find, topo sort, backtracking, sorting algorithms, tries, greedy, KMP/Rabin-Karp, interval scheduling.
 
 Quick clue table lives in [How to Study](../how-to-use.md).

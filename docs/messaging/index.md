@@ -8,5 +8,5 @@ description: 1 producer → 1 partition → 1 consumer works until it does not.
 | Page | Status |
 |------|--------|
 | [Kafka consumer groups](kafka.md) | Complete + simulator |
-| [Queue patterns](patterns.md) | Planned |
+| [Queue patterns](patterns.md) | Complete |
 | [Sagas](../architecture-patterns/sagas.md) | First release + simulator |

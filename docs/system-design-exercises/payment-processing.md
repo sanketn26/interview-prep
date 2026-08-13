@@ -420,6 +420,24 @@ Dashboards:
 
 ---
 
+## 16. Alternative Architectures
+
+| Approach | Pros | Cons | Use When |
+|---|---|---|---|
+| Synchronous charge (no outbox, no queue) | Simple, immediate confirmation | DB write and PSP charge aren't atomic — crash between them loses money or double-charges | Never at real scale; toy demos only |
+| Transactional outbox (this design) | Atomic with the DB write, replayable, decouples downstream consumers | Extra table, extra relay process, added latency (poll interval) | Default choice for payment-adjacent writes |
+| Saga with compensating transactions | Handles multi-step flows (charge → reserve inventory → ship) without distributed locks | Complex to reason about; compensations must be idempotent too | Multi-service order flows, not a single charge |
+| Direct PSP webhook as source of truth (no local state machine) | Less code, PSP owns status | You can't reconcile against your own business rules; hard to reason about partial refunds | Very small integrations, not for a platform with its own ledger |
+
+## 17. Interview Follow-ups
+
+1. **"Why not just call the PSP and update the DB in the same request?"** — No atomicity across a network call and a DB write. If the process dies after the PSP charges the card but before the DB commits, you've taken money with no record of it. The outbox pattern makes "charge succeeded" and "we know about it" the same transaction.
+2. **"How do you avoid double-charging on client retry?"** — Client-generated idempotency key, unique-constrained in the DB. Second request with the same key returns the first result instead of re-charging.
+3. **"What if the PSP's webhook never arrives?"** — Don't rely on webhooks alone; poll PSP status for anything stuck in PROCESSING past a threshold, matching §13.
+4. **"How would you support a second PSP without rewriting the payment core?"** — Adapter interface per PSP (charge/refund/status mapped to your internal state machine); route by cost/availability as in the Multi-PSP Routing extension below.
+
+---
+
 ## Staff Engineer Extensions
 
 === "Multi-PSP Routing"

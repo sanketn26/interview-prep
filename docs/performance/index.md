@@ -9,4 +9,4 @@ description: Caches hide load until they expire together. Averages hide outages.
 |------|--------|
 | [Cache stampede](cache-stampede.md) | Complete + simulator |
 | [Tail latency](tail-latency.md) | First release + simulator |
-| [Cache strategies](cache-strategies.md) | Planned |
+| [Cache strategies](cache-strategies.md) | Complete |

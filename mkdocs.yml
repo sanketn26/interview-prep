@@ -152,10 +152,18 @@ nav:
       - URL Shortener: system-design-exercises/url-shortener.md
       - Rate Limiter: system-design-exercises/rate-limiter.md
       - Distributed Cache: system-design-exercises/distributed-cache.md
+      - Load Balancer: system-design-exercises/load-balancer.md
+      - Autocomplete / Typeahead: system-design-exercises/autocomplete.md
+    - Infrastructure:
+      - API Gateway: system-design-exercises/api-gateway.md
+      - Distributed KV Store: system-design-exercises/distributed-kv-store.md
+      - Web Crawler: system-design-exercises/web-crawler.md
     - Commerce:
       - Payment Processing: system-design-exercises/payment-processing.md
     - Communication:
       - WhatsApp / Messaging: system-design-exercises/whatsapp.md
+      - Notification System: system-design-exercises/notification-system.md
+      - Social Feed (Twitter/X): system-design-exercises/social-feed.md
   - DSA:
     - dsa/index.md
     - Foundations:

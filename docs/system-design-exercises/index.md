@@ -15,10 +15,18 @@ Work each exercise with the solution covered. V1 is always the simplest useful s
 | [Rate limiter](rate-limiter.md) | Foundation / Senior | Complete |
 | [Payment processing](payment-processing.md) | Senior / Staff | Complete |
 | [WhatsApp / messaging](whatsapp.md) | Senior / Staff | Complete |
+| [Distributed cache](distributed-cache.md) | Foundation / Senior | Complete |
+| [Load balancer](load-balancer.md) | Foundation | Complete |
+| [Autocomplete / typeahead](autocomplete.md) | Senior | Complete |
+| [API gateway](api-gateway.md) | Senior | Complete |
+| [Distributed KV store](distributed-kv-store.md) | Staff | Complete |
+| [Web crawler](web-crawler.md) | Senior / Staff | Complete |
+| [Notification system](notification-system.md) | Senior | Complete |
+| [Social feed (Twitter/X)](social-feed.md) | Staff | Complete |
 
 ## Planned
 
-Distributed cache, load balancer, API gateway, notifications, crawler, autocomplete, KV store, feeds, Instagram, YouTube/Netflix, Uber, maps, food delivery, commerce, bookings, auctions, Drive, search, recs, ads, metrics, logs, job scheduler, queues, collab editor, deploy, video call, ride tracking, distributed orders.
+Instagram, YouTube/Netflix, Uber, maps, food delivery, commerce, bookings, auctions, Drive, search, recommendations, ad serving, metrics, log aggregation, job scheduler, distributed message queue, collab editor, code deployment, video call, ride tracking, distributed orders, Pastebin, ticket booking, hotel booking, flight booking, online auction.
 
 These will be written to the same bar as URL shortener. They are **not** complete.
 
