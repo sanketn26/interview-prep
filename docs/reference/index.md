@@ -1,12 +1,15 @@
 ---
 title: Reference
+description: Calculators and cheat sheets. Deep teaching lives on the concept pages.
 ---
 
 # Reference
 
-!!! info "Section Overview"
-    This section is part of the Senior Engineer Academy. Use the left navigation or the links below to explore topics.
+| Page | Status |
+|------|--------|
+| [Calculators](calculators.md) | First release |
+| [Cheat sheets](cheat-sheets.md) | Planned |
+| [Glossary](glossary.md) | Planned |
+| [Trade-off matrix](tradeoff-matrix.md) | Planned |
 
----
-
-*Navigate using the sidebar or tabs above.*
+[Playgrounds](../playgrounds/index.md) lists every working simulation.

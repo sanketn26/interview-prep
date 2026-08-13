@@ -24,6 +24,8 @@ jobs:
       - name: Build MkDocs (strict mode — fails on warnings)
         run: mkdocs build --strict
 
-      - name: Check for broken internal links
-        run: |
-          echo "MkDocs build succeeded — internal links validated"
+      - name: Python example tests
+        run: pytest tests/python -q
+
+      - name: JavaScript syntax
+        run: node --check docs/assets/js/simulations.js

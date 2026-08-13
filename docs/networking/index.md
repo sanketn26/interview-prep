@@ -1,12 +1,11 @@
 ---
 title: Networking
+description: The request path before your code: DNS, TCP, TLS, then the load balancer.
 ---
 
 # Networking
 
-!!! info "Section Overview"
-    This section is part of the Senior Engineer Academy. Use the left navigation or the links below to explore topics.
-
----
-
-*Navigate using the sidebar or tabs above.*
+| Page | Status |
+|------|--------|
+| [HTTP & TCP](http-tcp.md) | First release + DNS/TCP sims |
+| [Load balancing](load-balancing.md) | First release + visualizer |

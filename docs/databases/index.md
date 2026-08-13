@@ -1,12 +1,13 @@
 ---
-title: Databases
+title: Databases at Scale
+description: Access patterns pick the store. Sharding is what you do when one primary cannot take the writes.
 ---
 
-# Databases
+# Databases at Scale
 
-!!! info "Section Overview"
-    This section is part of the Senior Engineer Academy. Use the left navigation or the links below to explore topics.
-
----
-
-*Navigate using the sidebar or tabs above.*
+| Page | Status |
+|------|--------|
+| [Sharding](sharding.md) | Complete + simulator |
+| [Consistent hashing](consistent-hashing.md) | Complete + ring |
+| [SQL vs NoSQL](sql-vs-nosql.md) | Planned |
+| [Indexing & storage engines](indexing.md) | Planned |

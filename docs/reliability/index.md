@@ -1,12 +1,12 @@
 ---
-title: Reliability Engineering
+title: Reliability
+description: Retries without a budget are an amplifier. Limiters and breakers are how you stay up.
 ---
 
-# Reliability Engineering
+# Reliability
 
-!!! info "Section Overview"
-    This section is part of the Senior Engineer Academy. Use the left navigation or the links below to explore topics.
-
----
-
-*Navigate using the sidebar or tabs above.*
+| Page | Status |
+|------|--------|
+| [Rate limiting](rate-limiting.md) | Complete + simulator |
+| [Circuit breakers](circuit-breakers.md) | First release + retry-storm sim |
+| [Failure library](failure-library.md) | Planned (scenarios live in the [debugging playbook](../observability/debugging-playbook.md)) |

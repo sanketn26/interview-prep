@@ -38,7 +38,17 @@ hide:
 -   :material-lightning-bolt: **[Design Exercises](system-design-exercises/index.md)**
 
     ---
-    30+ complete guided system design modules with progressive architecture evolution.
+    Gold-standard guided designs (URL shortener, rate limiter, WhatsApp, payments). More exercises are planned, not faked.
+
+-   :material-play-circle: **[Playgrounds](playgrounds/index.md)**
+
+    ---
+    Fifteen priority simulations: hashing, Kafka, Raft, retry storms, K8s request flow, capacity.
+
+-   :material-checkbox-marked-outline: **[Project Status](project-status.md)**
+
+    ---
+    Honest Complete / Interactive / Planned. Never treat a stub as finished.
 
 </div>
 
@@ -75,18 +85,26 @@ Every concept answers: **WHAT? WHY? HOW? WHEN? WHAT BREAKS? WHAT ARE THE TRADE-O
 
 | Module | Type | Status |
 |--------|------|--------|
-| [CAP Theorem](distributed-systems/cap-theorem.md) | Concept | ✅ Complete |
-| [Database Sharding](databases/sharding.md) | Concept | ✅ Complete |
-| [Consistent Hashing](databases/consistent-hashing.md) | Concept + Simulation | ✅ Complete |
-| [Kafka Consumer Groups](messaging/kafka.md) | Concept + Simulation | ✅ Complete |
-| [Cache Stampede](performance/cache-stampede.md) | Concept + Simulation | ✅ Complete |
-| [Rate Limiting](reliability/rate-limiting.md) | Concept + Simulation | ✅ Complete |
-| [URL Shortener](system-design-exercises/url-shortener.md) | Design Exercise | ✅ Complete |
-| [Payment Processing](system-design-exercises/payment-processing.md) | Design Exercise | ✅ Complete |
-| [Sliding Window](dsa/sliding-window.md) | DSA + Visualizer | ✅ Complete |
-| [BFS & DFS](dsa/bfs-dfs.md) | DSA + Visualizer | ✅ Complete |
-| [Technical Disagreement](behavioural/technical-disagreement.md) | Behavioural | ✅ Complete |
-| [Production Incident](behavioural/production-incident.md) | Behavioural | ✅ Complete |
+| [Design methodology](foundations/framework.md) | Concept | First release |
+| [CAP Theorem](distributed-systems/cap-theorem.md) | Concept | First release |
+| [Database Sharding](databases/sharding.md) | Concept + sim | First release |
+| [Consistent Hashing](databases/consistent-hashing.md) | Concept + sim | First release |
+| [Kafka Consumer Groups](messaging/kafka.md) | Concept + sim | First release |
+| [Cache Stampede](performance/cache-stampede.md) | Concept + sim | First release |
+| [Circuit breaker](reliability/circuit-breakers.md) | Concept + sim | First release |
+| [Tail latency](performance/tail-latency.md) | Concept + sim | First release |
+| [Raft](distributed-systems/raft.md) | Concept + sim | First release |
+| [URL Shortener](system-design-exercises/url-shortener.md) | Design | First release |
+| [Rate limiter](system-design-exercises/rate-limiter.md) | Design | First release |
+| [WhatsApp](system-design-exercises/whatsapp.md) | Design | First release |
+| [Payment Processing](system-design-exercises/payment-processing.md) | Design | First release |
+| [Sliding Window](dsa/sliding-window.md) | DSA | First release |
+| [BFS & DFS](dsa/bfs-dfs.md) | DSA | First release |
+| [Dynamic programming](dsa/dynamic-programming.md) | DSA | First release |
+| [Technical Disagreement](behavioural/technical-disagreement.md) | Behavioural | First release |
+| [Production Incident](behavioural/production-incident.md) | Behavioural | First release |
+| [Debugging playbook](observability/debugging-playbook.md) | Production | First release |
+| [Kubernetes debugging](kubernetes/index.md) | Production | First release |
 
 ## Local Development
 

@@ -88,15 +88,17 @@ graph LR
 
   <div class="sim-controls">
     <button class="sim-btn success" onclick="window._kafka && window._kafka.start()">▶ Start Producer</button>
-    <button class="sim-btn danger" onclick="window._kafka && window._kafka.stop()">⏹ Stop Producer</button>
-    <button class="sim-btn" onclick="window._kafka && window._kafka.addPartition()">+ Add Partition</button>
-    <button class="sim-btn danger" onclick="window._kafka && window._kafka.killConsumer(0)">💀 Kill C0</button>
-    <button class="sim-btn danger" onclick="window._kafka && window._kafka.killConsumer(1)">💀 Kill C1</button>
-    <button class="sim-btn success" onclick="window._kafka && window._kafka.reviveConsumer(0)">♻ Revive C0</button>
-    <button class="sim-btn success" onclick="window._kafka && window._kafka.reviveConsumer(1)">♻ Revive C1</button>
+    <button class="sim-btn" onclick="window._kafka && window._kafka.pause()">Pause</button>
+    <button class="sim-btn" onclick="window._kafka && window._kafka.reset()">Reset</button>
+    <button class="sim-btn" onclick="window._kafka && window._kafka.addPartition()">+ Partition</button>
+    <button class="sim-btn" onclick="window._kafka && window._kafka.addConsumer()">+ Consumer</button>
+    <button class="sim-btn danger" onclick="window._kafka && window._kafka.killConsumer(0)">Kill C0</button>
+    <button class="sim-btn danger" onclick="window._kafka && window._kafka.killConsumer(1)">Kill C1</button>
+    <button class="sim-btn success" onclick="window._kafka && window._kafka.reviveConsumer(0)">Revive C0</button>
+    <button class="sim-btn danger" onclick="window._kafka && window._kafka.setHotKey(true)">Hot key</button>
   </div>
 
-  <div id="kafka-canvas"></div>
+  <canvas id="kafka-canvas" class="sim-canvas" style="width:100%;height:220px;"></canvas>
 
   <div class="sim-stats">
     <div class="sim-stat">

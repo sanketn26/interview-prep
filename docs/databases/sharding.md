@@ -79,6 +79,31 @@ graph TD
 
 ---
 
+## Interactive Simulation
+
+Four hash shards. Run write load, then **Hot key 70%** — consistent hashing cannot save a celebrity `user_id`. Add a shard to see modular hash remap everything; **Reshard** simulates the even cutover you wish you had.
+
+<div class="sim-container">
+  <div class="sim-title">Database Sharding</div>
+  <div class="sim-controls">
+    <button class="sim-btn" onclick="window._shard && window._shard.reset()">Reset</button>
+    <button class="sim-btn success" onclick="window._shard && window._shard.run()">Write load</button>
+    <button class="sim-btn" onclick="window._shard && window._shard.pause()">Pause</button>
+    <button class="sim-btn" onclick="window._shard && window._shard.addShard()">Add shard</button>
+    <button class="sim-btn danger" onclick="window._shard && window._shard.hotKey()">Hot key 70%</button>
+    <button class="sim-btn" onclick="window._shard && window._shard.reshard()">Reshard</button>
+  </div>
+  <canvas id="shard-canvas" class="sim-canvas" style="width:100%;height:240px;"></canvas>
+  <div class="sim-stats">
+    <div class="sim-stat"><div class="sim-stat-label">Shards</div><div class="sim-stat-value" id="shard-n">4</div></div>
+    <div class="sim-stat"><div class="sim-stat-label">Hot shard</div><div class="sim-stat-value" id="shard-hot">—</div></div>
+    <div class="sim-stat"><div class="sim-stat-label">Writes</div><div class="sim-stat-value" id="shard-w">0</div></div>
+  </div>
+  <div class="sim-log" id="shard-log"></div>
+</div>
+
+---
+
 ## Choosing a Shard Key
 
 **Good shard keys:**
@@ -127,7 +152,48 @@ Adding new shards requires moving data. With consistent hashing, only K/N keys m
 ### Distributed Transactions
 A transaction touching data on multiple shards requires a distributed transaction protocol (2PC) — complex, slow, and failure-prone.
 
-**Better solution:** Design shard key so related data is co-located (no cross-shard transactions).
+**Better solution:** Design shard key so related data is co-located (no cross-shard transactions). See [Sagas](../architecture-patterns/sagas.md) when a business flow must touch two shards anyway.
+
+---
+
+## Production Debugging
+
+```
+Symptom: One shard's CPU is 90%, others 20%. p99 only for some users.
+
+1. Per-shard QPS, CPU, IOPS, replication lag
+   → if one shard: hot key or bad range. if all: you need more shards or bigger boxes.
+2. Top keys / tenants by request rate
+   → celebrity user_id, one tenant, one viral SKU
+3. Router metrics: scatter-gather fan-out
+   → a missing shard key in the WHERE clause
+4. After a reshard: dual-write mismatch rate
+   → checksum row counts and sampled hashes
+5. Cross-shard TX failures / 2PC coordinator logs
+   → you accidentally coupled two user_ids in one checkout
+```
+
+**Metrics:** `qps{shard}`, `cpu{shard}`, `rows{shard}`, `scatter_queries`, `reshard_lag`, `hot_key_share`.
+
+---
+
+## Scaling Limits
+
+- Modular `hash % N` is fine until the first reshard. Plan consistent hashing or a directory *before* you are on fire.
+- A single hot key is a **vertical** problem; more shards do not help.
+- Cross-shard joins at request time will not survive 50 shards. Reporting belongs on a warehouse.
+- Practical primary count: dozens is routine; hundreds needs automation for schema, backups, and failover.
+
+---
+
+## Trade-offs
+
+| Dimension | Range | Hash | Directory |
+|-----------|-------|------|-----------|
+| Even load | Poor if time-skewed | Good (except hot keys) | As good as your placement |
+| Range queries | Excellent | Scatter-gather | Depends |
+| Reshard cost | Split a range | Almost all keys (mod N) | Move listed keys |
+| Extra hop | No | No | Yes (cache the map) |
 
 ---
 

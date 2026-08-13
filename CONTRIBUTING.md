@@ -13,6 +13,8 @@ Before submitting, ask: *After reading this page, can the engineer:*
 
 If **no** to any → improve before submitting.
 
+Update [`docs/project-status.md`](docs/project-status.md) with every page. Never mark a stub complete. Do not add dozens of empty exercises for coverage.
+
 ## Content Structure
 
 Every concept page must include:
@@ -45,7 +47,7 @@ mkdocs serve
 
 ## Adding Interactive Simulations
 
-Simulations live in `assets/js/simulations.js`. Follow the existing class patterns:
+Simulations live in `docs/assets/js/simulations.js` (copied to `assets/js/` for the repo-root mirror). Follow the existing class patterns:
 - Constructor takes `containerId` and `logId`
 - Expose public methods for UI buttons
 - Use `log()` helper for the log panel

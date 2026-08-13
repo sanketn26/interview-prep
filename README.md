@@ -1,91 +1,114 @@
-# 🎓 Senior Engineer Academy
+# Senior Engineer Academy
 
-> **A production-quality interactive learning environment for senior software engineers targeting Staff / Senior / Lead roles.**
+A guided learning platform for senior / staff / lead engineers targeting ₹40–70+ LPA-equivalent roles. Three tracks: **System Design & Distributed Systems**, **DSA**, and **Behavioural / Leadership**.
+
+This is not a pile of interview notes. It is an interactive textbook + design lab + troubleshooting handbook: you learn to **derive** architectures (requirements → constraints → scale → data model → interfaces → bottlenecks → reliability → cost → evolution), not memorize boxes.
 
 [![Deploy to GitHub Pages](https://github.com/sanketn26/interview-prep/actions/workflows/deploy.yml/badge.svg)](https://github.com/sanketn26/interview-prep/actions/workflows/deploy.yml)
 [![Validate PR](https://github.com/sanketn26/interview-prep/actions/workflows/validate.yml/badge.svg)](https://github.com/sanketn26/interview-prep/actions/workflows/validate.yml)
 
-📚 **[Open the Academy →](https://sanketn26.github.io/interview-prep/)**
+**[Open the Academy →](https://sanketn26.github.io/interview-prep/)**
 
 ---
 
-## What Is This?
+## Who it is for
 
-This is NOT interview notes. It is a **guided engineering academy** where concepts build on each other. It combines:
+Senior backend / platform / infra engineers, SREs, DevOps, tech leads, Staff candidates.
 
-- **System Design** — CAP, sharding, Kafka, caching, reliability, Kubernetes, cloud
-- **DSA** — Problem-solving patterns with animated visualizers
-- **Behavioural** — STAR framework, seniority differentiation, Staff-level examples
-- **Distributed Systems** — Raft, consensus, multi-region, disaster recovery
-- **Production Engineering** — Debugging playbooks, failure scenarios, incident analysis
-- **Interactive Simulations** — Consistent hashing ring, Kafka partitions, cache stampede, rate limiter, BFS/DFS
+**Assumes:** programming fundamentals.
 
-**Guiding principle:** Do not teach people to memorize architectures. Teach them how to **derive** architectures from requirements, constraints, failure modes, and trade-offs.
+**Does not assume:** distributed systems, large-scale databases, consensus, networking internals, streams, Kubernetes internals, production debugging, or capacity planning.
 
 ---
 
-## Who Is This For?
+## What you will be able to do
 
-- Senior Software / Backend / Platform / Distributed Systems Engineers
-- Staff Engineer & Tech Lead candidates
-- Senior SRE/DevOps engineers
-- Engineers targeting **₹40–70+ LPA** (India) or equivalent global senior interviews
-
-**Assumes:** Basic programming knowledge
-**Does not assume:** Deep distributed-systems knowledge
+> Given an unfamiliar system, derive a sensible architecture, explain alternatives, name bottlenecks, predict failures, debug it, and evolve it.
 
 ---
 
-## What Will I Learn?
+## First release (study this)
 
-> *Give me an unfamiliar system, its workload and constraints, and I can derive a sensible architecture, explain its trade-offs, predict how it will fail, debug it in production, and evolve it as the organization and scale grow.*
+Gold-standard modules at final quality. Everything else is **planned** — see [project status](docs/project-status.md). Do not treat stubs as complete.
 
----
+| Module | Track |
+|--------|--------|
+| [Design methodology](docs/foundations/framework.md) + [capacity calculator](docs/foundations/requirements-estimation.md) | Foundations |
+| [CAP](docs/distributed-systems/cap-theorem.md), [sharding](docs/databases/sharding.md), [consistent hashing](docs/databases/consistent-hashing.md), [Raft](docs/distributed-systems/raft.md) | Distributed / data |
+| [Kafka consumer groups](docs/messaging/kafka.md), [cache stampede](docs/performance/cache-stampede.md), [circuit breaker](docs/reliability/circuit-breakers.md), [tail latency](docs/performance/tail-latency.md) | Runtime |
+| [URL shortener](docs/system-design-exercises/url-shortener.md), [rate limiter](docs/system-design-exercises/rate-limiter.md), [WhatsApp](docs/system-design-exercises/whatsapp.md), [payments](docs/system-design-exercises/payment-processing.md) | Design exercises |
+| [Sliding window](docs/dsa/sliding-window.md), [BFS/DFS](docs/dsa/bfs-dfs.md), [DP](docs/dsa/dynamic-programming.md) | DSA |
+| [Technical disagreement](docs/behavioural/technical-disagreement.md), [production incident](docs/behavioural/production-incident.md) | Behavioural |
+| [Debugging high p99 / Kafka lag](docs/observability/debugging-playbook.md), [K8s debugging](docs/kubernetes/index.md) | Production |
 
-## Contents
-
-### ✅ Gold-Standard Modules (Complete)
-
-| Module | Type |
-|--------|------|
-| CAP Theorem | Core Concept |
-| Database Sharding | Core Concept |
-| Consistent Hashing + Simulation | Concept + Interactive |
-| Kafka Consumer Groups + Simulation | Concept + Interactive |
-| Cache Stampede + Simulation | Concept + Interactive |
-| Rate Limiting + Simulation | Concept + Interactive |
-| URL Shortener | System Design Exercise |
-| Payment Processing | System Design Exercise |
-| Sliding Window + Visualizer | DSA + Interactive |
-| BFS & DFS + Visualizer | DSA + Interactive |
-| Technical Disagreement | Behavioural |
-| Production Incident | Behavioural |
+**15 priority simulations** (hash ring, sharding, Kafka, stampede, rate limiter, load balancer, retry storm, circuit breaker, Raft, saga, tail latency, DNS, TCP, K8s flow, capacity calculator) live on those pages and are indexed from [Playgrounds](docs/playgrounds/index.md).
 
 ---
 
-## Local Development
+## How to study
+
+Read [How to Study](docs/how-to-use.md) and the [roadmap](docs/roadmap.md). Short version:
+
+1. Open with the problem, not the definition.
+2. Predict the simulation before you click.
+3. For designs: cover the solution, ask questions, estimate, V1 → bottleneck → V2. Never start from the finished diagram.
+
+---
+
+## Local development
 
 ```bash
 git clone https://github.com/sanketn26/interview-prep.git
 cd interview-prep
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 mkdocs serve
 ```
 
-Open [http://127.0.0.1:8000](http://127.0.0.1:8000)
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+```bash
+mkdocs build --strict              # what CI runs
+pytest tests/python                # example libraries
+bash scripts/validate.sh           # tests + JS syntax
+```
+
+Windows: use `py -3 -m venv .venv` then `.venv\Scripts\activate`.
+
+No backend. Interactivity is static JS; examples are local Python / Go.
+
+---
+
+## Deploy
+
+Pushes to `main` run [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): `mkdocs build --strict` → GitHub Pages.
+
+PRs run [`.github/workflows/validate.yml`](.github/workflows/validate.yml): build, pytest, JS syntax check.
+
+---
+
+## Repo layout
+
+| Path | Role |
+|------|------|
+| `docs/` | Curriculum (MkDocs) |
+| `docs/assets/` | CSS / JS simulations / logo |
+| `examples/python`, `examples/go` | Executable algorithms |
+| `tests/` | pytest for examples |
+| `scripts/` | Local validation |
+| `.github/workflows/` | Build, validate, Pages |
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). All contributions must maintain the quality standard:
+See [CONTRIBUTING.md](CONTRIBUTING.md). Quality gate:
 
-> After reading a page: Can the engineer explain it in an interview? Recognize where it applies? Identify when it fails? Debug it in production? Explain trade-offs to another senior engineer? If no → improve.
+> After this page, can the engineer explain it, apply it, say when it fails, debug it, and teach the trade-offs? If not, it is not done.
 
----
+Never mark a stub complete. Update `docs/project-status.md` with the page.
 
 ## License
 
-MIT License — see [LICENSE](LICENSE).
+MIT — see [LICENSE](LICENSE).

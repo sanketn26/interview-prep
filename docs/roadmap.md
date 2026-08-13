@@ -26,13 +26,13 @@ flowchart LR
 
 ### Topics
 
-- [x] Distributed Systems Concepts (CAP, consistency, replication)
-- [x] Databases at Scale (sharding, consistent hashing, SQL vs NoSQL)
-- [x] Kafka & Messaging
-- [x] Networking Fundamentals (HTTP, TCP, DNS, TLS)
-- [x] Caching (Redis, strategies, invalidation)
-- [x] API Design (REST, gRPC, GraphQL, idempotency)
-- [x] System Design Framework (requirements → estimation → API → data model → bottlenecks)
+- [x] Distributed Systems Concepts (CAP; consistency/replication pages still planned)
+- [x] Databases at Scale (sharding + consistent hashing; SQL vs NoSQL / indexing planned)
+- [x] Kafka consumer groups (broader MQ comparison planned)
+- [x] Networking first slice (HTTP/TCP/DNS + load balancing sims)
+- [x] Cache stampede (full cache-strategy catalog planned)
+- [ ] API Design (REST, gRPC, GraphQL, idempotency) — planned
+- [x] System Design Framework + capacity calculator
 
 ### Exit Criteria
 
@@ -48,11 +48,11 @@ flowchart LR
 
 - [ ] Event-Driven Architecture
 - [ ] Event Sourcing & CQRS
-- [ ] Saga Pattern (choreography & orchestration)
-- [ ] Caching Strategies (stampede, penetration, avalanche)
-- [ ] Reliability Engineering (circuit breakers, retries, bulkheads)
+- [x] Saga Pattern (first-release orchestrator simulator)
+- [x] Cache stampede (penetration/avalanche catalog still planned)
+- [x] Circuit breaker + retry storm (bulkheads / shedding planned)
 - [ ] API Gateway & Service Mesh
-- [ ] Observability (metrics, tracing, SLI/SLO)
+- [ ] Observability (metrics, tracing, SLI/SLO) — debugging playbook shipped
 - [ ] Microservices vs Monolith
 
 ### Exit Criteria
@@ -67,10 +67,10 @@ flowchart LR
 
 ### Topics
 
-- [ ] Raft Consensus & Leader Election
+- [x] Raft consensus & leader election (simulator)
 - [ ] Multi-Region Architecture & Disaster Recovery
-- [ ] Tail Latency & Performance Engineering
-- [ ] Production Debugging (p99, connection pools, GC, HOL blocking)
+- [x] Tail latency (simulator + debugging playbook)
+- [x] Production debugging (high p99, Kafka lag)
 - [ ] Cost Engineering & FinOps
 - [ ] AI-Native System Design
 - [ ] Architecture Reviews (scalability, reliability, security, cost)

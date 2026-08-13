@@ -98,6 +98,7 @@ nav:
     - Roadmap: roadmap.md
     - How to Study: how-to-use.md
     - Interview Framework: interview-playbook/framework.md
+    - Project Status: project-status.md
   - System Design:
     - Fundamentals:
       - foundations/index.md
@@ -120,10 +121,14 @@ nav:
       - performance/index.md
       - Cache Stampede: performance/cache-stampede.md
       - Cache Strategies: performance/cache-strategies.md
+      - Tail Latency: performance/tail-latency.md
     - Messaging:
       - messaging/index.md
       - Kafka Deep Dive: messaging/kafka.md
       - Message Queue Patterns: messaging/patterns.md
+    - Architecture Patterns:
+      - architecture-patterns/index.md
+      - Sagas: architecture-patterns/sagas.md
     - Networking:
       - networking/index.md
       - HTTP & TCP Deep Dive: networking/http-tcp.md
@@ -173,6 +178,8 @@ nav:
   - Production Engineering:
     - Failure Library: reliability/failure-library.md
     - Debugging Playbook: observability/debugging-playbook.md
+  - Playgrounds:
+    - playgrounds/index.md
   - Reference:
     - reference/index.md
     - Cheat Sheets: reference/cheat-sheets.md

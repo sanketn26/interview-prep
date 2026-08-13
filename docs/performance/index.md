@@ -1,12 +1,12 @@
 ---
 title: Caching & Performance
+description: Caches hide load until they expire together. Averages hide outages.
 ---
 
 # Caching & Performance
 
-!!! info "Section Overview"
-    This section is part of the Senior Engineer Academy. Use the left navigation or the links below to explore topics.
-
----
-
-*Navigate using the sidebar or tabs above.*
+| Page | Status |
+|------|--------|
+| [Cache stampede](cache-stampede.md) | Complete + simulator |
+| [Tail latency](tail-latency.md) | First release + simulator |
+| [Cache strategies](cache-strategies.md) | Planned |

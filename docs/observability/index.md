@@ -1,12 +1,10 @@
 ---
 title: Observability
+description: You cannot debug what you cannot see. Start from the symptom, not the dashboard wallpaper.
 ---
 
 # Observability
 
-!!! info "Section Overview"
-    This section is part of the Senior Engineer Academy. Use the left navigation or the links below to explore topics.
-
----
-
-*Navigate using the sidebar or tabs above.*
+| Page | Status |
+|------|--------|
+| [Debugging playbook](debugging-playbook.md) | First release — high p99 + Kafka lag |

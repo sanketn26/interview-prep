@@ -1,12 +1,15 @@
 ---
 title: Distributed Systems
+description: Partial failure is the default. Remote calls are not function calls.
 ---
 
 # Distributed Systems
 
-!!! info "Section Overview"
-    This section is part of the Senior Engineer Academy. Use the left navigation or the links below to explore topics.
+A remote call can fail, time out, succeed after you gave up, run twice, or arrive out of order.
 
----
-
-*Navigate using the sidebar or tabs above.*
+| Page | Status |
+|------|--------|
+| [CAP theorem](cap-theorem.md) | Complete |
+| [Raft](raft.md) | First release + simulator |
+| [Consistency models](consistency-models.md) | Planned |
+| [Replication](replication.md) | Planned |

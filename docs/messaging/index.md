@@ -1,12 +1,12 @@
 ---
 title: Messaging
+description: 1 producer → 1 partition → 1 consumer works until it does not.
 ---
 
 # Messaging
 
-!!! info "Section Overview"
-    This section is part of the Senior Engineer Academy. Use the left navigation or the links below to explore topics.
-
----
-
-*Navigate using the sidebar or tabs above.*
+| Page | Status |
+|------|--------|
+| [Kafka consumer groups](kafka.md) | Complete + simulator |
+| [Queue patterns](patterns.md) | Planned |
+| [Sagas](../architecture-patterns/sagas.md) | First release + simulator |

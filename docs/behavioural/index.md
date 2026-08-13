@@ -1,12 +1,15 @@
 ---
-title: Behavioural Interviews
+title: Behavioural & Leadership
+description: STAR + Reflection. Engineering judgement, not corporate storytelling.
 ---
 
-# Behavioural Interviews
+# Behavioural & Leadership
 
-!!! info "Section Overview"
-    This section is part of the Senior Engineer Academy. Use the left navigation or the links below to explore topics.
+One story, three seniority levels. Measure impact. Own the failure class, not just the ticket.
 
----
-
-*Navigate using the sidebar or tabs above.*
+| Page | Status |
+|------|--------|
+| [Framework (STAR + Reflection)](framework.md) | First release |
+| [Technical disagreement](technical-disagreement.md) | Complete |
+| [Leading a production incident](production-incident.md) | Complete |
+| [Failure & learning](failure-learning.md) | Planned |

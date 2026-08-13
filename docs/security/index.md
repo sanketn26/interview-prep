@@ -1,12 +1,10 @@
 ---
 title: Security
+description: Every design exercise includes a threat model. This section will hold the shared primitives.
 ---
 
 # Security
 
-!!! info "Section Overview"
-    This section is part of the Senior Engineer Academy. Use the left navigation or the links below to explore topics.
+Planned: TLS, encryption at rest, secrets/rotation, least privilege, RBAC/ABAC, Zero Trust, identity → authN → authZ → policy, JWT misuse.
 
----
-
-*Navigate using the sidebar or tabs above.*
+Until this section is written, treat security as a mandatory step in the [design framework](../foundations/framework.md) and in each gold-standard exercise.
