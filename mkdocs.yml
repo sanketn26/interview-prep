@@ -82,6 +82,7 @@ extra_css:
 
 extra_javascript:
   - assets/js/simulations.js
+  - assets/js/progress.js
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js
 
 extra:
@@ -98,6 +99,7 @@ nav:
     - Roadmap: roadmap.md
     - How to Study: how-to-use.md
     - Interview Framework: interview-playbook/framework.md
+    - Your Progress: dashboard.md
     - Project Status: project-status.md
   - System Design:
     - Fundamentals:

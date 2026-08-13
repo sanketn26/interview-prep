@@ -111,6 +111,8 @@ For each system design exercise:
 
 ## Progress Tracking
 
+Every page has a **Mark this page complete** button — check [Your Progress](dashboard.md) for your overall completion, streak, and points across the curriculum.
+
 Use this self-assessment after each module:
 
 - [ ] Can I explain this concept clearly in 2 minutes?
