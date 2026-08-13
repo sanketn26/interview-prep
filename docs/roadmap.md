@@ -5,6 +5,17 @@ description: 3-phase learning path from "I can build an API" to reasoning about 
 
 # Senior Engineer Roadmap
 
+## Your Progress Through the Phases
+
+Bars below reflect pages **you** have marked complete, via the **Mark this page complete** button under each page title.
+
+<div id="roadmap-progress"></div>
+
+!!! note "Two different things are tracked on this page"
+    The bars above are **your** study progress. The `[x]` checkboxes in each phase below mark whether **the content itself** has been written yet — see [Project Status](project-status.md).
+
+---
+
 ## The Journey
 
 ```mermaid
@@ -24,7 +35,7 @@ flowchart LR
 
 **Goal:** Design simple, scalable systems.
 
-### Topics
+### Topics — content availability
 
 - [x] Distributed Systems Concepts (CAP, consistency models, replication)
 - [x] Databases at Scale (sharding, consistent hashing, indexing, SQL vs NoSQL)
@@ -44,7 +55,7 @@ flowchart LR
 
 **Goal:** Identify the right architectural patterns from requirements.
 
-### Topics
+### Topics — content availability
 
 - [ ] Event-Driven Architecture
 - [ ] Event Sourcing & CQRS
@@ -65,7 +76,7 @@ flowchart LR
 
 **Goal:** Reason about complex systems, failures, and operations.
 
-### Topics
+### Topics — content availability
 
 - [x] Raft consensus & leader election (simulator)
 - [ ] Multi-Region Architecture & Disaster Recovery

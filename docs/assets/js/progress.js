@@ -38,6 +38,7 @@ const PAGE_REGISTRY = [
   { id: "ai-native/", title: "AI-Native Systems", section: "System Design" },
 
   // Design Exercises
+  { id: "system-design-exercises/", title: "Design Exercises Overview", section: "Design Exercises" },
   { id: "system-design-exercises/url-shortener/", title: "URL Shortener", section: "Design Exercises" },
   { id: "system-design-exercises/rate-limiter/", title: "Rate Limiter", section: "Design Exercises" },
   { id: "system-design-exercises/distributed-cache/", title: "Distributed Cache", section: "Design Exercises" },
@@ -52,6 +53,7 @@ const PAGE_REGISTRY = [
   { id: "system-design-exercises/social-feed/", title: "Social Feed (Twitter/X)", section: "Design Exercises" },
 
   // DSA
+  { id: "dsa/", title: "DSA Overview", section: "DSA" },
   { id: "dsa/foundations/", title: "DSA Foundations", section: "DSA" },
   { id: "dsa/sliding-window/", title: "Sliding Window", section: "DSA" },
   { id: "dsa/two-pointers/", title: "Two Pointers", section: "DSA" },
@@ -61,6 +63,7 @@ const PAGE_REGISTRY = [
   { id: "dsa/pattern-recognition/", title: "Pattern Recognition", section: "DSA" },
 
   // Behavioural
+  { id: "behavioural/", title: "Behavioural Overview", section: "Behavioural" },
   { id: "behavioural/framework/", title: "STAR + Reflection Framework", section: "Behavioural" },
   { id: "behavioural/technical-disagreement/", title: "Technical Disagreement", section: "Behavioural" },
   { id: "behavioural/production-incident/", title: "Leading a Production Incident", section: "Behavioural" },
@@ -71,13 +74,19 @@ const PAGE_REGISTRY = [
   { id: "observability/debugging-playbook/", title: "Debugging Playbook", section: "Production Engineering" },
 
   // Reference
+  { id: "reference/", title: "Reference Overview", section: "Reference" },
   { id: "reference/cheat-sheets/", title: "Cheat Sheets", section: "Reference" },
   { id: "reference/calculators/", title: "Calculators", section: "Reference" },
   { id: "reference/glossary/", title: "Glossary", section: "Reference" },
   { id: "reference/tradeoff-matrix/", title: "Trade-Off Matrix", section: "Reference" },
 
   // Getting Started
+  { id: "roadmap/", title: "Senior Engineer Roadmap", section: "Getting Started" },
+  { id: "how-to-use/", title: "How to Study", section: "Getting Started" },
   { id: "interview-playbook/framework/", title: "Interview Framework", section: "Getting Started" },
+
+  // Practice
+  { id: "playgrounds/", title: "Playgrounds", section: "Practice" },
 ];
 
 const SECTION_ORDER = [
@@ -85,6 +94,7 @@ const SECTION_ORDER = [
   "System Design",
   "Design Exercises",
   "DSA",
+  "Practice",
   "Behavioural",
   "Production Engineering",
   "Reference",
@@ -108,6 +118,52 @@ const LEVELS = [
   { min: 250, title: "Senior-Ready" },
   { min: 450, title: "Staff-Ready" },
   { min: 620, title: "Principal Track" },
+];
+
+/* Phases mirror the 3-phase plan on roadmap.md. Each entry lists the registry ids
+   that make up that phase, so the roadmap can show real completion per phase
+   instead of hand-maintained [x] checkboxes. */
+const PHASES = [
+  {
+    id: "phase-1",
+    title: "Phase 1 — Foundations",
+    goal: "Design simple, scalable systems.",
+    pages: [
+      "foundations/", "foundations/requirements-estimation/", "foundations/framework/",
+      "foundations/math/", "distributed-systems/", "distributed-systems/cap-theorem/",
+      "distributed-systems/consistency-models/", "distributed-systems/replication/",
+      "databases/", "databases/sharding/", "databases/consistent-hashing/",
+      "databases/sql-vs-nosql/", "databases/indexing/", "performance/",
+      "performance/cache-stampede/", "performance/cache-strategies/",
+      "messaging/", "messaging/kafka/", "messaging/patterns/",
+      "networking/", "networking/http-tcp/", "networking/load-balancing/",
+    ],
+  },
+  {
+    id: "phase-2",
+    title: "Phase 2 — Architecture Patterns",
+    goal: "Identify the right patterns from requirements.",
+    pages: [
+      "architecture-patterns/", "architecture-patterns/sagas/",
+      "reliability/", "reliability/circuit-breakers/", "reliability/rate-limiting/",
+      "reliability/failure-library/", "observability/", "security/",
+      "system-design-exercises/url-shortener/", "system-design-exercises/rate-limiter/",
+      "system-design-exercises/distributed-cache/", "system-design-exercises/load-balancer/",
+      "system-design-exercises/autocomplete/", "system-design-exercises/api-gateway/",
+    ],
+  },
+  {
+    id: "phase-3",
+    title: "Phase 3 — Real-World Distributed Systems",
+    goal: "Reason about complex systems, failures, and operations.",
+    pages: [
+      "distributed-systems/raft/", "performance/tail-latency/",
+      "observability/debugging-playbook/", "cloud/", "kubernetes/", "ai-native/",
+      "system-design-exercises/distributed-kv-store/", "system-design-exercises/web-crawler/",
+      "system-design-exercises/payment-processing/", "system-design-exercises/whatsapp/",
+      "system-design-exercises/notification-system/", "system-design-exercises/social-feed/",
+    ],
+  },
 ];
 
 const STORAGE_KEY = "academy.progress.v1";
@@ -198,6 +254,9 @@ const ProgressStore = {
     SECTION_ORDER.forEach((s) => (bySection[s] = { completed: 0, total: 0 }));
 
     PAGE_REGISTRY.forEach((page) => {
+      // Tolerate a section that isn't in SECTION_ORDER rather than throwing and
+      // taking the whole dashboard down with it.
+      if (!bySection[page.section]) bySection[page.section] = { completed: 0, total: 0 };
       bySection[page.section].total += 1;
       const done = Boolean(state.completed[page.id]) && !state.toggledOff[page.id];
       if (done) {
@@ -221,13 +280,35 @@ const ProgressStore = {
       bySection,
     };
     stats.badges = BADGES.map((b) => ({ ...b, earned: b.check(stats) }));
+
+    stats.phases = PHASES.map((phase) => {
+      const completed = phase.pages.filter(
+        (id) => Boolean(state.completed[id]) && !state.toggledOff[id]
+      ).length;
+      const total = phase.pages.length;
+      return {
+        id: phase.id,
+        title: phase.title,
+        goal: phase.goal,
+        completed,
+        total,
+        percent: total === 0 ? 0 : Math.round((completed / total) * 100),
+      };
+    });
+
     return stats;
   },
 };
 
+/* Match the longest registry id first. A plain endsWith() lets a short id shadow a
+   longer one — "foundations/" would otherwise swallow "dsa/foundations/" and credit
+   the wrong page — so sort by specificity and require a path-segment boundary. */
+const REGISTRY_BY_SPECIFICITY = [...PAGE_REGISTRY].sort((a, b) => b.id.length - a.id.length);
+
 function findCurrentPage() {
-  const path = window.location.pathname;
-  return PAGE_REGISTRY.find((page) => path.endsWith("/" + page.id) || path.endsWith(page.id));
+  let path = window.location.pathname;
+  if (!path.endsWith("/")) path += "/";
+  return REGISTRY_BY_SPECIFICITY.find((page) => path.endsWith("/" + page.id));
 }
 
 function injectMarkCompleteButton() {
@@ -344,9 +425,39 @@ function renderDashboard() {
   build();
 }
 
+/* Renders live phase completion on the roadmap so the learning path — not the
+   dashboard — is where progress is felt. */
+function renderRoadmapProgress() {
+  const root = document.getElementById("roadmap-progress");
+  if (!root) return;
+
+  const stats = ProgressStore.getStats();
+  root.innerHTML = "";
+
+  stats.phases.forEach((phase) => {
+    const row = document.createElement("div");
+    row.className = "progress-section-row";
+    const done = phase.percent >= 100 ? " ✅" : "";
+    row.innerHTML = `
+      <div class="progress-section-label">${phase.title}${done} <span>${phase.completed}/${phase.total}</span></div>
+      <div class="progress-bar"><div class="progress-bar-fill" style="width:${phase.percent}%"></div></div>
+      <div class="sim-explain">${phase.goal}</div>
+    `;
+    root.appendChild(row);
+  });
+
+  // Resolve relative to the roadmap's own URL so this works under a project
+  // subpath (e.g. /interview-prep/) as well as at the domain root.
+  const link = document.createElement("p");
+  const dashboardUrl = new URL("../dashboard/", window.location.href).pathname;
+  link.innerHTML = `<a href="${dashboardUrl}">See full progress, points and badges →</a>`;
+  root.appendChild(link);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   injectMarkCompleteButton();
   renderDashboard();
+  renderRoadmapProgress();
 });
 
-window.AcademyProgress = { ProgressStore, PAGE_REGISTRY, BADGES };
+window.AcademyProgress = { ProgressStore, PAGE_REGISTRY, BADGES, PHASES };

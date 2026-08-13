@@ -9,6 +9,8 @@ hide:
 
 Every page in the academy has a **Mark this page complete** button below its title. Progress, points, and streaks are stored only in this browser's `localStorage` — nothing is sent to a server, and clearing your browser data resets it.
 
+Phase-by-phase progress against the 3-phase learning path lives on the [Roadmap](roadmap.md).
+
 <div id="academy-dashboard"></div>
 
 <noscript>

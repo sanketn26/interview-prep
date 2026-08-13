@@ -93,7 +93,7 @@ PRs run [`.github/workflows/validate.yml`](.github/workflows/validate.yml): buil
 | Path | Role |
 |------|------|
 | `docs/` | Curriculum (MkDocs) |
-| `docs/assets/` | CSS / JS simulations / logo |
+| `docs/assets/` | CSS / JS simulations / progress tracking / logo — **everything served must live here** |
 | `examples/python`, `examples/go` | Executable algorithms |
 | `tests/` | pytest for examples |
 | `scripts/` | Local validation |

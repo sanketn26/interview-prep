@@ -28,4 +28,9 @@ jobs:
         run: pytest tests/python -q
 
       - name: JavaScript syntax
-        run: node --check docs/assets/js/simulations.js
+        run: |
+          node --check docs/assets/js/simulations.js
+          node --check docs/assets/js/progress.js
+
+      - name: Every extra_css/extra_javascript target exists under docs/
+        run: python scripts/check_assets.py

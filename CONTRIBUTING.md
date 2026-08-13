@@ -47,7 +47,7 @@ mkdocs serve
 
 ## Adding Interactive Simulations
 
-Simulations live in `docs/assets/js/simulations.js` (copied to `assets/js/` for the repo-root mirror). Follow the existing class patterns:
+Simulations live in `docs/assets/js/simulations.js`. Everything MkDocs serves must live under `docs/` — there is no repo-root asset mirror, and files outside `docs/` are silently omitted from the built site. Follow the existing class patterns:
 - Constructor takes `containerId` and `logId`
 - Expose public methods for UI buttons
 - Use `log()` helper for the log panel

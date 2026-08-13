@@ -20,12 +20,12 @@ hide:
     ---
     Interview modes, three-level explanation model, and how to navigate the academy.
 
--   :material-drawing-box: **[System Design](foundations/index.md)**
+-   :material-drawing-box: **[Learn — System Design](foundations/index.md)**
 
     ---
-    CAP, sharding, Kafka, caching, reliability, Kubernetes — with visual simulations.
+    CAP, sharding, Kafka, caching, reliability, observability, Kubernetes — with visual simulations.
 
--   :material-code-braces: **[DSA Patterns](dsa/index.md)**
+-   :material-code-braces: **[Practice — DSA Patterns](dsa/index.md)**
 
     ---
     Problem-solving patterns, not random LeetCode. Animated visualizers included.
@@ -40,10 +40,15 @@ hide:
     ---
     Gold-standard guided designs (URL shortener, rate limiter, WhatsApp, payments). More exercises are planned, not faked.
 
--   :material-play-circle: **[Playgrounds](playgrounds/index.md)**
+-   :material-play-circle: **[Simulations](playgrounds/index.md)**
 
     ---
     Fifteen priority simulations: hashing, Kafka, Raft, retry storms, K8s request flow, capacity.
+
+-   :material-trophy-outline: **[Your Progress](dashboard.md)**
+
+    ---
+    Points, streaks, badges and completion by section. Tracked locally in your browser.
 
 -   :material-checkbox-marked-outline: **[Project Status](project-status.md)**
 
