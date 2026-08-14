@@ -1,10 +1,84 @@
 ---
 title: Security
-description: Every design exercise includes a threat model. This section will hold the shared primitives.
+description: "Identity, encryption, and authorization. The primitives that keep systems from leaking user data."
 ---
 
 # Security
 
-Planned: TLS, encryption at rest, secrets/rotation, least privilege, RBAC/ABAC, Zero Trust, identity → authN → authZ → policy, JWT misuse.
+Security is not an afterthought — it's baked into every design. This section covers the primitives that appear in every interview:
 
-Until this section is written, treat security as a mandatory step in the [design framework](../foundations/framework.md) and in each gold-standard exercise.
+---
+
+## Why This Exists
+
+In interviews, security is often treated as a checkbox ("we use HTTPS and store passwords hashed"). But senior engineers reason about security like any other system property: threat model, trade-offs, failure modes.
+
+The questions you'll face:
+- "How does a user prove they are who they say?"
+- "How do you prevent one user from seeing another's data?"
+- "If someone steals the database, what are they actually stealing?"
+- "Can a single credential compromise be contained, or does the whole system break?"
+
+This section teaches the tools to answer them.
+
+---
+
+## Pages in This Section
+
+| Page | Status |
+|------|--------|
+| [Authentication & Authorization Fundamentals](authentication-authorization.md) | **Complete** — TLS, encryption, JWT/OAuth2, RBAC, secrets, payment system case study |
+| Zero Trust Architecture | Planned |
+| Threat Modeling | Planned |
+
+[Authentication & Authorization Fundamentals](authentication-authorization.md) covers how users prove identity (TLS, passwords, OAuth2), how data is protected (encryption, secrets management), and how permissions work (RBAC, least privilege). Includes a payment system case study where PCI compliance drives design decisions.
+
+---
+
+## Mental Model: The Security Stack
+
+```
+Layer 1: Transport Security (TLS)
+         User ←→ Network ←→ Server
+         (Encrypt the pipe so attackers on the network can't read passwords)
+
+Layer 2: Authentication
+         User proves identity (password, TOTP, biometric, OAuth2)
+         (Server: "Are you really alice?")
+
+Layer 3: Authorization
+         Server checks permissions (RBAC: "Is alice allowed to read this?")
+         (Guard: "alice is staff, so she can view any order")
+
+Layer 4: Data Protection
+         Secrets, encryption at rest, audit logs
+         (If attacker gains DB access: what do they actually get?)
+```
+
+Get layer 2 wrong and one user can impersonate another. Get layer 3 wrong and one user can access another's data. Get layer 4 wrong and a DB breach leaks passwords or payment info.
+
+---
+
+## Common Interview Weaknesses
+
+Most candidates say: "We use HTTPS, bcrypt passwords, and JWT tokens."
+
+Senior engineers add: "Here's our threat model. An attacker who gains DB access cannot impersonate users (passwords are hashed). An attacker who steals a JWT can only use it for 15 minutes (it expires). If a credential is compromised, we can revoke it without affecting other users. We log access to sensitive data (audit trail). Support staff can view orders but cannot modify them."
+
+The difference: specific trade-offs, not generic patterns.
+
+---
+
+## Key Takeaways
+
+!!! success "Remember"
+    1. **Security is a property of the system, not a feature tacked on**
+    2. **You have four layers: transport → auth → authz → data protection**
+    3. **TLS encrypts the wire; encryption at rest protects stored data**
+    4. **Passwords should be hashed (bcrypt), not encrypted** (hashing is one-way)
+    5. **Tokens should be short-lived and signed** (JWT with expiration)
+    6. **Authorization belongs in every query** — never return data without checking permissions
+    7. **Secrets should be in a secrets manager, not in files**
+    8. **One compromised credential should not compromise the whole system** (least privilege principle)
+
+**Next:** [Authentication & Authorization Fundamentals](authentication-authorization.md)

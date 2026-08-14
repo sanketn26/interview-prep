@@ -94,10 +94,24 @@ The algorithm matters less than people think, with one exception: **least-connec
 
 | Page | Status |
 |------|--------|
-| [HTTP & TCP](http-tcp.md) | First release + DNS/TCP sims |
-| [Load balancing](load-balancing.md) | First release + visualizer |
+| [HTTP & TCP](http-tcp.md) | Complete + DNS/TCP sims |
+| [Load Balancing](load-balancing.md) | Complete + visualizer |
+| [Proxies, Ingress, and Egress](proxies-ingress.md) | **Complete** — Forward/reverse proxies, K8s Ingress, egress control, AAA, payment gateway case study |
+| [Cloud Load Balancers](load-balancers-cloud.md) | **Complete** — AWS NLB/ALB/GWLB, GCP Cloud LB, Azure LB/AppGateway, cost comparison, pitfalls |
+| [Modern Protocols & Service Mesh](modern-protocols-service-mesh.md) | **Complete** — HTTP/3 (QUIC), gRPC, Istio, Linkerd, mTLS, zero-trust, eBPF observability |
+| [gRPC vs HTTP in K8s & Load Balancing](grpc-http-k8s-load-balancing.md) | **Complete** — Connection models, service discovery, hotspot problem, DNS caching, skewed traffic, failure modes, solutions |
 
-[HTTP & TCP](http-tcp.md) walks the full request path with DNS-resolution and TCP-lifecycle simulators, plus HTTP/1.1 vs 2 vs 3 and head-of-line blocking. [Load balancing](load-balancing.md) covers the algorithms with a visualizer where you can kill a backend and watch traffic redistribute.
+[HTTP & TCP](http-tcp.md) walks the full request path with DNS-resolution and TCP-lifecycle simulators, plus HTTP/1.1 vs 2 vs 3 and head-of-line blocking.
+
+[Load Balancing](load-balancing.md) covers the algorithms with a visualizer where you can kill a backend and watch traffic redistribute.
+
+[Proxies, Ingress, and Egress](proxies-ingress.md) explains forward proxies (client-side), reverse proxies (server-side), Kubernetes Ingress controllers, egress gateways, and AAA (authentication/authorization/accounting) at the proxy layer. Includes a payment API gateway case study.
+
+[Cloud Load Balancers](load-balancers-cloud.md) deep-dives AWS NLB (L4, extreme throughput), ALB (L7, HTTP routing), and GWLB (appliances), plus GCP and Azure equivalents. Covers when to use each, cost comparison, and real-world pitfalls.
+
+[Modern Protocols & Service Mesh](modern-protocols-service-mesh.md) covers latest developments in networking: HTTP/3 (QUIC) for mobile and packet-loss networks, gRPC for inter-service performance, Istio vs Linkerd service meshes with mTLS and distributed tracing, zero-trust networking (SPIFFE identity), BBR congestion control, and eBPF-based observability (Cilium/Hubble).
+
+[gRPC vs HTTP in K8s & Load Balancing](grpc-http-k8s-load-balancing.md) is the deep-dive on production issues: HTTP/1.1 pools connections (distributed), HTTP/2 multiplexes one connection (hotspot), gRPC reuses connections (hotspot). K8s service discovery: DNS caching defeats load balancing. kube-proxy iptables/IPVS behavior. L4/L7 load balancer implications. Why traffic gets skewed (DNS round-robin + connection reuse). Failure modes (slow backend cascades, connection leaks). Solutions: service mesh (Istio/Linkerd), client-side load balancing, connection pooling. Interview-focused with real scenarios.
 
 ---
 

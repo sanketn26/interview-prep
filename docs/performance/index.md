@@ -103,11 +103,12 @@ The unifying lesson: **caching is a consistency decision disguised as a performa
 
 | Page | Status |
 |------|--------|
+| [Fundamentals](fundamentals.md) | **Complete** — threads, memory, goroutine leaks, logging impact, OS tuning, profiling |
 | [Cache strategies](cache-strategies.md) | Complete |
 | [Cache stampede](cache-stampede.md) | Complete + simulator |
 | [Tail latency](tail-latency.md) | First release + simulator |
 
-Read [cache strategies](cache-strategies.md) first for the write patterns and eviction policies, then [cache stampede](cache-stampede.md) for the classic failure and its three fixes — with a simulator where you can expire a hot key and watch the database melt. [Tail latency](tail-latency.md) covers percentiles, head-of-line blocking, and hedged requests.
+Read [Fundamentals](fundamentals.md) first for the foundation — thread models (user-space vs kernel), where memory actually gets allocated, goroutine leaks, logging overhead, lock contention, and OS-level tuning. Then [cache strategies](cache-strategies.md) for write patterns and eviction policies, [cache stampede](cache-stampede.md) for the classic failure — with a simulator where you can expire a hot key and watch the database melt, and [tail latency](tail-latency.md) for percentiles and hedged requests.
 
 ---
 

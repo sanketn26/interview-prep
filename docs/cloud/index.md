@@ -44,12 +44,13 @@ Four questions map to four pages:
 
 | Page | Covers |
 |------|--------|
+| [Cloud Provider Comparison](providers.md) | **NEW** — AWS/GCP/Azure mental models; VPC & Auth as foundations; service mappings across providers |
 | [Docker](docker.md) | Images vs. containers, layer caching, multi-stage builds, networking, volumes |
 | [Terraform](terraform.md) | State, plan/apply, modules, drift, blast radius |
 | [CI/CD](cicd.md) | Pipeline stages, artifact promotion, GitOps, security gates |
 | [Deployment Strategies](deployment-strategies.md) | Rolling, blue-green, canary, and 12 more — with the failure each one buys you out of |
 | [Kubernetes](../kubernetes/index.md) | Request path, probes, kubectl diagnosis |
 
-Planned: vendor-mapped IAM, managed databases, and event buses across AWS / Azure / GCP.
+[Cloud Provider Comparison](providers.md) is the entry point: it explains the mental model (VPC, Auth, then everything else is a derivative), maps AWS services to GCP/Azure equivalents, and teaches when to use each cloud.
 
 **Next:** [Docker →](docker.md)

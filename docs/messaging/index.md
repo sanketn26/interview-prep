@@ -122,10 +122,12 @@ The practical rule: **over-provision partitions early.** They are cheap; re-part
 | Page | Status |
 |------|--------|
 | [Kafka consumer groups](kafka.md) | Complete + simulator |
+| [Kafka internals & Pulsar comparison](kafka-internals-pulsar-comparison.md) | **Complete** — ISR, rebalancing, lag, exactly-once, Pulsar multi-tenancy and geo-replication |
+| [Pulsar Primer](pulsar-primer.md) | **Complete** — Architecture, setup, multi-tenancy, tiered storage, operations, migration guide |
 | [Queue patterns](patterns.md) | Complete |
 | [Sagas](../architecture-patterns/sagas.md) | First release + simulator |
 
-[Kafka](kafka.md) covers partitions, consumer groups, rebalancing and ordering, with a simulator where you can kill a consumer and watch the rebalance. [Queue patterns](patterns.md) covers pub/sub, work queues, dead-letter queues, and backpressure. [Sagas](../architecture-patterns/sagas.md) handles the case where a multi-step workflow fails halfway and you need compensating actions.
+[Kafka](kafka.md) covers partitions, consumer groups, rebalancing and ordering, with a simulator where you can kill a consumer and watch the rebalance. [Kafka internals & Pulsar](kafka-internals-pulsar-comparison.md) deep-dives in-sync replicas (the durability guarantee), rebalancing details and failure modes, consumer lag monitoring, and when to use Pulsar instead (multi-tenancy, geo-replication, stateless brokers). [Pulsar Primer](pulsar-primer.md) is the getting-started guide: architecture (stateless brokers + BookKeepers), setup, multi-tenancy configuration, tiered storage, geo-replication, and operational differences from Kafka. [Queue patterns](patterns.md) covers pub/sub, work queues, dead-letter queues, and backpressure. [Sagas](../architecture-patterns/sagas.md) handles the case where a multi-step workflow fails halfway and you need compensating actions.
 
 ---
 
