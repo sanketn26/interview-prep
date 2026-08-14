@@ -117,6 +117,13 @@ nav:
       - Consensus & Raft: distributed-systems/raft.md
     - Databases:
       - databases/index.md
+      - DDIA Concepts: databases/ddia-concepts.md
+      - PostgreSQL Deep Dive: databases/postgresql.md
+      - MongoDB Deep Dive: databases/mongodb.md
+      - Cassandra Deep Dive: databases/cassandra.md
+      - DynamoDB Deep Dive: databases/dynamodb.md
+      - Redis Deep Dive: databases/redis.md
+      - SQL Deep Dive: databases/sql-deep-dive.md
       - Database Sharding: databases/sharding.md
       - Consistent Hashing: databases/consistent-hashing.md
       - SQL vs NoSQL: databases/sql-vs-nosql.md
