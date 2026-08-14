@@ -122,16 +122,28 @@ The shard key choice is effectively permanent and determines all of the above. C
 
 ## Pages in This Section
 
-Read in this order — each depends on the previous:
+### Foundational Concepts
 
 | Page | Status |
 |------|--------|
+| [DDIA Concepts](ddia-concepts.md) | **Complete** — Replication, partitioning, transactions, consistency, quorum, consensus, CRDTs |
 | [Indexing & storage engines](indexing.md) | Complete |
 | [SQL vs NoSQL](sql-vs-nosql.md) | Complete |
 | [Sharding](sharding.md) | Complete + simulator |
 | [Consistent hashing](consistent-hashing.md) | Complete + ring |
 
-Start with [indexing](indexing.md) — B-tree vs LSM explains most of what the other pages assert. Then [SQL vs NoSQL](sql-vs-nosql.md) for choosing a store, [sharding](sharding.md) for splitting writes across machines, and [consistent hashing](consistent-hashing.md) for doing it without reshuffling the world every time a node joins.
+### Database Deep-Dives
+
+| Page | Status |
+|------|--------|
+| [PostgreSQL Deep Dive](postgresql.md) | *Coming soon* |
+| [MongoDB Deep Dive](mongodb.md) | *Coming soon* |
+| [Cassandra Deep Dive](cassandra.md) | *Coming soon* |
+| [DynamoDB Deep Dive](dynamodb.md) | *Coming soon* |
+| [Redis Deep Dive](redis.md) | *Coming soon* |
+| [SQL Deep Dive](sql-deep-dive.md) | *Coming soon* |
+
+Start with [DDIA Concepts](ddia-concepts.md) — replication, partitioning, and transactions are universal. Then [indexing](indexing.md) — B-tree vs LSM explains most of what the database pages assert. Then [SQL vs NoSQL](sql-vs-nosql.md) for choosing a store. Database deep-dives explain the specific trade-offs of each system. [Sharding](sharding.md) and [consistent hashing](consistent-hashing.md) cover distributed patterns shared across systems.
 
 ---
 
