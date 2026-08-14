@@ -10,7 +10,7 @@ prerequisites:
 
 **Prerequisites:** HTTP basics, [System Design Framework](framework.md) (pair this with steps 3–5)
 
-[← Foundations](index.md) | [Next: System Design Framework →](framework.md)
+[← Foundations](index.md) | [Next: Stateless vs Stateful →](stateless-vs-stateful.md)
 
 ---
 
@@ -287,7 +287,7 @@ Locks       row / global        → write QPS concentrated on one key
     4. RF × regions × indexes is the storage number finance will see.
     5. Estimates within 2–3× are useful; 100× misses come from forgetting peak, payload, or what you actually persist.
 
-**Previous:** [Foundations](index.md) | **Next:** [System Design Framework](framework.md)
+**Previous:** [Foundations](index.md) | **Next:** [Stateless vs Stateful](stateless-vs-stateful.md)
 
 !!! info "Staff Engineer Lens"
     Capacity reviews fail when they are annual spreadsheets. Tie estimates to SLIs: if p99 or origin QPS leaves the envelope, the estimate was a hypothesis and production falsified it. The staff move is a sensitivity table (hit 50/80/95, peak 5/10/20) in the design doc — not a single bold number.

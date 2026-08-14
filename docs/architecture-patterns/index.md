@@ -148,11 +148,14 @@ The credible interview position: **start with a modular monolith** — clear int
 | Page | Status |
 |------|--------|
 | [Sagas](sagas.md) | First release + orchestrator simulator |
+| [Microservices Communication](microservices-communication.md) | First release |
 | Event-driven architecture | Planned |
-| Event sourcing & CQRS | Planned |
+| Event sourcing & CQRS | Planned (covered in brief in Microservices Communication) |
 | Modular monolith vs microservices | Planned |
 
 [Sagas](sagas.md) covers orchestration vs choreography with a simulator where shipping fails after the card is charged and you watch compensations run. Prerequisites: [distributed systems](../distributed-systems/index.md) for why the ambiguity exists, and [messaging](../messaging/index.md) for the delivery semantics sagas depend on.
+
+[Microservices Communication](microservices-communication.md) surveys the eight patterns services use to talk to each other — REST, gRPC, queues, pub/sub, choreography, orchestration, event sourcing + CQRS, and service mesh — and what coupling each one trades away.
 
 ---
 

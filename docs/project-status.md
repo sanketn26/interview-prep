@@ -49,6 +49,15 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Diagnosing Kafka consumer lag | Complete | Playbook |
 | K8s debugging intro + request-flow sim | Complete | |
 | Load balancer / DNS / TCP / Saga sims | Interactive | Host pages in networking / architecture-patterns |
+| Docker (images, layers, networking, multi-stage builds, security) | Complete | `cloud/docker.md` — no simulation |
+| Terraform (state, plan/apply, modules, drift, blast radius) | Complete | `cloud/terraform.md` — no simulation |
+| CI/CD (pipeline stages, artifact promotion, GitOps) | Complete | `cloud/cicd.md` — no simulation |
+| Deployment strategies (15, incl. canary, blue-green, expand-contract) | Complete | `cloud/deployment-strategies.md` — no simulation |
+| Microservices communication (8 patterns) | Complete | `architecture-patterns/microservices-communication.md` — no simulation |
+| Low-Level Design pillar (OOP, SOLID, patterns, concurrency) | Complete | `low-level-design/` — 4 pages, no simulation |
+| LLD problems: Parking Lot, Elevator System, LRU Cache | Complete | `lld-exercises/` — 9-step approach, class diagrams, code, concurrency section per problem |
+| Stateless vs stateful applications | Complete | `foundations/stateless-vs-stateful.md` — no simulation |
+| Single points of failure | Complete | `reliability/single-points-of-failure.md` — no simulation |
 | DSA: foundations, two pointers, binary search, pattern recognition | Complete | Written to sliding-window.md bar |
 | Distributed systems: consistency models, replication | Complete | Cross-linked with CAP / Raft |
 | Databases: indexing, SQL vs NoSQL | Complete | |
@@ -97,11 +106,12 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 Do **not** mass-generate these as stubs.
 
 - Remaining ~27 system-design exercises (Pastebin, Uber, Netflix, …)
+- Remaining ~11 LLD problems (Tic Tac Toe, Library Management, Splitwise, ATM, Vending Machine, Chess, Car Rental, Rate Limiter LLD, Logger, Notification System LLD, Pub/Sub, Task Scheduler) — see `lld-exercises/index.md` for the tiered list. These will be written to the same bar as Parking Lot / Elevator System / LRU Cache; not stubs.
 - Security & Auth (`security/index.md` is still a 10-line stub — OAuth2/OIDC/JWT/sessions/RBAC/Zero Trust all missing)
 - Event Sourcing & CQRS deep dives (Sagas is the only pattern in this family written so far); Streams/Flink
 - Distributed fundamentals as its own concept page (Lamport/vector clocks, leader election, leases, distributed locks, split-brain — currently only asides inside replication.md/consistency-models.md)
 - Monolith vs Microservices vs Serverless
-- Cloud vendor catalog (`ai-native/`, `cloud/` are still index-only stubs), CI/CD & IaC, FinOps, AI-native serving
+- Cloud vendor catalog (`ai-native/` is still an index-only stub; `cloud/` now has Docker, Terraform, CI/CD, and Deployment Strategies but no vendor-mapped IAM/managed-DB/event-bus content yet), FinOps, AI-native serving
 - Capstone project; interview-mode tabs (Learn/Practice/Hint/Interview/Solution/Staff) as a reusable UX pattern; Go example parity for retry/queue/thread-pool/producer-consumer/distributed-lock/WebSocket/gRPC/REST
 - Deeper distributed-systems topics: vector clocks, gossip protocols, Paxos, two-phase commit, CRDTs, distributed locks, service discovery
 - Remaining DSA visualizers and topics (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp)

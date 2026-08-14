@@ -10,7 +10,7 @@ prerequisites:
 
 **Prerequisites:** [Requirements & Estimation](requirements-estimation.md), HTTP APIs
 
-[← Requirements & Estimation](requirements-estimation.md) | [Next: Engineering Mathematics →](math.md)
+[← Stateless vs Stateful](stateless-vs-stateful.md) | [Next: Engineering Mathematics →](math.md)
 
 ---
 
@@ -338,7 +338,7 @@ When "notifications are late" pages you, do not start in the FCM console.
     4. Cost and SMS/provider quotas are reliability; treat them as SLIs.
     5. v1 must be able to evolve (step 19) or you designed a demo.
 
-**Previous:** [Requirements & Estimation](requirements-estimation.md) | **Next:** [Engineering Mathematics](math.md)
+**Previous:** [Stateless vs Stateful](stateless-vs-stateful.md) | **Next:** [Engineering Mathematics](math.md)
 
 !!! info "Staff Engineer Lens"
     The 19 steps are an architecture review checklist, not an interview trick. In a design doc, steps 5, 11, 17, and 19 are the ones execs and on-call actually read. If you cannot name the first bottleneck, the first unrecoverable failure, the $ / million, and the migration off this design, you are not done — you have a diagram.

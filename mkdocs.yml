@@ -105,6 +105,7 @@ nav:
     - Fundamentals:
       - foundations/index.md
       - Requirements & Estimation: foundations/requirements-estimation.md
+      - Stateless vs Stateful: foundations/stateless-vs-stateful.md
       - System Design Framework: foundations/framework.md
       - Engineering Mathematics: foundations/math.md
     - Distributed Systems:
@@ -131,12 +132,14 @@ nav:
     - Architecture Patterns:
       - architecture-patterns/index.md
       - Sagas: architecture-patterns/sagas.md
+      - Microservices Communication: architecture-patterns/microservices-communication.md
     - Networking:
       - networking/index.md
       - HTTP & TCP Deep Dive: networking/http-tcp.md
       - Load Balancing: networking/load-balancing.md
     - Reliability:
       - reliability/index.md
+      - Single Points of Failure: reliability/single-points-of-failure.md
       - Circuit Breakers: reliability/circuit-breakers.md
       - Rate Limiting: reliability/rate-limiting.md
       - Failure Library: reliability/failure-library.md
@@ -147,9 +150,19 @@ nav:
       - security/index.md
     - Cloud & Kubernetes:
       - cloud/index.md
+      - Docker: cloud/docker.md
+      - Terraform: cloud/terraform.md
+      - CI/CD: cloud/cicd.md
+      - Deployment Strategies: cloud/deployment-strategies.md
       - kubernetes/index.md
     - AI-Native Systems:
       - ai-native/index.md
+    - Low-Level Design:
+      - low-level-design/index.md
+      - OOP Fundamentals: low-level-design/oop-fundamentals.md
+      - SOLID Principles: low-level-design/solid-principles.md
+      - Design Patterns: low-level-design/design-patterns.md
+      - Concurrency Basics: low-level-design/concurrency-basics.md
   - Practice:
     - Design Exercises:
       - system-design-exercises/index.md
@@ -165,6 +178,11 @@ nav:
       - WhatsApp / Messaging: system-design-exercises/whatsapp.md
       - Notification System: system-design-exercises/notification-system.md
       - Social Feed (Twitter/X): system-design-exercises/social-feed.md
+    - LLD Problems:
+      - lld-exercises/index.md
+      - Parking Lot: lld-exercises/parking-lot.md
+      - Elevator System: lld-exercises/elevator-system.md
+      - LRU Cache: lld-exercises/lru-cache.md
     - DSA:
       - dsa/index.md
       - Foundations: dsa/foundations.md

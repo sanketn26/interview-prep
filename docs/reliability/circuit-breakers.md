@@ -10,7 +10,7 @@ prerequisites:
 
 **Prerequisites:** [Reliability Overview](index.md), [Tail Latency](../performance/tail-latency.md)
 
-[← Reliability](index.md) | [Next: Rate Limiting →](rate-limiting.md)
+[← Single Points of Failure](single-points-of-failure.md) | [Next: Rate Limiting →](rate-limiting.md)
 
 ---
 
@@ -276,7 +276,7 @@ Dashboards that pay rent: `breaker_state`, `calls_rejected`, `retry_ratio` (out/
     4. Bulkheads stop one dep from taking the process with it.
     5. Load shed on the way *in* when *you* are the sick dep.
 
-**Previous:** [Reliability](index.md) | **Next:** [Rate Limiting](rate-limiting.md)
+**Previous:** [Single Points of Failure](single-points-of-failure.md) | **Next:** [Rate Limiting](rate-limiting.md)
 
 !!! info "Staff Engineer Lens"
     Reliability is a budget of extra load and extra latency you are willing to spend to hide faults. Staff engineers publish that budget (`retry_ratio < 1.2`, `timeout < 30% of SLO`) as SLOs on *clients*, not just servers. The circuit breaker is policy. If only one senior knows the thresholds, you do not have a platform — you have folklore.

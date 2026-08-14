@@ -4,6 +4,7 @@ const PAGE_REGISTRY = [
   // System Design
   { id: "foundations/", title: "System Design Fundamentals", section: "System Design" },
   { id: "foundations/requirements-estimation/", title: "Requirements & Estimation", section: "System Design" },
+  { id: "foundations/stateless-vs-stateful/", title: "Stateless vs Stateful", section: "System Design" },
   { id: "foundations/framework/", title: "System Design Framework", section: "System Design" },
   { id: "foundations/math/", title: "Engineering Mathematics", section: "System Design" },
   { id: "distributed-systems/", title: "Distributed Systems", section: "System Design" },
@@ -25,17 +26,28 @@ const PAGE_REGISTRY = [
   { id: "messaging/patterns/", title: "Message Queue Patterns", section: "System Design" },
   { id: "architecture-patterns/", title: "Architecture Patterns", section: "System Design" },
   { id: "architecture-patterns/sagas/", title: "Sagas", section: "System Design" },
+  { id: "architecture-patterns/microservices-communication/", title: "Microservices Communication", section: "System Design" },
   { id: "networking/", title: "Networking", section: "System Design" },
   { id: "networking/http-tcp/", title: "HTTP & TCP Deep Dive", section: "System Design" },
   { id: "networking/load-balancing/", title: "Load Balancing", section: "System Design" },
   { id: "reliability/", title: "Reliability", section: "System Design" },
+  { id: "reliability/single-points-of-failure/", title: "Single Points of Failure", section: "System Design" },
   { id: "reliability/circuit-breakers/", title: "Circuit Breakers", section: "System Design" },
   { id: "reliability/rate-limiting/", title: "Rate Limiting", section: "System Design" },
   { id: "observability/", title: "Observability", section: "System Design" },
   { id: "security/", title: "Security", section: "System Design" },
   { id: "cloud/", title: "Cloud", section: "System Design" },
+  { id: "cloud/docker/", title: "Docker", section: "System Design" },
+  { id: "cloud/terraform/", title: "Terraform", section: "System Design" },
+  { id: "cloud/cicd/", title: "CI/CD", section: "System Design" },
+  { id: "cloud/deployment-strategies/", title: "Deployment Strategies", section: "System Design" },
   { id: "kubernetes/", title: "Kubernetes", section: "System Design" },
   { id: "ai-native/", title: "AI-Native Systems", section: "System Design" },
+  { id: "low-level-design/", title: "Low-Level Design", section: "System Design" },
+  { id: "low-level-design/oop-fundamentals/", title: "OOP Fundamentals", section: "System Design" },
+  { id: "low-level-design/solid-principles/", title: "SOLID Principles", section: "System Design" },
+  { id: "low-level-design/design-patterns/", title: "Design Patterns", section: "System Design" },
+  { id: "low-level-design/concurrency-basics/", title: "Concurrency Basics", section: "System Design" },
 
   // Design Exercises
   { id: "system-design-exercises/", title: "Design Exercises Overview", section: "Design Exercises" },
@@ -51,6 +63,12 @@ const PAGE_REGISTRY = [
   { id: "system-design-exercises/whatsapp/", title: "WhatsApp / Messaging", section: "Design Exercises" },
   { id: "system-design-exercises/notification-system/", title: "Notification System", section: "Design Exercises" },
   { id: "system-design-exercises/social-feed/", title: "Social Feed (Twitter/X)", section: "Design Exercises" },
+
+  // LLD Problems
+  { id: "lld-exercises/", title: "LLD Problem Roadmap", section: "LLD Problems" },
+  { id: "lld-exercises/parking-lot/", title: "Parking Lot", section: "LLD Problems" },
+  { id: "lld-exercises/elevator-system/", title: "Elevator System", section: "LLD Problems" },
+  { id: "lld-exercises/lru-cache/", title: "LRU Cache", section: "LLD Problems" },
 
   // DSA
   { id: "dsa/", title: "DSA Overview", section: "DSA" },
@@ -93,6 +111,7 @@ const SECTION_ORDER = [
   "Getting Started",
   "System Design",
   "Design Exercises",
+  "LLD Problems",
   "DSA",
   "Practice",
   "Behavioural",
@@ -129,7 +148,7 @@ const PHASES = [
     title: "Phase 1 — Foundations",
     goal: "Design simple, scalable systems.",
     pages: [
-      "foundations/", "foundations/requirements-estimation/", "foundations/framework/",
+      "foundations/", "foundations/requirements-estimation/", "foundations/stateless-vs-stateful/", "foundations/framework/",
       "foundations/math/", "distributed-systems/", "distributed-systems/cap-theorem/",
       "distributed-systems/consistency-models/", "distributed-systems/replication/",
       "databases/", "databases/sharding/", "databases/consistent-hashing/",
@@ -144,8 +163,8 @@ const PHASES = [
     title: "Phase 2 — Architecture Patterns",
     goal: "Identify the right patterns from requirements.",
     pages: [
-      "architecture-patterns/", "architecture-patterns/sagas/",
-      "reliability/", "reliability/circuit-breakers/", "reliability/rate-limiting/",
+      "architecture-patterns/", "architecture-patterns/sagas/", "architecture-patterns/microservices-communication/",
+      "reliability/", "reliability/single-points-of-failure/", "reliability/circuit-breakers/", "reliability/rate-limiting/",
       "reliability/failure-library/", "observability/", "security/",
       "system-design-exercises/url-shortener/", "system-design-exercises/rate-limiter/",
       "system-design-exercises/distributed-cache/", "system-design-exercises/load-balancer/",
@@ -158,7 +177,8 @@ const PHASES = [
     goal: "Reason about complex systems, failures, and operations.",
     pages: [
       "distributed-systems/raft/", "performance/tail-latency/",
-      "observability/debugging-playbook/", "cloud/", "kubernetes/", "ai-native/",
+      "observability/debugging-playbook/", "cloud/", "cloud/docker/", "cloud/terraform/",
+      "cloud/cicd/", "cloud/deployment-strategies/", "kubernetes/", "ai-native/",
       "system-design-exercises/distributed-kv-store/", "system-design-exercises/web-crawler/",
       "system-design-exercises/payment-processing/", "system-design-exercises/whatsapp/",
       "system-design-exercises/notification-system/", "system-design-exercises/social-feed/",

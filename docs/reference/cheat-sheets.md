@@ -28,6 +28,25 @@ Work the steps in order. Naming a database before you have a requirement is the 
 
 ---
 
+## The 7 Technical Areas That Actually Get Scored
+
+The checklist above is the *process* — how to spend 45 minutes. This is the *content* — the technical ground you need to cover regardless of which product you're asked to design. Miss one of these and the interviewer has a specific, nameable gap to probe.
+
+| # | Area | What "good" sounds like | Full page |
+|---|------|--------------------------|-----------|
+| 1 | **Requirements + numbers** | Read/write ratio, p95/p99 latency target, availability target, data size, growth rate, and named failure modes — before any box is drawn. No numbers = no design. | [Requirements & Estimation](../foundations/requirements-estimation.md), [System Design Framework](../foundations/framework.md) |
+| 2 | **API + data model** | Endpoints/events and core entities, with idempotency keys and pagination called out early — not bolted on when the interviewer asks "what if the client retries?" | [System Design Framework](../foundations/framework.md) |
+| 3 | **Storage choice + access patterns** | Relational vs. KV vs. document vs. time series, justified by the actual queries, indexes, hot keys, and consistency needs — not "I'd use Postgres" as a reflex. | [SQL vs NoSQL](../databases/sql-vs-nosql.md), [Indexing & Storage](../databases/indexing.md), [Database Sharding](../databases/sharding.md) |
+| 4 | **Caching and invalidation** | Where to cache (CDN, edge, app, Redis), TTL choice, stampede control, and an explicit answer for what a stale read means for *this* product. | [Cache Strategies](../performance/cache-strategies.md), [Cache Stampede](../performance/cache-stampede.md) |
+| 5 | **Scalability plan** | Partition/shard key choice, queueing for burst absorption, async vs. sync paths, and a named plan for a hot shard/partition — not "add more servers." | [Database Sharding](../databases/sharding.md), [Consistent Hashing](../databases/consistent-hashing.md), [Message Queue Patterns](../messaging/patterns.md) |
+| 6 | **Consistency, retries, and ordering** | At-least-once is the default in distributed systems — design for duplicates and out-of-order events explicitly, with backoff, and be honest that "exactly-once" is usually at-least-once plus idempotency, not a delivery guarantee. | [Consistency Models](../distributed-systems/consistency-models.md), [Replication](../distributed-systems/replication.md) |
+| 7 | **Ops: SLOs, deploys, and cost** | What pages on-call, how a new version rolls out without an outage, runbooks for the top 2-3 failure modes, and the cost drivers that actually dominate the bill (egress, storage, overprovisioning). | [Deployment Strategies](../cloud/deployment-strategies.md), [Circuit Breakers](../reliability/circuit-breakers.md), [Rate Limiting](../reliability/rate-limiting.md) |
+
+!!! tip "How this differs from the checklist above"
+    The checklist is a **timer** — it stops you from spending 20 minutes on requirements and 2 on trade-offs. This table is a **coverage check** — after you finish, run down all 7 rows and confirm you actually said something concrete for each, not just the ones the interviewer happened to probe.
+
+---
+
 ## Big-O Complexity Cheat Table
 
 ### Data structure operations

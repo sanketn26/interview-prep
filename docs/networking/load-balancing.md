@@ -173,7 +173,7 @@ Local sessions on N0: shopping carts, WebSocket rooms, in-memory rate-limit coun
 
 ## Sticky Sessions
 
-Affinity maps a client to one backend:
+See [Stateless vs Stateful Applications](../foundations/stateless-vs-stateful.md) for why this trade-off exists in the first place. Affinity maps a client to one backend:
 
 - **Cookie** (`AWSALB`, `SRV`) — L7 inserts a cookie. Survives NAT. Breaks if the box dies and you don't fall back.
 - **IP hash** — L4, `hash(client_ip) % N`. Collapses behind CGNAT / corporate egress. One IP = millions of mobiles.

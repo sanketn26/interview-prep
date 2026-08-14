@@ -10,7 +10,7 @@ prerequisites:
 
 **Prerequisites:** Local transactions, [Messaging patterns](../messaging/patterns.md)
 
-[← Architecture Patterns](index.md) | [Next: Circuit Breakers →](../reliability/circuit-breakers.md)
+[← Architecture Patterns](index.md) | [Next: Microservices Communication →](microservices-communication.md)
 
 ---
 
@@ -266,4 +266,4 @@ Symptom: customer billed, no tracking number
     4. Intermediate states are product facts (`PAID_UNSHIPPED`), not bugs to hide
     5. A failed compensation is a **pager**, not a log line
 
-**Previous:** [Kubernetes](../kubernetes/index.md) | **Next:** [Rate Limiting](../reliability/rate-limiting.md)
+**Previous:** [Kubernetes](../kubernetes/index.md) | **Next:** [Microservices Communication](microservices-communication.md)
