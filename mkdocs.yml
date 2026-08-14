@@ -110,6 +110,7 @@ nav:
       - Engineering Mathematics: foundations/math.md
     - Distributed Systems:
       - distributed-systems/index.md
+      - Fundamentals: distributed-systems/fundamentals.md
       - CAP Theorem: distributed-systems/cap-theorem.md
       - Consistency Models: distributed-systems/consistency-models.md
       - Replication: distributed-systems/replication.md
@@ -120,23 +121,32 @@ nav:
       - Consistent Hashing: databases/consistent-hashing.md
       - SQL vs NoSQL: databases/sql-vs-nosql.md
       - Indexing & Storage: databases/indexing.md
-    - Caching:
+    - Caching & Performance:
       - performance/index.md
+      - Fundamentals: performance/fundamentals.md
       - Cache Stampede: performance/cache-stampede.md
       - Cache Strategies: performance/cache-strategies.md
       - Tail Latency: performance/tail-latency.md
     - Messaging:
       - messaging/index.md
       - Kafka Deep Dive: messaging/kafka.md
+      - Kafka Internals & Pulsar: messaging/kafka-internals-pulsar-comparison.md
+      - Pulsar Primer: messaging/pulsar-primer.md
       - Message Queue Patterns: messaging/patterns.md
     - Architecture Patterns:
       - architecture-patterns/index.md
+      - Microservices vs Monolith: architecture-patterns/microservices-vs-monolith.md
       - Sagas: architecture-patterns/sagas.md
       - Microservices Communication: architecture-patterns/microservices-communication.md
+      - Event Sourcing & CQRS: architecture-patterns/event-sourcing-cqrs.md
     - Networking:
       - networking/index.md
       - HTTP & TCP Deep Dive: networking/http-tcp.md
       - Load Balancing: networking/load-balancing.md
+      - Proxies, Ingress & Egress: networking/proxies-ingress.md
+      - Cloud Load Balancers: networking/load-balancers-cloud.md
+      - Modern Protocols & Service Mesh: networking/modern-protocols-service-mesh.md
+      - gRPC vs HTTP in K8s: networking/grpc-http-k8s-load-balancing.md
     - Reliability:
       - reliability/index.md
       - Single Points of Failure: reliability/single-points-of-failure.md
@@ -148,8 +158,10 @@ nav:
       - Debugging Playbook: observability/debugging-playbook.md
     - Security:
       - security/index.md
+      - Authentication & Authorization: security/authentication-authorization.md
     - Cloud & Kubernetes:
       - cloud/index.md
+      - Cloud Provider Comparison: cloud/providers.md
       - Docker: cloud/docker.md
       - Terraform: cloud/terraform.md
       - CI/CD: cloud/cicd.md
