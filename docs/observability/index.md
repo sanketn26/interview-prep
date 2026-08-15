@@ -367,8 +367,11 @@ Note that **latency alerts must use percentiles, not averages** — for the [tai
 | Page | Status |
 |------|--------|
 | [Debugging playbook](debugging-playbook.md) | First release — high p99 + Kafka lag |
+| [Production Reliability Practices](production-reliability-practices.md) | **Complete** — chaos engineering, capacity/load testing, blameless postmortems |
 
 The [debugging playbook](debugging-playbook.md) works two real incidents end to end — a high-p99 investigation and Kafka consumer lag — showing the hypothesis-and-eliminate loop rather than a list of tools. Related: [tail latency](../performance/tail-latency.md) for what p99 actually means, and the [failure library](../reliability/failure-library.md) for recognizing patterns quickly.
+
+[Production Reliability Practices](production-reliability-practices.md) covers the three disciplines that find and close reliability gaps proactively: chaos engineering (deliberately injecting failure with a bounded blast radius to verify a system degrades the way you believe it does), capacity/load testing (finding the real capacity ceiling before real traffic hits it), and blameless postmortems (turning an incident that happened anyway into an owned, tracked system change instead of a story).
 
 ---
 

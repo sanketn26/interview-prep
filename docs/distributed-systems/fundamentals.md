@@ -1,6 +1,6 @@
 ---
 title: Distributed Fundamentals
-description: "Time, causality, and coordination across machines that cannot share state. Lamport clocks, vector clocks, consensus, and the split-brain nightmare."
+description: "Time, causality, and coordination across machines that cannot share state. Lamport/vector clocks, distributed locks, leases, gossip protocols, Paxos vs Raft, service discovery, and the split-brain nightmare."
 prerequisites:
   - Consistency Models
   - Replication
@@ -256,6 +256,135 @@ If coordinator 3 crashes, A still has 2/3 remaining.
 
 ---
 
+## Leases: A Lock With a Built-In Expiry Contract
+
+Redlock's clock-skew problem (Scenario 1 below) points at a deeper issue: **a plain lock has no answer to "what if the holder crashes and never releases it?"** Someone has to detect the crash and clean up — and detecting a crash reliably in a distributed system is itself unsolved (you can't tell "crashed" apart from "just slow" without waiting an unbounded amount of time).
+
+A **lease** is a lock that expires automatically, so the system never depends on the holder cooperating to release it, and never depends on perfectly detecting a crash either — it just waits out the clock.
+
+```python
+class Lease:
+    def __init__(self, duration_seconds):
+        self.holder = None
+        self.expires_at = None
+        self.duration = duration_seconds
+
+    def acquire(self, process_id, now):
+        if self.holder is None or now >= self.expires_at:
+            self.holder = process_id
+            self.expires_at = now + self.duration
+            return True
+        return False
+
+    def renew(self, process_id, now):
+        # Holder must actively renew before expiry, or lose the lease.
+        if self.holder == process_id and now < self.expires_at:
+            self.expires_at = now + self.duration
+            return True
+        return False
+```
+
+```
+Process A acquires a 10-second lease at T=0. Expires at T=10 unless renewed.
+
+Process A crashes at T=3 (no clean release, no heartbeat, nothing).
+
+T=10: lease expires automatically. Any process can now acquire it.
+       Nobody had to detect that A crashed — the clock did the work.
+
+If A had NOT crashed, it renews at T=8 (before expiry), extending to T=18.
+```
+
+**Why this changes the failure mode compared to a plain lock**: a plain lock held by a crashed process is held forever, unless something external notices and force-releases it. A lease held by a crashed process is held for, at most, one lease duration — bounded, known in advance, and requires nobody to actively detect the crash.
+
+**The clock-skew trap doesn't disappear, it changes shape**: if the lease-holder's clock runs slow relative to the lock-service's clock, the lock service can expire the lease *before* the holder believes it has expired — now two processes can believe they hold the lease simultaneously (this is exactly Scenario 1 below). The fix is the same principle used for JWT/cert expiry in [Zero Trust Architecture](../security/zero-trust-architecture.md): keep lease durations short relative to realistic clock drift, and have the holder renew well before its *own* believed expiry, not wait until the last moment.
+
+**Where leases show up in practice**: Kubernetes uses leases for leader election among controller replicas (`coordination.k8s.io/Lease`); Chubby (Google) and etcd/Consul use them as the primitive underneath distributed locks and service registration — "this service instance is alive" is itself a lease that must be renewed via heartbeat, or the registration expires. That's the bridge to Service Discovery, below.
+
+---
+
+## Gossip Protocols: Spreading Information Without a Coordinator
+
+Leader election and quorum locks assume you can reach a majority of nodes directly. **Gossip protocols solve a different problem: how does information (node membership, a config change, "node X is down") spread through a *large* cluster (hundreds or thousands of nodes) without every node talking to every other node?**
+
+### The Idea: Epidemic Spread
+
+```
+Every few hundred milliseconds, each node picks a few random peers and
+shares what it knows ("node 7 is down", "config version is now 42").
+
+Round 0: Node A learns "node 7 is down"
+Round 1: A tells 2 random peers (say B, C). Now 3 nodes know.
+Round 2: B, C each tell 2 random peers. Now up to 7 nodes know.
+Round 3: Up to 15 nodes know.
+Round N: Information has spread to roughly 2^N nodes.
+```
+
+```mermaid
+flowchart TB
+    A["Node A\nlearns: node-7 is down"] --> B[Node B]
+    A --> C[Node C]
+    B --> D[Node D]
+    B --> E[Node E]
+    C --> F[Node F]
+    C --> G[Node G]
+    style A fill:#b71c1c,color:#fff
+```
+
+**This is exponential propagation with no central coordinator and no single point of failure** — unlike a leader broadcasting to every follower directly (which fails if the leader is unreachable from part of the cluster), gossip keeps spreading through whatever paths are actually alive, self-healing around partial network failures.
+
+### Why Not Just Broadcast From One Node?
+
+```
+Direct broadcast: Node A sends "node-7 is down" to all 1000 nodes directly.
+  Problem: A is now a bottleneck (1000 connections) and a single point of
+  failure (if A can't reach some subset due to a partial network issue,
+  those nodes never learn).
+
+Gossip: A tells a few peers, they tell a few more, etc.
+  No node is a bottleneck. Even if some paths are broken, the epidemic
+  spread finds alternate routes through the surviving mesh of gossip
+  exchanges — the same resilience property that makes actual epidemics
+  hard to contain by blocking any single carrier.
+```
+
+**Cost**: gossip is *eventually* consistent, not immediate — it takes O(log N) rounds for information to reach the whole cluster, so there's a real window where different nodes have different views of the world (exactly the read-after-write staleness problem from replication lag, just for membership/config state instead of application data). And gossip needs conflict resolution for concurrent updates — vector clocks or version numbers, same primitive covered earlier in this page, applied to membership state instead of application state.
+
+**Used by**: Cassandra and DynamoDB-style databases for cluster membership and failure detection; Consul and Serf for service discovery; SWIM-based protocols in many service meshes.
+
+---
+
+## Paxos vs. Raft: Two Answers to the Same Problem
+
+[Consensus & Raft](raft.md) covers Raft's mechanics in depth. Worth placing it next to its older sibling, Paxos, because "why not just use Paxos" is a real interview question.
+
+```
+Paxos (1989, Lamport): proven correct, but famously hard to understand
+  and even harder to implement correctly from the paper alone — the
+  original paper is notorious for being nearly unreadable, and production
+  Paxos implementations (Google's Chubby) required substantial engineering
+  beyond the paper to be practical.
+
+Raft (2014): explicitly designed as "Paxos, but understandable." Same
+  guarantees (safety under any number of node failures short of a
+  majority, liveness once a majority can communicate), but decomposed
+  into separable sub-problems: leader election, log replication, and
+  safety — each easier to reason about and implement correctly than
+  Paxos's single monolithic protocol.
+```
+
+| | Paxos | Raft |
+|---|---|---|
+| Core guarantee | Same as Raft — majority quorum agreement | Same — majority quorum agreement |
+| Structure | Single protocol handling election + agreement together | Explicitly separated: leader election, log replication, safety |
+| Leader | Implicit / optional (Multi-Paxos adds one for efficiency) | Mandatory, explicit part of the protocol from the start |
+| Real-world track record | Chubby, Spanner's internals | etcd, Consul, CockroachDB, Kafka's KRaft mode |
+| Why one over the other | Rarely chosen new today — mostly legacy systems built before Raft existed | The default choice for new systems — same guarantees, dramatically easier to implement correctly and to debug |
+
+**Interview signal**: "They provide the same guarantee — safety with any minority of failures, progress once a majority can talk to each other. Raft is preferred for new systems because its explicit leader and separated sub-problems make it tractable to actually implement correctly; Paxos shows up mostly in systems built before Raft existed, or in variants (Multi-Paxos, Fast Paxos) tuned for specific performance properties Raft doesn't optimize for." (Don't claim Raft is "better" in the abstract — it's better *to implement correctly*, which is a real and underrated axis.)
+
+---
+
 ## Leader Election: Choosing One Decision-Maker
 
 When a leader fails, how do you elect a new one without it taking 10 minutes or causing a split-brain (two leaders)?
@@ -365,6 +494,74 @@ When partition heals, A steps down.
 
 ---
 
+## Service Discovery: Finding a Node Whose Address Keeps Changing
+
+Everything above assumes processes already know how to reach each other. In practice, in a system with autoscaling, rolling deploys, and crash-restarts, **a service's set of live instances and their IP addresses changes constantly.** Service discovery is where leases and gossip stop being abstract primitives and become the plumbing that makes "call the payments service" actually work.
+
+### The Naive Approach and Why It Breaks
+
+```
+✗ Hardcode IPs: payments-service lives at 10.0.4.12
+  Autoscaling adds instance 10.0.4.19 → nobody calling the hardcoded
+  IP ever reaches it. A deploy replaces 10.0.4.12 with a new instance
+  at a new IP → every caller breaks until manually updated.
+```
+
+### The Registry Pattern
+
+```mermaid
+sequenceDiagram
+    participant P as payments-service instance
+    participant R as Service Registry
+    participant C as order-service (caller)
+
+    P->>R: Register: "I'm payments-service at 10.0.4.19,\ngive me a 30s lease"
+    R->>R: Store registration, start 30s expiry
+
+    loop every 10s
+        P->>R: Heartbeat (renew lease)
+        R->>R: Extend expiry
+    end
+
+    C->>R: "Where is payments-service?"
+    R-->>C: [10.0.4.19, 10.0.4.22, 10.0.4.31]
+    C->>P: Direct call to 10.0.4.19
+
+    Note over P,R: Instance crashes, stops heartbeating
+    R->>R: Lease expires after 30s, entry removed
+    C->>R: "Where is payments-service?" (next lookup)
+    R-->>C: [10.0.4.22, 10.0.4.31]  (crashed instance gone)
+```
+
+**This is a lease, exactly as described above, applied to "am I alive" instead of "do I hold this lock."** An instance's registration is only valid as long as it keeps renewing — if it crashes, nobody has to detect the crash explicitly; the lease simply expires and the registry stops returning that address to callers.
+
+**Why not have the registry poll every instance instead of instances heartbeating in?** Polling means the registry needs to know every instance to poll in the first place (chicken-and-egg for newly started instances) and scales the registry's outbound connections with cluster size. Heartbeat-in scales better — each instance only ever talks to the registry, not the other way around.
+
+### Client-Side vs. Server-Side Discovery
+
+```
+Client-side discovery: caller queries the registry directly, then picks
+  an instance itself (as in the diagram above). Caller needs registry-aware
+  logic and its own load-balancing policy (round robin, least-connections).
+  Used by: Netflix Eureka + Ribbon, Consul with client-side lookups.
+
+Server-side discovery: caller sends the request to a fixed address (a
+  load balancer or service mesh sidecar), which itself queries the registry
+  and forwards the request. Caller code stays simple — just "call
+  payments-service" — the registry-awareness lives in the infrastructure layer.
+  Used by: Kubernetes Services (kube-proxy handles this transparently),
+  most service mesh sidecars (Istio/Envoy) as covered in
+  [Modern Protocols & Service Mesh](../networking/modern-protocols-service-mesh.md).
+```
+
+**Interview signal**: "Kubernetes's own Service abstraction is server-side discovery — a Service gets a stable virtual IP, and kube-proxy/the mesh sidecar handles the actual instance selection and rotation as pods come and go, so calling code never touches the registry directly. That's usually the right default; client-side discovery earns its complexity when you need discovery logic the platform doesn't give you (custom load-balancing weights, cross-region-aware routing)."
+
+### How Registries Stay Consistent With Many Nodes
+
+A production-scale registry (Consul, etcd-backed) is itself a distributed system, and uses exactly the primitives from earlier in this page: **Raft or Paxos for the strongly-consistent core** (so registrations don't get lost or duplicated), often with **gossip for propagating membership/health info cheaply** across a larger set of read replicas that don't need to be part of the consensus group. This is the practical payoff of learning consensus and gossip as separate tools — a real system usually layers them, using the expensive strongly-consistent mechanism only where correctness truly requires it, and the cheap eventually-consistent mechanism everywhere else.
+
+---
+
 ## Real-World Scenarios: What Can Go Wrong
 
 ### Scenario 1: Clock Skew
@@ -433,6 +630,10 @@ If B becomes leader (faulty election), writes T10-T20 disappear. ✗
 4. **Quorum voting prevents split-brain:** Majority partition can decide; minority partition cannot.
 5. **Randomized election timeouts prevent deadlock:** One process wins, prevents simultaneous elections.
 6. **Clock skew breaks TTL-based locks:** TTL must run on the client, not the coordinator.
+7. **Leases bound the damage of a crash without requiring anyone to detect it:** a lock held by a dead process is held forever; a lease held by a dead process expires on its own.
+8. **Gossip trades immediacy for scale:** no single coordinator, no bottleneck, but information takes O(log N) rounds to reach everyone — eventually consistent by design.
+9. **Raft and Paxos give the same guarantee; Raft is chosen for new systems because it's tractable to implement correctly**, not because it's theoretically stronger.
+10. **Service discovery is leases and gossip applied to "is this instance alive," not a separate concept** — a registration is a lease; large registries often layer consensus (correctness) with gossip (cheap propagation).
 
 ### Example Question Walkthrough
 
@@ -469,6 +670,10 @@ I'd also instrument the code to log term changes and elections so we can see exa
     6. **The partition with the minority cannot elect a leader.** The cluster continues in the majority partition.
     7. **TTL-based locks must run on the client,** not the coordinator (clock skew breaks coordinator-side TTLs).
     8. **Every write carries a term number.** A process steps down if it sees a higher term.
+    9. **A lease is a lock with automatic expiry** — nobody needs to detect a crash; the clock bounds the damage.
+    10. **Gossip spreads membership/config info without a coordinator**, at the cost of eventual (not immediate) consistency across the cluster.
+    11. **Paxos and Raft solve the same problem** — prefer Raft for new systems for implementability, not because the guarantee differs.
+    12. **Service discovery = leases (instance registration) + gossip or consensus (propagating that registry) — the primitives above aren't abstract, this is where they're used daily.**
 
 ---
 
@@ -477,5 +682,8 @@ I'd also instrument the code to log term changes and elections so we can see exa
 - [Consistency Models](consistency-models.md) — how causality affects user-visible consistency
 - [Replication](replication.md) — how writes are coordinated across replicas
 - [Raft](raft.md) — the full consensus algorithm with a simulator
+- [DDIA Concepts](../databases/ddia-concepts.md) — quorum reads/writes and consensus in the context of database replication specifically
+- [Zero Trust Architecture](../security/zero-trust-architecture.md) — short-lived credentials as the security analogue of leases
+- [Modern Protocols & Service Mesh](../networking/modern-protocols-service-mesh.md) — server-side service discovery via sidecar proxies in practice
 
 **Previous:** [Distributed Systems](index.md) | **Next:** [Raft](raft.md)

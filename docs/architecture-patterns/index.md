@@ -151,7 +151,7 @@ The credible interview position: **start with a modular monolith** — clear int
 | [Microservices Communication](microservices-communication.md) | Complete |
 | [Event Sourcing & CQRS](event-sourcing-cqrs.md) | **Complete** — when they earn their complexity, trade-offs, projections, failure modes |
 | [Microservices vs. Monolith](microservices-vs-monolith.md) | **Complete** — antipatterns, real tradeoffs, when to adopt, Netflix case study |
-| Event-driven architecture | Planned |
+| [Event-Driven Architecture](event-driven-architecture.md) | **Complete** — notification vs. state-transfer events, choreography vs. orchestration, the distributed-monolith antipattern |
 
 [Sagas](sagas.md) covers orchestration vs choreography with a simulator where shipping fails after the card is charged and you watch compensations run. Prerequisites: [distributed systems](../distributed-systems/index.md) for why the ambiguity exists, and [messaging](../messaging/index.md) for the delivery semantics sagas depend on.
 
@@ -160,6 +160,8 @@ The credible interview position: **start with a modular monolith** — clear int
 [Event Sourcing & CQRS](event-sourcing-cqrs.md) explains why you'd store events instead of snapshots, how separate read/write models solve the shape-mismatch problem, when they earn their complexity, projections, snapshots, schema evolution, and production failure modes. Includes e-commerce order system case study and interview progression.
 
 [Microservices vs. Monolith](microservices-vs-monolith.md) teaches the organizational pressure that actually drives microservices (not scaling), the real tradeoffs (debugging complexity, operational overhead, data consistency), five critical antipatterns (shared database, chatty services, circular deps, synchronous everything, missing ownership), and when to adopt (start with a modular monolith, extract only when concrete pressure exists). Includes Netflix transition case study and interview progression from foundation to staff level.
+
+[Event-Driven Architecture](event-driven-architecture.md) covers events as the default coordination style between services: notification vs. event-carried-state-transfer payloads, why choreography trades traceability for extensibility, when to switch to orchestration instead, and the "distributed monolith wearing an event bus" antipattern where 200 event types replace direct calls but keep all the coupling. Distinguishes event-driven architecture from event sourcing — related, composable, but answering different questions.
 
 ---
 

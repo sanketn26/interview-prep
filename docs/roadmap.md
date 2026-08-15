@@ -42,7 +42,7 @@ flowchart LR
 - [x] Kafka consumer groups + broader messaging patterns (queues, pub/sub, DLQs)
 - [x] Networking first slice (HTTP/TCP/DNS + load balancing sims)
 - [x] Cache stampede + full cache-strategy catalog (cache-aside, write-through/behind, eviction)
-- [ ] API Design (REST, gRPC, GraphQL, idempotency) — planned
+- [x] API Design (REST, gRPC, GraphQL, idempotency)
 - [x] System Design Framework + capacity calculator
 
 ### Exit Criteria
@@ -57,14 +57,14 @@ flowchart LR
 
 ### Topics — content availability
 
-- [ ] Event-Driven Architecture
-- [ ] Event Sourcing & CQRS
+- [x] Event-Driven Architecture
+- [x] Event Sourcing & CQRS
 - [x] Saga Pattern (first-release orchestrator simulator)
 - [x] Cache stampede + cache-strategy catalog
 - [x] Circuit breaker + retry storm + failure-mode library (cascading failures, resource exhaustion, split brain)
-- [ ] API Gateway & Service Mesh
-- [ ] Observability (metrics, tracing, SLI/SLO) — debugging playbook shipped
-- [ ] Microservices vs Monolith
+- [x] API Gateway & Service Mesh — Modern Protocols & Service Mesh shipped; API Gateway pattern now covered in `foundations/api-design.md`, exercise-format deep dive in `system-design-exercises/api-gateway.md`
+- [x] Observability (metrics, tracing, SLI/SLO) — debugging playbook + production reliability practices (chaos engineering, load testing, postmortems) shipped
+- [x] Microservices vs Monolith
 
 ### Exit Criteria
 

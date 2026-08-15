@@ -76,6 +76,21 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Autocomplete / typeahead (exercise) | Complete | |
 | Distributed KV store (exercise) | Complete | Embeds `ConsistentHashingRing`; explicitly differentiated from distributed-cache |
 | Social feed / Twitter-X (exercise) | Complete | |
+| DDIA Concepts (storage engines, replication topologies, isolation mechanisms, CAP, 2PC, encoding, war-room runbook) | Complete | `databases/ddia-concepts.md` |
+| SQL Deep Dive | Complete | `databases/sql-deep-dive.md` |
+| Performance Fundamentals (threads, memory, OS-level tuning) | Complete | `performance/fundamentals.md` |
+| Kafka Internals & Pulsar Comparison | Complete | `messaging/kafka-internals-pulsar-comparison.md` |
+| Pulsar Primer | Complete | `messaging/pulsar-primer.md` |
+| Microservices vs Monolith (antipatterns and tradeoffs) | Complete | `architecture-patterns/microservices-vs-monolith.md` |
+| Modern Protocols & Service Mesh (HTTP/3, gRPC, Istio, eBPF) | Complete | `networking/modern-protocols-service-mesh.md` |
+| gRPC vs HTTP vs HTTP/2 (K8s, load balancing) | Complete | `networking/grpc-http-k8s-load-balancing.md` |
+| Authentication & Authorization Fundamentals | Complete | `security/authentication-authorization.md` |
+| Zero Trust Architecture | Complete | `security/zero-trust-architecture.md` — mTLS, SPIFFE/SPIRE, policy-as-code, migration sequencing |
+| Threat Modeling | Complete | `security/threat-modeling.md` — trust boundaries, STRIDE, attack trees, risk scoring |
+| Event-Driven Architecture | Complete | `architecture-patterns/event-driven-architecture.md` — choreography vs orchestration, notification vs state-transfer events, distributed-monolith antipattern |
+| Distributed Fundamentals: leases, gossip, Paxos vs Raft, service discovery | Complete | `distributed-systems/fundamentals.md` — extended from existing clocks/locks content |
+| API Design (REST verb contracts, idempotency keys, GraphQL, API Gateway pattern) | Complete | `foundations/api-design.md` |
+| Production Reliability Practices (chaos engineering, capacity/load testing, blameless postmortems) | Complete | `observability/production-reliability-practices.md` |
 
 ---
 
@@ -107,16 +122,16 @@ Do **not** mass-generate these as stubs.
 
 - Remaining ~27 system-design exercises (Pastebin, Uber, Netflix, …)
 - Remaining ~11 LLD problems (Tic Tac Toe, Library Management, Splitwise, ATM, Vending Machine, Chess, Car Rental, Rate Limiter LLD, Logger, Notification System LLD, Pub/Sub, Task Scheduler) — see `lld-exercises/index.md` for the tiered list. These will be written to the same bar as Parking Lot / Elevator System / LRU Cache; not stubs.
-- Security & Auth (`security/index.md` is still a 10-line stub — OAuth2/OIDC/JWT/sessions/RBAC/Zero Trust all missing)
-- Event Sourcing & CQRS deep dives (Sagas is the only pattern in this family written so far); Streams/Flink
-- Distributed fundamentals as its own concept page (Lamport/vector clocks, leader election, leases, distributed locks, split-brain — currently only asides inside replication.md/consistency-models.md)
-- Monolith vs Microservices vs Serverless
+- Security & Auth — `security/` pillar now has Authentication & Authorization, Zero Trust Architecture, and Threat Modeling all shipped; still missing: dedicated deep-dive OAuth2/OIDC flow page (currently covered at intro depth inside Auth Fundamentals), session management deep dive
+- Event Sourcing & CQRS — shipped (`architecture-patterns/event-sourcing-cqrs.md`); Event-Driven Architecture also now shipped (`architecture-patterns/event-driven-architecture.md`); Streams/Flink still missing
+- Distributed fundamentals — `distributed-systems/fundamentals.md` now covers Lamport/vector clocks, leader election, split-brain, distributed locks, leases, gossip protocols, Paxos vs Raft, and service discovery as first-class sections
+- Monolith vs Microservices vs Serverless — Microservices vs Monolith now shipped (`architecture-patterns/microservices-vs-monolith.md`); Serverless comparison still missing
 - Cloud vendor catalog (`ai-native/` is still an index-only stub; `cloud/` now has Docker, Terraform, CI/CD, and Deployment Strategies but no vendor-mapped IAM/managed-DB/event-bus content yet), FinOps, AI-native serving
 - Capstone project; interview-mode tabs (Learn/Practice/Hint/Interview/Solution/Staff) as a reusable UX pattern; Go example parity for retry/queue/thread-pool/producer-consumer/distributed-lock/WebSocket/gRPC/REST
-- Deeper distributed-systems topics: vector clocks, gossip protocols, Paxos, two-phase commit, CRDTs, distributed locks, service discovery
+- Deeper distributed-systems topics — vector clocks, gossip protocols, Paxos vs Raft, distributed locks, leases, and service discovery all now shipped in `distributed-systems/fundamentals.md`; CRDTs still only covered inside `databases/ddia-concepts.md`, not as a dedicated page
 - Remaining DSA visualizers and topics (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp)
 - Remaining behavioural themes (hiring, tech debt, influence, mentorship, managing up, saying no, ambiguity)
-- Production/observability depth: SLI/SLO & error budgets, distributed tracing, chaos engineering, capacity/load testing, blameless postmortems
+- Production/observability depth — SLI/SLO & error budgets and distributed tracing basics already covered in `observability/index.md`; chaos engineering, capacity/load testing, and blameless postmortems now shipped in `observability/production-reliability-practices.md`
 - Python/Go servers (WebSocket, gRPC) beyond the core library examples
 
 ---

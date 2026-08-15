@@ -28,10 +28,14 @@ This section teaches the tools to answer them.
 | Page | Status |
 |------|--------|
 | [Authentication & Authorization Fundamentals](authentication-authorization.md) | **Complete** — TLS, encryption, JWT/OAuth2, RBAC, secrets, payment system case study |
-| Zero Trust Architecture | Planned |
-| Threat Modeling | Planned |
+| [Zero Trust Architecture](zero-trust-architecture.md) | **Complete** — mTLS, SPIFFE/SPIRE, policy-as-code, perimeter-to-Zero-Trust migration sequencing |
+| [Threat Modeling](threat-modeling.md) | **Complete** — trust boundaries, STRIDE, attack trees, risk scoring and acceptance |
 
 [Authentication & Authorization Fundamentals](authentication-authorization.md) covers how users prove identity (TLS, passwords, OAuth2), how data is protected (encryption, secrets management), and how permissions work (RBAC, least privilege). Includes a payment system case study where PCI compliance drives design decisions.
+
+[Zero Trust Architecture](zero-trust-architecture.md) covers why network location stopped being a valid trust signal, how service identity (mTLS, SPIFFE/SPIRE) and centrally enforced policy replace it, and — the part most explanations skip — how to migrate an existing perimeter-model system to Zero Trust without an outage.
+
+[Threat Modeling](threat-modeling.md) covers how to systematically find security gaps before an attacker does: trust-boundary diagrams, the STRIDE checklist, attack trees for high-value targets, and how to rank and explicitly accept/mitigate/fix what you find instead of trying to fix everything.
 
 ---
 

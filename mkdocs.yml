@@ -106,6 +106,7 @@ nav:
       - foundations/index.md
       - Requirements & Estimation: foundations/requirements-estimation.md
       - Stateless vs Stateful: foundations/stateless-vs-stateful.md
+      - API Design: foundations/api-design.md
       - System Design Framework: foundations/framework.md
       - Engineering Mathematics: foundations/math.md
     - Distributed Systems:
@@ -144,6 +145,7 @@ nav:
       - architecture-patterns/index.md
       - Microservices vs Monolith: architecture-patterns/microservices-vs-monolith.md
       - Sagas: architecture-patterns/sagas.md
+      - Event-Driven Architecture: architecture-patterns/event-driven-architecture.md
       - Microservices Communication: architecture-patterns/microservices-communication.md
       - Event Sourcing & CQRS: architecture-patterns/event-sourcing-cqrs.md
     - Networking:
@@ -163,9 +165,12 @@ nav:
     - Observability:
       - observability/index.md
       - Debugging Playbook: observability/debugging-playbook.md
+      - Production Reliability Practices: observability/production-reliability-practices.md
     - Security:
       - security/index.md
       - Authentication & Authorization: security/authentication-authorization.md
+      - Zero Trust Architecture: security/zero-trust-architecture.md
+      - Threat Modeling: security/threat-modeling.md
     - Cloud & Kubernetes:
       - cloud/index.md
       - Cloud Provider Comparison: cloud/providers.md

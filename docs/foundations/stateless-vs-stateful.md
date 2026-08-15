@@ -9,7 +9,7 @@ prerequisites:
 
 **Prerequisites:** [Requirements & Estimation](requirements-estimation.md)
 
-[← Requirements & Estimation](requirements-estimation.md) | [Next: System Design Framework →](framework.md)
+[← Requirements & Estimation](requirements-estimation.md) | [Next: API Design →](api-design.md)
 
 ---
 
@@ -195,4 +195,4 @@ This table is itself the trade-off: JWTs buy you stateless horizontal scaling an
     4. Externalizing state doesn't eliminate the state-management problem — it moves it to a system built for it ([distributed KV store](../system-design-exercises/distributed-kv-store.md), with its own replication trade-offs)
     5. "Stateless" is a spectrum in practice — the goal is minimizing and being explicit about the state you keep, not treating statelessness as an absolute rule
 
-**Previous:** [Requirements & Estimation](requirements-estimation.md) | **Next:** [System Design Framework](framework.md)
+**Previous:** [Requirements & Estimation](requirements-estimation.md) | **Next:** [API Design](api-design.md)

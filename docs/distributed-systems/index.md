@@ -156,7 +156,7 @@ CAP theorem ──────→ Consistency models ──────→ Repli
 | [CAP theorem](cap-theorem.md) | Complete |
 | [Consistency models](consistency-models.md) | Complete |
 | [Replication](replication.md) | Complete |
-| [Fundamentals](fundamentals.md) | **Complete** — Lamport/vector clocks, leader election, split-brain, distributed locks |
+| [Fundamentals](fundamentals.md) | **Complete** — Lamport/vector clocks, leader election, split-brain, distributed locks, leases, gossip protocols, Paxos vs Raft, service discovery |
 | [Raft](raft.md) | First release + simulator |
 
 ---
