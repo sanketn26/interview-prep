@@ -19,6 +19,8 @@ Every cloud provider solves the same three problems — who's allowed to do what
 
 The interview-relevant skill isn't memorizing every service name. It's recognizing that **IAM is always "who can do what to which resource, and how do you prove it,"** that **managed databases always trade control for someone else handling failover and patching,** and that **event buses always trade strict ordering for scale.** Once you have that mapping, walking into a GCP or Azure shop is a vocabulary problem, not a conceptual one.
 
+These three topics belong on one page — not three — because a single, ordinary piece of work touches all three at once. Take the most common serverless pattern there is: **a function needs to read from a database and publish an event when it changes something.** On AWS, that's a Lambda with an execution role scoped to `dynamodb:GetItem`/`PutItem` on one table (IAM), reading from and writing to DynamoDB or Aurora Serverless (managed DB), then calling `PutEvents` to notify an EventBridge bus that something happened (event bus) — three separate services, one workload, one mental motion. On GCP the same function is a Cloud Function with a service account scoped to `cloudsql.client` (IAM), a Cloud SQL connection (managed DB), and a `pubsub.publisher` binding to one topic (event bus). On Azure it's a Function App with a managed identity (IAM), a connection to Azure SQL (managed DB), and a publish to an Event Grid topic (event bus). Same shape, three vocabularies — which is exactly the thesis of this page: learn the shape once, and every cloud's version of "identity, then state, then notification" is a five-minute vocabulary lookup instead of a redesign.
+
 !!! tip "Mental model"
     Think of each vendor's IAM/DB/eventing stack as a **regional dialect of the same language.** AWS IAM roles, GCP service accounts, and Azure managed identities are all answering "how does a workload prove who it is without a human typing a password." RDS Multi-AZ, Cloud SQL HA, and Azure SQL zone redundancy are all answering "how do I not lose data when a rack dies." EventBridge, Pub/Sub, and Event Grid are all answering "how do services react to things without polling." Learn the question once; the vendor name is just the answer's accent.
 
@@ -28,13 +30,13 @@ The interview-relevant skill isn't memorizing every service name. It's recognizi
 
 | Concept | AWS | GCP | Azure |
 |---|---|---|---|
-| Human/service identity | IAM User / IAM Role | Google Account / Service Account | Azure AD (Entra ID) User / Service Principal |
+| Human/service identity | IAM User / IAM Role | Google Account / Service Account | Entra ID (formerly Azure AD) User / Service Principal |
 | Workload identity (no long-lived keys) | IAM Role + `AssumeRole` (STS) | Service Account + Workload Identity Federation | Managed Identity (system- or user-assigned) |
 | Permission grouping | Managed/inline Policy (JSON) attached to identity | Predefined/custom Role bound to identity | RBAC Role Definition assigned to identity |
 | Resource-level guardrail | Resource-based policy (e.g., S3 bucket policy) | IAM Policy directly on the resource | Azure RBAC scope (resource/RG/subscription) |
 | Org-wide guardrail | Service Control Policy (SCP) via AWS Organizations | Organization Policy Constraint | Azure Policy |
 | Cross-account/project access | Cross-account role + `AssumeRole` (temporary creds) | Cross-project IAM binding | Cross-tenant guest access / Lighthouse |
-| Temporary credential mechanism | STS (`sts:AssumeRole`, session tokens, 15min–12hr TTL) | Short-lived OAuth tokens via impersonation | Azure AD token (default 1hr, refreshable) |
+| Temporary credential mechanism | STS (`sts:AssumeRole`, session tokens, 15min–12hr TTL) | Short-lived OAuth tokens via impersonation | Entra ID token (default 1hr, refreshable) |
 
 **The concept that maps 1:1 across all three: never give a workload a long-lived static credential.** AWS access keys committed to a repo, a GCP service-account JSON key downloaded to a laptop, an Azure connection string in an env var — all three are the same mistake wearing a different hat. The fix is also universal: **assume a role / impersonate a service account / use a managed identity**, so credentials are short-lived and never touch disk.
 
@@ -48,13 +50,13 @@ The interview-relevant skill isn't memorizing every service name. It's recognizi
 | Dimension | AWS RDS / Aurora | GCP Cloud SQL / AlloyDB | Azure SQL DB / Cosmos DB |
 |---|---|---|---|
 | HA model | Multi-AZ synchronous standby (RDS); Aurora replicates storage across 3 AZs, 6 copies | Regional HA: synchronous standby in second zone | Zone-redundant configuration; Cosmos DB multi-region with tunable consistency |
-| Failover time | RDS Multi-AZ: 60–120s; Aurora: typically <30s (storage-level, no data copy) | Cloud SQL HA: ~60s; AlloyDB: <60s with connection pooling | Azure SQL: ~30s (zone-redundant); Cosmos DB: near-zero for multi-region writes |
+| Failover time | RDS Multi-AZ: 60–120s; Aurora: typically <30s (storage-level, no data copy) | Cloud SQL HA: ~60s; AlloyDB: typically <60s (storage-level failover, similar mechanism to Aurora) | Azure SQL: ~30s (zone-redundant); Cosmos DB: sub-second in single-region, but multi-region write conflicts add reconciliation latency that varies by consistency level chosen |
 | Consistency options | Aurora: strong (single primary) or eventual (read replicas) | Cloud SQL: strong; AlloyDB: strong with lower replica lag | Cosmos DB: 5 tunable levels — strong, bounded staleness, session, consistent prefix, eventual |
 | Backup / PITR | Automated snapshots + PITR (5 min granularity, up to 35 days) | Automated backups + PITR (up to 35 days) | Automated backups + PITR (7–35 days) |
-| Read scaling | Up to 15 Aurora read replicas; RDS up to 5 | Up to 20 read replicas (Cloud SQL); AlloyDB read pools | Up to 5 geo-replicas (SQL DB); Cosmos DB scales reads per-region |
+| Read scaling | Up to 15 Aurora read replicas; RDS up to 5 | Cloud SQL supports multiple read replicas (check current per-edition limits before quoting a number in an interview); AlloyDB read pools | Up to 5 geo-replicas (SQL DB); Cosmos DB scales reads per-region |
 | Write scaling | Single writer (Aurora Limitless is the exception — sharded writes) | Single writer | Cosmos DB: multi-region writes with conflict resolution |
 
-**The trap that surprises engineers moving between clouds:** "HA" does not mean "no connection disruption." All three force existing connections to drop and reconnect on failover — the DNS/endpoint moves to the new primary, but a connection pool holding stale connections keeps retrying a dead node until it notices. This is a connection-pool configuration problem (short-lived connections, retry with backoff, driver-level failover awareness), not something the managed service solves for you regardless of vendor.
+**The trap that surprises engineers moving between clouds:** "HA" does not mean "no connection disruption." All three force existing connections to drop and reconnect on failover — the DNS/endpoint moves to the new primary, but a connection pool holding stale connections keeps retrying a dead node until it notices. This is a connection-pool configuration problem (short-lived connections, retry with backoff, driver-level failover awareness), not something the managed service solves for you regardless of vendor. AlloyDB's built-in connection pooling (via its integrated pooler) is a good example of this distinction: it doesn't make failover faster — it reduces the *client-visible* impact of a failover by absorbing reconnect storms and queuing requests briefly instead of surfacing raw connection errors to the application. Conflating the two is easy but wrong: connection pooling is a mitigation layered on top of failover time, not a determinant of it.
 
 ---
 
@@ -67,7 +69,7 @@ The interview-relevant skill isn't memorizing every service name. It's recognizi
 | Fan-out model | Rule-based routing to targets (Lambda, SQS, Step Functions, etc.) | Topic → multiple subscriptions, each gets full copy | Topic → multiple event subscriptions with filters |
 | Dead-lettering | Per-target DLQ (SQS/SNS) | Per-subscription dead-letter topic | Per-subscription dead-letter destination (Storage) |
 | Schema/filtering | Content-based filtering on event JSON | Attribute-based filtering; no payload filtering natively | Advanced filtering on event payload |
-| Push vs. pull | Push to targets | Both push and pull subscriptions | Push only (webhook-style) |
+| Push vs. pull | Push to targets | Both push and pull subscriptions | Both: event grid topics push (webhook-style); namespace topics support pull delivery |
 
 **The concept that catches everyone regardless of vendor: "at-least-once" is a promise about delivery, not about your handler.** All three can redeliver the same event — a target that acknowledges slowly, a network blip during ack, a retry after a transient 5xx — so every consumer must be **idempotent**, keyed on an event ID or a natural dedup key, or duplicate processing becomes a silent correctness bug (double-charging a customer, double-incrementing a counter) rather than a loud one.
 
@@ -91,6 +93,26 @@ flowchart TB
 ```
 
 The pattern that repeats across all three vendors: **identity gates access, the managed DB is the source of truth, the event bus is how everyone else finds out.** Draw this shape in an interview and swap in vendor-specific boxes — the architecture doesn't change.
+
+---
+
+## Realistic Example
+
+**Scenario: an RDS PostgreSQL Multi-AZ failover during a routine patch window, and what it actually does to a checkout service.**
+
+Setup: `checkout-api` runs 20 ECS application instances, each holding a connection pool of 25 connections to a single RDS PostgreSQL Multi-AZ instance (db.r6g.2xlarge — 8 vCPU / 64GB) — 500 total connections against the primary. Steady-state traffic: ~2,200 requests/sec, p50 latency 40ms, p99 90ms.
+
+At 02:14 UTC, AWS runs a scheduled Multi-AZ patch and forces a failover to the standby.
+
+- **T+0s** — the primary becomes unreachable; in-flight queries error out.
+- **T+0–58s** — failover completes in 58 seconds (within RDS's documented 60–120s range); the DNS endpoint repoints to the promoted standby.
+- **T+58s** — all 20 app instances' pools notice the dead connections at roughly the same moment (30s driver-level timeout, no jitter) and each immediately opens 25 new connections — 500 near-simultaneous new connections hit an instance that's still cold, with an empty buffer cache after promotion.
+- **T+58–95s** — the freshly-promoted instance, serving 500 concurrent new connections on top of the normal 2,200 req/s query load with no warm cache, pegs at ~100% CPU. p99 checkout latency goes from 90ms baseline to 4.8s; roughly 9% of requests time out and 5xx (~200 req/s failed for ~35s ≈ 7,000 failed checkouts).
+- **T+95s** — the buffer cache re-warms and latency recovers to baseline over the following ~20 seconds.
+
+**Total user-visible impact: ~55 seconds of degraded/failing checkout and ~7,000 failed requests — even though the failover itself "succeeded" in 58 seconds.** The failover wasn't the outage; the connection storm stacked on top of it was.
+
+**Fix applied afterward:** staggered reconnect with jitter (each pool waits `random(0, 5s)` before reconnecting instead of all reconnecting the instant a dead connection is detected), pool size reduced from 25 to 12 per instance (300 total connections instead of 500), and driver-level connection timeout shortened from 30s to 5s so dead connections are detected and retried sooner and more smoothly. At the next patch-window failover: same ~58s failover time, but p99 peaked at 380ms and zero requests 5xx'd. Same managed-database failover time both times — the outage was entirely a client-side connection-pool configuration problem, which is exactly the trap called out above.
 
 ---
 

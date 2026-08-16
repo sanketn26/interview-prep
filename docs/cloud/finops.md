@@ -83,6 +83,36 @@ Without the tagging step at the front, everything downstream degrades to "the to
 
 ---
 
+## Realistic Example
+
+**The $40K line item from the intro, resolved.**
+
+`recommendations-service` runs on an autoscaling group of `r5.4xlarge` instances (16 vCPU / 128GB, on-demand $1.008/hr in us-east-1). Baseline size: 10 instances, running at a steady p50 CPU utilization of 15% — already oversized for its actual load, but nobody had revisited it since launch.
+
+A bug shipped in a scale-in cooldown change: the scale-down alarm's comparison operator was flipped during a refactor, so the group could scale up on a load spike but never scaled back down. A traffic blip pushed the group to 90 instances (an 80-instance overshoot) three weeks before a scheduled peak event, and it stayed pinned at 90 for **21 days (504 hours)** before anyone noticed — nothing paged, because nothing was down; the extra capacity just sat there, idle and billing.
+
+**The bill breakdown:**
+
+| Line item | Quantity | Rate | Duration | Cost |
+|---|---|---|---|---|
+| Extra on-demand instances (the bug) | 80 × r5.4xlarge | $1.008/hr | 504 hrs | $40,643 |
+| Baseline fleet (would have run regardless) | 10 × r5.4xlarge | $1.008/hr | 504 hrs | $5,080 |
+| **Total for the period** | | | | **$45,723** |
+
+The accountant who flagged the anomaly three weeks later saw a $40,643 jump against the prior month's baseline — that's the "$40K line item nobody can explain" from the intro. Once traced, it was a one-line alarm-comparison bug, not a traffic problem: actual request volume during those 21 days was flat.
+
+**What commitment coverage and rightsizing would have saved, independent of the bug:**
+
+The baseline 10-instance fleet was itself running 100% on-demand with no committed spend, on hardware sized for a load it wasn't using:
+
+- **Rightsizing:** p50 CPU of 15% (p99 40%) on `r5.4xlarge` fits comfortably on `r5.xlarge` (4 vCPU / 32GB, $0.252/hr) with the fleet resized from 10 to 6 instances to hold the same headroom. Monthly baseline cost drops from 10 × $1.008 × 730 = **$7,358/mo** to 6 × $0.252 × 730 = **$1,104/mo** — a $6,254/mo saving (85%) before any commitment discount is applied.
+- **Commitment coverage:** layering a 1-year Savings Plan (≈40% discount, a mid-range rate for a 1-year no-upfront commitment) on top of the rightsized fleet takes $1,104/mo to **$662/mo** — another $442/mo.
+- **Combined ongoing saving: ~$6,696/mo (~$80K/year)** on a service that was quietly overspending long before the autoscaler bug made a single dramatic month of it visible.
+
+The incident fix (correct the alarm comparison, add a max-instance ceiling and a scale-up rate limit, wire a cost anomaly alert to the owning team) prevents the next $40K spike. The rightsizing and commitment fix is the larger, boring, recurring saving that a one-time incident review never surfaces on its own — which is the actual point of treating cost as a standing engineering practice instead of a post-incident cleanup.
+
+---
+
 ## Failure Modes
 
 **Spot instance reclamation mid-job.** A cloud provider reclaims spot capacity with 30 seconds (AWS) to 2 minutes (GCP) notice. A batch job or long-running training run without checkpointing loses all progress and restarts from zero — worse than if it had just run on-demand the whole time, once you count the wasted compute. The fix is checkpointing at a cadence shorter than the typical reclamation window, plus a mixed fleet (spot + a small on-demand baseline) so total capacity doesn't cliff to zero if spot is reclaimed broadly during a capacity crunch.

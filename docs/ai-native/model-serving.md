@@ -78,6 +78,25 @@ GPU serving is billed by **GPU-hours**, not by request — so the unit economics
 
 ---
 
+## Realistic Example
+
+**Serving a 70B-parameter model on A100 80GB GPUs — illustrative numbers, but internally consistent with how the memory math actually works.**
+
+A 70B-parameter model at FP16 needs roughly 140GB just for weights (2 bytes/parameter × 70B) — too large for a single A100 80GB. Tensor-parallel across **2× A100 80GB** gives 160GB of combined GPU memory: ~140GB for weights, leaving **~20GB for KV cache** across all concurrent requests.
+
+KV cache cost per token (a 80-layer, 8-KV-head, 128-head-dim architecture, FP16): `2 (K and V) × 80 layers × 8 KV heads × 128 head-dim × 2 bytes ≈ 320KB per token`. At an average context length of ~2,048 tokens in flight per request, one request's KV cache costs `2,048 × 320KB ≈ 640MB`. A **batch size of 32** therefore needs `32 × 640MB ≈ 20GB` — which is exactly the KV cache budget left over after weights. This is why batch size 32 is close to the practical ceiling for this model/hardware pair before hitting OOM, not an arbitrary round number.
+
+**Throughput:** continuous batching at batch 32 on this 2-GPU setup yields roughly **1,120 aggregate output tokens/sec**. Because all 32 requests share that aggregate rate, each individual request progresses at about `1,120 ÷ 32 ≈ 35 tokens/sec`. For an average response length of 300 output tokens, that's `1,120 ÷ 300 ≈ 3.7 requests/sec` completing end-to-end.
+
+**Cost:** on-demand A100 80GB pricing (illustrative, ~$4.10/GPU-hour) × 2 GPUs = **$8.20/hr**. That works out to:
+
+- `$8.20 ÷ (1,120 tokens/sec × 3,600 sec/hr) × 1,000,000 ≈ $2.03 per 1M output tokens`
+- `$8.20 ÷ (3.7 req/sec × 3,600 sec/hr) ≈ $0.0006 per request` (at the 300-token average response length above)
+
+**The lever this makes concrete:** quantizing to INT8 roughly halves the weight footprint (140GB → ~70GB), which on the same 2× A100 80GB setup frees ~90GB for KV cache instead of ~20GB — enough headroom to roughly quadruple the batch size (and therefore aggregate throughput) before hitting the same memory ceiling, at whatever quality cost INT8 has on this specific workload. That's the batching/memory/cost triangle from the sections above, with numbers attached instead of just relationships.
+
+---
+
 ## Failure Modes
 
 **OOM from bad batch sizing.** The KV cache's memory footprint depends on both batch size *and* sequence length, and long-sequence requests arriving unpredictably can push a server past its memory budget mid-batch — a batch that fit fine with short-average-length requests OOMs the moment a handful of long-context requests land in it together. Production servers need admission control that accounts for *sequence length*, not just request count, when deciding what to admit into a batch.
