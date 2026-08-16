@@ -148,6 +148,9 @@ nav:
       - Event-Driven Architecture: architecture-patterns/event-driven-architecture.md
       - Microservices Communication: architecture-patterns/microservices-communication.md
       - Event Sourcing & CQRS: architecture-patterns/event-sourcing-cqrs.md
+      - Stream Processing: architecture-patterns/stream-processing.md
+      - Serverless vs Containers: architecture-patterns/serverless-vs-containers.md
+      - CRDTs: architecture-patterns/crdts.md
     - Networking:
       - networking/index.md
       - HTTP & TCP Deep Dive: networking/http-tcp.md
