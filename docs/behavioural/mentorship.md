@@ -61,7 +61,7 @@ flowchart LR
     >
     > Beyond the one-on-one mentoring, I ran a lightweight 'design decision' workshop for the org — how to write a one-paragraph decision record instead of a defensive essay — and paired it with a change to our PR template that separated 'what changed' from 'why,' capped at a few sentences each. I also gave direct, private feedback to two senior reviewers whose review style was the actual root cause — pointing at specific PR comment threads where the tone had taught junior engineers to over-justify defensively.
     >
-    > Over the next two quarters, median PR description length across the org dropped by half with no increase in review back-and-forth; two of the three engineers I'd originally flagged were promoted within the year. I built this into new-hire onboarding as a short doc on writing decision records, which outlived my time on that team."
+    > Over the next two quarters, median PR description length across the org dropped by half with no increase in review back-and-forth; two of the three engineers I'd originally flagged were promoted within the year. The third didn't — the workshop and template change fixed the org-level incentive, but that engineer's over-justification turned out to be tied to a specific manager relationship with a history of public criticism that a template change couldn't undo, and I didn't solve that part. I built the workshop into new-hire onboarding as a short doc on writing decision records, which outlived my time on that team, but I'm explicit in this story that it was a partial fix — process changes move the average, they don't reach everyone."
 
     **What this shows:** Recognized an individual pattern as symptomatic of a team/org norm. Addressed root cause (reviewer behavior), not just the symptom (mentee's PR style). Built a durable artifact (template, onboarding doc) and measured an org-level number, not just one person's growth.
 
@@ -78,6 +78,26 @@ The mechanics that separate real delegation from dumping work:
 
 !!! warning "Production Trap ⚠️"
     Delegating a project and then rewriting their design in review isn't delegation — it's dictation with extra steps. If you can't name a decision they made that you disagreed with and let stand, you didn't actually delegate.
+
+### Assessing Delegation Readiness
+
+```mermaid
+flowchart TD
+    A[Candidate for a\nstretch project] --> B{Shown sound judgement\non smaller scoped work?}
+    B -->|No| C[Not ready yet —\npair closely on something smaller first]
+    B -->|Yes| D{Is the blast radius\nof a mistake contained?}
+    D -->|No| E[Narrow the scope until\na wrong call is recoverable]
+    D -->|Yes| F[Delegate: set the boundary\nonce, review the doc, then step back]
+    F --> G{Did they make a call\nyou'd have made differently?}
+    G -->|Yes, and it stood| H[Real delegation —\nattribute the outcome to them]
+    G -->|No, you overrode it| I[Not delegation yet —\nreassess your own letting-go]
+```
+
+---
+
+## A Mentee Who Didn't Improve
+
+Not every investment pays off, and it's worth naming when it doesn't. I spent close to a year with an engineer who was struggling with debugging discipline — jumping to fixes without forming a hypothesis, the same pattern across a dozen incidents. I paired with them repeatedly, gave direct feedback each time, and delegated smaller investigation tasks with explicit checkpoints. The pattern didn't change. What I eventually realized, too late to fully act on it, was that I'd been treating it as a skills gap when it was closer to a mismatch — the role required fast, ambiguous triage under pressure, and this person did genuinely careful, methodical work when given time, which was a real strength I kept trying to route around instead of routing *to*. I should have raised, much earlier, whether they belonged on a different kind of team rather than continuing to coach a mismatch as if more repetition would close it. They eventually moved to a data-quality role on another team and did well there. I learned to ask "is this a skill gap or a fit gap" explicitly, early, instead of assuming every struggle is coachable with enough time.
 
 ---
 

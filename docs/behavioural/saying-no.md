@@ -80,6 +80,20 @@ Before saying no, be able to name the actual cost of saying yes — not a vague 
 !!! warning "Production Trap ⚠️"
     A no with no named cost sounds like preference, not judgement. Interviewers will ask "what would have actually happened if you'd said yes?" — have a specific, defensible answer.
 
+### The Cost-of-Yes Decision Tree
+
+```mermaid
+flowchart TD
+    A[Request that feels\nlike it should be a no] --> B[Name the specific\ncost of saying yes]
+    B --> C{Is that cost\nreversible and cheap?}
+    C -->|Yes| D[Say yes —\na block here is reflexive, not judgement]
+    C -->|No| E{Is the constraint behind\nthe ask actually fixed?}
+    E -->|Untested| F[Ask — the date or scope\nmay have more give than stated]
+    F --> E
+    E -->|Genuinely fixed| G[Say no,\nbut attach a scoped alternative]
+    G --> H[Follow up:\ndid the alternative actually work?]
+```
+
 ---
 
 ## The Shape of a Good No
@@ -89,6 +103,12 @@ Before saying no, be able to name the actual cost of saying yes — not a vague 
 3. **Offer a scoped alternative** — a smaller yes, a different timeline, a narrower version of the ask.
 4. **Make it about the outcome, not the rule** — "this protects X" lands better than "policy says."
 5. **Follow up afterward** — if the alternative worked, that's evidence for next time; if it didn't, own that too.
+
+---
+
+## A No That Landed Badly
+
+Not every no is delivered well, and it's worth having a story where the delivery, not the substance, was the failure. A junior engineer on an adjacent team asked me directly for a quick favor — bypass the normal review queue and get their PR merged same-day because their manager was pushing a deadline. I said no, publicly, in the team channel, citing the review policy — technically correct, but I said it to the engineer instead of raising the actual issue (their manager setting an unrealistic date) with their manager, who was the person who could actually fix it. The engineer took the no personally, felt publicly corrected for something that wasn't really their decision to begin with, and our working relationship was noticeably cooler for a couple of months. The no was right; the target was wrong — I'd pushed back on the person with the least power to change the situation instead of the person who'd created the pressure. I now try to ask "whose decision actually created this ask" before deciding who the no is addressed to, and I do it privately by default.
 
 ---
 

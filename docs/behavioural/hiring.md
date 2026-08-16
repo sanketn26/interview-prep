@@ -89,6 +89,14 @@ The hard part of this story is never the clear reject. It's the candidate who cl
 
 ---
 
+## A Bad Hire I Approved
+
+The bar-holding stories above are clean wins. Be ready for the other one: a candidate you personally approved who didn't work out, and what signal you missed.
+
+I approved a "strong yes" on a senior candidate whose system design round was excellent — clean trade-off reasoning, good pushback handling, all the things I usually screen for. What I didn't weight heavily enough: his behavioural round had a mild flag — every past conflict story ended with him escalating to a manager rather than resolving it with the peer directly — and I let it slide because the technical signal was so strong. Six months in, he was technically capable but had burned two working relationships by going over people's heads instead of working the disagreement directly, and I ended up spending real management time repairing it. The signal was there; I'd built my bar almost entirely around the technical round and treated behavioural signal as a secondary checkbox rather than something that could independently sink a hire. I now weight "how they handle being wrong or blocked" as its own line in debrief, not a footnote under technical competence.
+
+---
+
 ## Calibration: Building the Bar, Not Just Holding It
 
 A "no" that only exists in your head doesn't scale past your own loop. Staff-level hiring stories usually include a **calibration mechanism**:
@@ -102,6 +110,23 @@ A "no" that only exists in your head doesn't scale past your own loop. Staff-lev
 
 !!! warning "Production Trap ⚠️"
     A bar that only you enforce is a bottleneck, not a standard. If every "no" on your team routes through you personally, you haven't raised the bar — you've become a single point of failure for quality.
+
+### The Bar-Raiser Decision Flow
+
+```mermaid
+flowchart TD
+    A[Interview signal collected] --> B{Evidence quote\nor a vibe?}
+    B -->|Vibe only| C[Not admissible in debrief —\nre-review the transcript first]
+    C --> B
+    B -->|Specific evidence| D{Debrief\nconsensus?}
+    D -->|Unanimous| E[Decision recorded\nwith the evidence quote]
+    D -->|Split| F[Bar-raiser reviews the\ntranscript directly]
+    F --> G{Bar-raiser sees the\ngap firsthand?}
+    G -->|Yes| H[Hold the no —\nlog as a calibration case]
+    G -->|No — was overcalled| I[Overturn,\nflag for interviewer coaching]
+    H --> J[Quarterly calibration session\nuses this case]
+    I --> J
+```
 
 ---
 

@@ -61,7 +61,8 @@ flowchart LR
     >
     > Fixing my service was necessary but not sufficient — six other teams had the same debt and would recreate it. I wrote a proposal to the architecture group: invest two engineers for one quarter building an async-by-default client library with the boilerplate handled for you, and a lint rule that flags new synchronous cross-service calls above a configurable fan-out depth. I got budget by showing the incident cost across all teams, not just mine — I pulled six months of Sev-1/Sev-2 data org-wide and found a cluster: 31% of Sev-2s in that window traced to cascading synchronous calls.
     >
-    > I didn't own the other teams, so I ran it as a working group with one engineer from each affected team, rather than mandating adoption — adoption is voluntary but the lint rule makes the *old* pattern the harder path, not the new one. 18 months later, four of six teams had migrated their hottest paths; org-wide Sev-2 count from this failure class dropped by roughly 60%. I wrote the pattern up as an internal engineering guideline that's still cited in design reviews two years later."
+    > I didn't own the other teams, and I didn't build the library myself — the platform team had roadmap capacity that quarter and the async-by-default pattern fit their existing charter better than mine. I handed them the incident data and a rough spec, then focused my own effort on getting the *lint rule* adopted as a standing org policy, which didn't require anyone to build new infrastructure: architecture review agreed any new synchronous cross-service call above a fan-out depth of two needed a written exception. Platform shipped the client library two months later, on their own timeline, and now owns it.
+    > 18 months later, four of six teams had migrated their hottest paths; org-wide Sev-2 count from this failure class dropped by roughly 60%. The policy — not a tool I built — is what made the old pattern the harder path; I was the one who got it funded and adopted, not the one who wrote the code."
 
     **What this shows:** Recognized the debt as a systemic pattern, not a local one. Built a reusable artifact (library, lint rule) rather than manually fixing six services. Used cross-team incentives (make the right path the easy path) instead of authority he didn't have.
 
@@ -107,6 +108,12 @@ The other half of this theme: a PM or a peer wants to ship a shortcut that trade
 
 !!! tip "Interview Insight 🎯"
     "I said no" is a weak answer alone. The strong version names *what you protected* and *what you were willing to cut instead* — a no with an alternative attached, not just a no.
+
+---
+
+## A Pitch That Didn't Land
+
+Not every debt pitch gets funded, and it's worth having a story where it didn't. I once proposed a two-week project to replace a homegrown feature-flag system with an off-the-shelf one — the homegrown version had no audit log and had caused one embarrassing "who turned this off" incident. I pitched it the same way as my successful debt work: scoped, timeboxed, tied to a real incident. It got declined twice in planning, because I'd quantified the past cost but not the ongoing one — I couldn't show it was going to keep costing us, just that it had once. The PM's read, correctly, was "one incident in two years isn't a pattern yet." I learned that a single past incident is necessary but not sufficient for a debt pitch; you need either a recurring cost or a growing one, and I hadn't checked whether this was either. I shelved it and instead added lightweight logging to the existing system as a much smaller ask, which did get approved.
 
 ---
 

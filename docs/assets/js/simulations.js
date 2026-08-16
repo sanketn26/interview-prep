@@ -2282,6 +2282,7 @@ class SortViz {
   async quicksort() { await this._run(() => this._qs(0, this.arr.length - 1), "Quicksort"); }
   async mergesort() { await this._run(() => this._ms(0, this.arr.length - 1), "Merge sort"); }
   async heapsort() { await this._run(() => this._hs(), "Heap sort"); }
+  async bucketSort() { await this._run(() => this._bs(), "Bucket sort"); }
 
   async _run(fn, name) {
     if (this.running) return;
@@ -2364,6 +2365,49 @@ class SortViz {
     }
   }
 
+  async _bs() {
+    // Bucket sort: distribute into value-range buckets (animated), rebuild the
+    // array grouped by bucket, then insertion-sort each bucket range in place
+    // using the same _compare/_swap primitives the other algorithms use.
+    const n = this.arr.length;
+    const min = Math.min(...this.arr);
+    const max = Math.max(...this.arr);
+    const bucketCount = 5;
+    const range = (max - min + 1) / bucketCount;
+    const buckets = Array.from({ length: bucketCount }, () => []);
+
+    for (let i = 0; i < n; i++) {
+      const idx = Math.min(bucketCount - 1, Math.floor((this.arr[i] - min) / range));
+      buckets[idx].push(this.arr[i]);
+      this.active = [i];
+      this.render();
+      await sleep(this.delay);
+    }
+
+    let pos = 0;
+    const boundaries = [];
+    for (const b of buckets) {
+      boundaries.push(pos);
+      for (const v of b) { this.arr[pos] = v; pos++; }
+    }
+    this.active = [];
+    this.render();
+    await sleep(this.delay);
+
+    for (let bi = 0; bi < bucketCount; bi++) {
+      const start = boundaries[bi];
+      const end = (bi + 1 < bucketCount ? boundaries[bi + 1] : n) - 1;
+      for (let i = start + 1; i <= end; i++) {
+        let j = i;
+        while (j > start) {
+          await this._compare(j - 1, j);
+          if (this.arr[j - 1] > this.arr[j]) { await this._swap(j - 1, j); j--; }
+          else break;
+        }
+      }
+    }
+  }
+
   render() {
     setStat("sort-compares", this.compares);
     setStat("sort-swaps", this.swaps);
@@ -2378,6 +2422,303 @@ class SortViz {
       const h = (v / max) * (H - 20);
       ctx.fillStyle = this.active.includes(i) ? "#b71c1c" : "#1565c0";
       ctx.fillRect(i * bw + 1, H - h, bw - 2, h);
+    });
+  }
+}
+
+// ── DSA: Bloom filter (probabilistic set membership) ────────────
+class BloomFilterViz {
+  constructor(containerId, logId) {
+    this.containerId = containerId;
+    this.logId = logId;
+    this.m = 32;  // bit array size
+    this.k = 3;   // number of hash functions
+    this.delay = 260;
+    this.reset();
+  }
+
+  reset() {
+    this.running = false;
+    this.bits = Array(this.m).fill(0);
+    this.added = new Set();
+    this.highlight = [];
+    this.render();
+    setStat("bloom-added", 0);
+    setStat("bloom-fpr", "0.0%");
+    log(this.logId, `Reset: m=${this.m} bits, k=${this.k} hash functions.`, "info");
+  }
+
+  _hash(str, seed) {
+    let h = seed >>> 0;
+    for (let i = 0; i < str.length; i++) {
+      h = (Math.imul(h, 31) + str.charCodeAt(i)) | 0;
+    }
+    return Math.abs(h) % this.m;
+  }
+
+  _positions(str) {
+    const pos = [];
+    for (let i = 0; i < this.k; i++) pos.push(this._hash(str, 17 + i * 101));
+    return pos;
+  }
+
+  async add(word) {
+    if (this.running || !word) return;
+    this.running = true;
+    word = word.toLowerCase().trim();
+    const positions = this._positions(word);
+    log(this.logId, `Add "${word}" → hash positions [${positions.join(", ")}]`, "info");
+    for (const p of positions) {
+      this.highlight = [p];
+      this.render();
+      await sleep(this.delay);
+      this.bits[p] = 1;
+      this.render();
+    }
+    this.added.add(word);
+    this.highlight = [];
+    this.render();
+    setStat("bloom-added", this.added.size);
+    this._updateFpr();
+    log(this.logId, `"${word}" added. Bits set: ${this.bits.filter(b => b).length}/${this.m}`, "ok");
+    this.running = false;
+  }
+
+  async query(word) {
+    if (this.running || !word) return;
+    this.running = true;
+    word = word.toLowerCase().trim();
+    const positions = this._positions(word);
+    log(this.logId, `Query "${word}" → checking positions [${positions.join(", ")}]`, "info");
+    let allSet = true;
+    for (const p of positions) {
+      this.highlight = [p];
+      this.render();
+      await sleep(this.delay);
+      if (!this.bits[p]) {
+        allSet = false;
+        log(this.logId, `Bit ${p} is 0 → definitely NOT present, stopping early`, "err");
+        break;
+      }
+    }
+    this.highlight = [];
+    if (!allSet) {
+      log(this.logId, `"${word}": MISS (definite negative)`, "err");
+    } else if (this.added.has(word)) {
+      log(this.logId, `"${word}": HIT — true positive (was actually added)`, "ok");
+    } else {
+      log(this.logId, `"${word}": HIT but never added — FALSE POSITIVE (all ${this.k} bits happened to be set by other items)`, "warn");
+    }
+    this.render();
+    this.running = false;
+  }
+
+  _updateFpr() {
+    const setBits = this.bits.filter(b => b).length;
+    const fillRatio = setBits / this.m;
+    const fpr = Math.pow(fillRatio, this.k);
+    setStat("bloom-fpr", (fpr * 100).toFixed(1) + "%");
+  }
+
+  render() {
+    const el = document.getElementById(this.containerId);
+    if (!el) return;
+    el.innerHTML = "";
+    el.style.display = "flex";
+    el.style.flexWrap = "wrap";
+    el.style.gap = "3px";
+    this.bits.forEach((b, i) => {
+      const cell = document.createElement("div");
+      cell.className = "dsa-cell";
+      cell.style.width = "28px"; cell.style.height = "28px"; cell.style.fontSize = "0.7rem";
+      cell.textContent = b;
+      if (this.highlight.includes(i)) cell.classList.add("current");
+      else if (b) cell.classList.add("optimal");
+      el.appendChild(cell);
+    });
+  }
+}
+
+// ── DSA: Aho-Corasick (multi-pattern matching) ───────────────────
+class AhoCorasickViz {
+  constructor(canvasId, stripId, logId) {
+    this.canvasId = canvasId;
+    this.stripId = stripId;
+    this.logId = logId;
+    this.delay = 380;
+    this.patterns = ["he", "she", "his", "hers"];
+    this.reset();
+  }
+
+  reset() {
+    this.running = false;
+    this.root = { char: "•", children: {}, fail: null, output: [] };
+    this.root.fail = this.root;
+    for (const p of this.patterns) this._insert(p);
+    this._buildFailureLinks();
+    this.current = null;
+    this.text = "ushersheishishers";
+    this.textPos = -1;
+    this.matches = [];
+    this.render();
+    this.renderStrip();
+    log(this.logId, `Trie built for patterns: ${this.patterns.join(", ")}. Failure links computed (dashed purple).`, "info");
+  }
+
+  _insert(word) {
+    let node = this.root;
+    for (const ch of word) {
+      if (!node.children[ch]) node.children[ch] = { char: ch, children: {}, fail: null, output: [] };
+      node = node.children[ch];
+    }
+    node.output.push(word);
+  }
+
+  _buildFailureLinks() {
+    // BFS over the trie, computing each node's failure link — the longest
+    // proper suffix of its path that is also a prefix in the trie (a node).
+    const queue = [];
+    for (const ch of Object.keys(this.root.children)) {
+      const child = this.root.children[ch];
+      child.fail = this.root;
+      queue.push(child);
+    }
+    while (queue.length) {
+      const u = queue.shift();
+      for (const ch of Object.keys(u.children)) {
+        const c = u.children[ch];
+        let f = u.fail;
+        while (f !== this.root && !f.children[ch]) f = f.fail;
+        c.fail = (f.children[ch] && f.children[ch] !== c) ? f.children[ch] : this.root;
+        c.output = c.output.concat(c.fail.output);
+        queue.push(c);
+      }
+    }
+  }
+
+  async scan(text) {
+    if (this.running || !text) return;
+    this.running = true;
+    this.text = text.toLowerCase();
+    this.matches = [];
+    this.textPos = -1;
+    let node = this.root;
+    log(this.logId, `Scanning "${this.text}" — one pass, no re-reading text characters`, "info");
+    for (let i = 0; i < this.text.length; i++) {
+      const ch = this.text[i];
+      while (node !== this.root && !node.children[ch]) {
+        log(this.logId, `No child '${ch}' from '${node.char}' → follow failure link to '${node.fail.char}'`, "warn");
+        node = node.fail;
+        this.current = node;
+        this.render();
+        await sleep(this.delay / 2);
+      }
+      node = node.children[ch] || this.root;
+      this.current = node;
+      this.textPos = i;
+      this.render();
+      this.renderStrip();
+      await sleep(this.delay);
+      if (node.output.length) {
+        for (const pat of node.output) {
+          const start = i - pat.length + 1;
+          this.matches.push({ start, end: i, pat });
+          log(this.logId, `Match "${pat}" at [${start}, ${i}]`, "ok");
+        }
+        this.renderStrip();
+      }
+    }
+    log(this.logId, `Done. ${this.matches.length} match(es) found in one left-to-right pass.`, "ok");
+    this.current = null;
+    this.render();
+    this.running = false;
+  }
+
+  render() {
+    const canvas = document.getElementById(this.canvasId);
+    const sized = sizeCanvas(canvas, 280);
+    if (!sized) return;
+    const { ctx, W, H } = sized;
+    clearCanvas(ctx, W, H);
+    const countLeaves = node => {
+      const keys = Object.keys(node.children);
+      if (!keys.length) return 1;
+      return keys.reduce((s, k) => s + countLeaves(node.children[k]), 0);
+    };
+    const layout = (node, depth, xStart, xEnd) => {
+      node.y = 20 + depth * 42;
+      const keys = Object.keys(node.children).sort();
+      if (!keys.length) { node.x = (xStart + xEnd) / 2; return; }
+      let cursor = xStart;
+      const total = countLeaves(node);
+      keys.forEach(k => {
+        const child = node.children[k];
+        const w = (xEnd - xStart) * (countLeaves(child) / total);
+        layout(child, depth + 1, cursor, cursor + w);
+        cursor += w;
+      });
+      node.x = (xStart + xEnd) / 2;
+    };
+    layout(this.root, 0, 10, W - 10);
+
+    const drawFail = node => {
+      if (node.fail && node.fail !== this.root && node !== this.root) {
+        ctx.beginPath();
+        ctx.setLineDash([4, 3]);
+        ctx.moveTo(node.x, node.y);
+        ctx.lineTo(node.fail.x, node.fail.y);
+        ctx.strokeStyle = "#7e57c2";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      Object.values(node.children).forEach(drawFail);
+    };
+    drawFail(this.root);
+
+    const drawEdges = node => {
+      Object.values(node.children).forEach(child => {
+        ctx.beginPath();
+        ctx.moveTo(node.x, node.y);
+        ctx.lineTo(child.x, child.y);
+        ctx.strokeStyle = (this.current && (node === this.current || child === this.current)) ? "#f57f17" : "#445";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        drawEdges(child);
+      });
+    };
+    drawEdges(this.root);
+
+    const drawNodes = node => {
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, 13, 0, Math.PI * 2);
+      ctx.fillStyle = node === this.current ? "#b71c1c" : (node.output.length ? "#1b5e20" : "#37474f");
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 10px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(node.char, node.x, node.y);
+      Object.values(node.children).forEach(drawNodes);
+    };
+    drawNodes(this.root);
+  }
+
+  renderStrip() {
+    const el = document.getElementById(this.stripId);
+    if (!el) return;
+    el.innerHTML = "";
+    el.style.display = "flex";
+    el.style.flexWrap = "wrap";
+    el.style.gap = "2px";
+    [...this.text].forEach((ch, idx) => {
+      const cell = document.createElement("div");
+      cell.className = "dsa-cell";
+      cell.style.width = "26px"; cell.style.height = "26px"; cell.style.fontSize = "0.75rem";
+      cell.textContent = ch;
+      if (idx === this.textPos) cell.classList.add("current");
+      if (this.matches.some(m => idx >= m.start && idx <= m.end)) cell.classList.add("optimal");
+      el.appendChild(cell);
     });
   }
 }
@@ -2725,6 +3066,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("trie-canvas")) window._trie = new TrieViz("trie-canvas", "trie-log");
   if (document.getElementById("greedy-canvas")) window._greedy = new GreedyViz("greedy-canvas", "greedy-log");
   if (document.getElementById("kmp-strip")) window._kmp = new KmpViz("kmp-strip", "kmp-log");
+  if (document.getElementById("bloom-bits")) window._bloom = new BloomFilterViz("bloom-bits", "bloom-log");
+  if (document.getElementById("ac-canvas")) window._ac = new AhoCorasickViz("ac-canvas", "ac-strip", "ac-log");
 });
 
 // Expose constructors for tests / playgrounds

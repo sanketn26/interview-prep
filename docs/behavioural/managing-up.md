@@ -84,6 +84,10 @@ flowchart LR
 !!! warning "Production Trap ⚠️"
     "I didn't want to be the bearer of bad news" is the single most common reason risk surfaces too late. The interviewer will read a story where you sat on a known risk for weeks as a judgement failure, regardless of how the eventual conversation went.
 
+### When Surfacing It Early Backfired
+
+Surfacing risk early doesn't always land well, and it's worth having a story where it didn't. Early in a project, I flagged in a planning meeting — in front of the wider team, not privately first — that I thought our proposed three-week estimate for a data-migration project was closer to six, based on a similar migration I'd done two years earlier. I was right about the estimate, but the way I raised it read as undermining my manager's plan in front of the people he'd just committed it to, and he told me afterward, fairly, that it put him in a position of either overruling me publicly or looking like he hadn't done his homework. The estimate was later revised to five weeks anyway, so I was directionally correct — but the relationship cost was real, and it took a few weeks of deliberately routing concerns to him privately first to rebuild the trust that I wasn't going to contradict him in front of the team again. I learned that being right about the risk doesn't excuse getting the forum wrong; the two are scored separately, by the room and by the manager.
+
 ---
 
 ## Negotiating Scope vs. Timeline

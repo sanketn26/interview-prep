@@ -84,6 +84,10 @@ flowchart TD
 !!! warning "Production Trap ⚠️"
     Committing to a full solution before narrowing the problem is the most common failure in ambiguity stories. If your story goes straight from "it felt vague" to "I built X," the interviewer will ask how you knew X was the right thing to build — have a real answer about the narrowing step.
 
+## When the Plan Solved the Wrong Problem
+
+Even a disciplined narrowing step can land on the wrong hypothesis, and it's worth having that story too. I was once told, vaguely, that "activation is too low" for a new feature — no ticket, no baseline. I did the cheap-investigation step properly: pulled funnel data, found a big drop-off at a specific setup screen, and built a redesigned, simplified version of that screen over three weeks. Activation on that screen improved, but overall product activation barely moved — I'd optimized the step with the most visible drop-off, not the step that was actually gating value. A week of talking to users after the fact (which I should have done before building) surfaced that most drop-off at that screen was users who came back later anyway through a different path; the real blocker was a permissions step two screens earlier that didn't show up as dramatically in the funnel because fewer people even reached it, but the ones who churned there never came back at all. I'd let "the biggest funnel drop-off" stand in for "the problem," without checking whether big-and-visible was the same as high-impact. I now explicitly ask, before building anything, "if I fix this, does the top-line number actually move" as a cheap gut-check before committing three weeks.
+
 ---
 
 ## Defining Your Own Success Criteria
