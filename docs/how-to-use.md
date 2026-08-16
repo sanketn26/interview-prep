@@ -5,6 +5,9 @@ description: Interview modes, three-level explanation model, and how to get the 
 
 # How to Study This Academy
 
+!!! warning "Prerequisite check"
+    This academy assumes you already ship production code, know core data structures & algorithms, and are comfortable with OOP/API design/HTTP/SQL. It teaches distributed systems, scale, and failure reasoning **on top of** that — it does not teach the fundamentals themselves. See [Who This Is For](index.md#who-this-is-for) before you start if you're unsure this is the right level.
+
 ## The Three-Level Model
 
 Every concept has three levels of understanding. Switch between them based on context:

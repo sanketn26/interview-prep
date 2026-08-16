@@ -13,11 +13,13 @@ This is not a pile of interview notes. It is an interactive textbook + design la
 
 ## Who it is for
 
-Senior backend / platform / infra engineers, SREs, DevOps, tech leads, Staff candidates.
+Senior backend / platform / infra engineers, SREs, DevOps, tech leads, Staff candidates — people who already ship production code and want to reason about scale, trade-offs, and failure.
 
-**Assumes:** programming fundamentals.
+**Assumes you already have:** 2+ years shipping production code, working knowledge of core data structures & algorithms, comfort with OOP/API design/HTTP/SQL, and enough production exposure to know that things fail.
 
-**Does not assume:** distributed systems, large-scale databases, consensus, networking internals, streams, Kubernetes internals, production debugging, or capacity planning.
+**Does not assume:** distributed systems, large-scale databases, consensus, networking internals, streams, Kubernetes internals, production debugging, or capacity planning — that's what this teaches.
+
+**Not for:** entry-level / new-grad interview prep, or anyone who wants a CS-fundamentals or "what is an API" style course. There's no glossary-first on-ramp here — concept pages open at "here's the hard problem," not "here's the definition." This is deliberately not beginner-friendly.
 
 ---
 

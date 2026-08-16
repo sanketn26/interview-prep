@@ -76,15 +76,31 @@ Every concept answers: **WHAT? WHY? HOW? WHEN? WHAT BREAKS? WHAT ARE THE TRADE-O
 === "Level 3 — Production"
     Scale limits, failure modes, monitoring, cost, security, debugging, real incidents.
 
-## Target Audience
+## Who This Is For
 
 - Senior Software / Backend / Platform / Distributed Systems Engineers
 - Staff Engineer & Tech Lead candidates
 - Senior SRE/DevOps engineers
 - Engineers targeting ₹40–70+ LPA (India) or equivalent global senior interviews
+- Engineers who already ship production code and want to reason about scale, trade-offs, and failure — not learn to write their first API
 
-**Assume:** basic programming knowledge
-**Does not assume:** deep distributed-systems knowledge
+**Assumes you already have:**
+
+- 2+ years writing and shipping production code in at least one language
+- Working knowledge of core data structures & algorithms (arrays, hash maps, trees, graphs, sorting, recursion) — this is not where you learn what a hash map is
+- Comfort with basic OOP/API design, HTTP, SQL, and using a database in an application
+- Enough exposure to a real system in production to know that things fail, requests are slow sometimes, and "it works on my machine" isn't the bar
+
+**Does not assume:** deep distributed-systems knowledge (CAP, consensus, sharding, replication) — that's what this academy teaches, built on top of the fundamentals above.
+
+!!! warning "This is not a beginner-friendly course"
+    There is no "what is an API" or "what is a database" page here. Concept pages open at the level of "here's the problem this solves and why it's hard," not "here's the definition." If you're early-career or interviewing for your first engineering role, you'll get more value from a general DSA/CS-fundamentals course first — come back here once you're designing (or want to design) systems that actually have to survive production traffic, failure, and scale.
+
+## Who This Is Not For
+
+- Engineers preparing for entry-level or new-grad interviews — the interview-question bar here starts at Senior and goes to Staff
+- Anyone looking for "definitions" or a glossary-first learning style — start with [Reference → Glossary](reference/glossary.md) elsewhere and come back
+- Anyone who wants memorized architectures for common systems — this academy deliberately makes you **derive** the design instead of handing you a finished diagram to memorize
 
 ## Priority Topics (Gold Standard Modules)
 
