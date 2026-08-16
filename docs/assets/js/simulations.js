@@ -1800,6 +1800,885 @@ class DpViz {
   }
 }
 
+// ── DSA: Heap (min-heap insert / extract-min / heapify) ────────
+class HeapViz {
+  constructor(canvasId, logId) {
+    this.canvasId = canvasId;
+    this.logId = logId;
+    this.delay = 500;
+    this.reset();
+  }
+
+  reset() {
+    this.running = false;
+    this.heap = [];
+    this.render();
+    log(this.logId, "Empty min-heap. Insert values or heapify a random array.", "info");
+  }
+
+  async insert(val) {
+    if (this.running) return;
+    if (val === null || val === undefined || Number.isNaN(val)) val = rand(1, 99);
+    this.running = true;
+    this.heap.push(val);
+    let i = this.heap.length - 1;
+    log(this.logId, `Insert ${val} at index ${i} (append to end of array)`, "info");
+    this.render(i);
+    await sleep(this.delay);
+    while (i > 0) {
+      const p = Math.floor((i - 1) / 2);
+      if (this.heap[p] <= this.heap[i]) break;
+      log(this.logId, `Sift up: ${this.heap[i]} < parent ${this.heap[p]} — swap idx ${i}↔${p}`, "warn");
+      [this.heap[p], this.heap[i]] = [this.heap[i], this.heap[p]];
+      i = p;
+      this.render(i);
+      await sleep(this.delay);
+    }
+    log(this.logId, `${val} settled at index ${i}. Heap property restored.`, "ok");
+    this.running = false;
+  }
+
+  async extractMin() {
+    if (this.running || !this.heap.length) { log(this.logId, "Heap is empty", "warn"); return; }
+    this.running = true;
+    const min = this.heap[0];
+    log(this.logId, `Extract-min: root = ${min}`, "info");
+    const last = this.heap.pop();
+    if (this.heap.length) {
+      this.heap[0] = last;
+      log(this.logId, `Move last element ${last} to root, sift down`, "info");
+      this.render(0);
+      await sleep(this.delay);
+      let i = 0;
+      while (true) {
+        const l = 2 * i + 1, r = 2 * i + 2;
+        let smallest = i;
+        if (l < this.heap.length && this.heap[l] < this.heap[smallest]) smallest = l;
+        if (r < this.heap.length && this.heap[r] < this.heap[smallest]) smallest = r;
+        if (smallest === i) break;
+        [this.heap[i], this.heap[smallest]] = [this.heap[smallest], this.heap[i]];
+        log(this.logId, `Sift down: swap idx ${i}↔${smallest}`, "warn");
+        i = smallest;
+        this.render(i);
+        await sleep(this.delay);
+      }
+    }
+    log(this.logId, `Extracted ${min}. Heap size now ${this.heap.length}.`, "ok");
+    this.running = false;
+  }
+
+  async heapify() {
+    if (this.running) return;
+    this.running = true;
+    this.heap = Array.from({ length: 7 }, () => rand(1, 99));
+    log(this.logId, `Heapify random array: [${this.heap.join(", ")}]`, "info");
+    this.render();
+    await sleep(this.delay);
+    const n = this.heap.length;
+    for (let start = Math.floor(n / 2) - 1; start >= 0; start--) {
+      let cur = start;
+      while (true) {
+        const l = 2 * cur + 1, r = 2 * cur + 2;
+        let smallest = cur;
+        if (l < n && this.heap[l] < this.heap[smallest]) smallest = l;
+        if (r < n && this.heap[r] < this.heap[smallest]) smallest = r;
+        if (smallest === cur) break;
+        [this.heap[cur], this.heap[smallest]] = [this.heap[smallest], this.heap[cur]];
+        this.render(smallest);
+        await sleep(this.delay * 0.7);
+        cur = smallest;
+      }
+    }
+    log(this.logId, `Heapify done (bottom-up, O(n)): [${this.heap.join(", ")}]`, "ok");
+    this.running = false;
+  }
+
+  render(highlight = -1) {
+    setStat("heap-size", this.heap.length);
+    setStat("heap-min", this.heap.length ? this.heap[0] : "—");
+    const canvas = document.getElementById(this.canvasId);
+    const sized = sizeCanvas(canvas, 280);
+    if (!sized) return;
+    const { ctx, W, H } = sized;
+    clearCanvas(ctx, W, H);
+    const n = this.heap.length;
+    const positions = [];
+    for (let i = 0; i < n; i++) {
+      const level = Math.floor(Math.log2(i + 1));
+      const idxInLevel = i + 1 - Math.pow(2, level);
+      const slots = Math.pow(2, level);
+      positions.push({ x: (idxInLevel + 0.5) / slots * W, y: 26 + level * 42 });
+    }
+    ctx.strokeStyle = "#445";
+    ctx.lineWidth = 2;
+    for (let i = 1; i < n; i++) {
+      const p = Math.floor((i - 1) / 2);
+      ctx.beginPath();
+      ctx.moveTo(positions[p].x, positions[p].y);
+      ctx.lineTo(positions[i].x, positions[i].y);
+      ctx.stroke();
+    }
+    this.heap.forEach((v, i) => {
+      const { x, y } = positions[i];
+      ctx.beginPath();
+      ctx.arc(x, y, 16, 0, Math.PI * 2);
+      ctx.fillStyle = i === highlight ? "#b71c1c" : (i === 0 ? "#1565c0" : "#37474f");
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(v, x, y);
+    });
+    const rowY = H - 22;
+    const cw = Math.min(40, (W - 20) / Math.max(n, 1));
+    this.heap.forEach((v, i) => {
+      const x = 10 + i * cw;
+      ctx.fillStyle = i === highlight ? "#b71c1c" : "#1e1e3a";
+      ctx.fillRect(x, rowY - 14, cw - 4, 28);
+      ctx.strokeStyle = "#3a3a6a";
+      ctx.strokeRect(x, rowY - 14, cw - 4, 28);
+      ctx.fillStyle = "#e0e0ff";
+      ctx.font = "11px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(v, x + (cw - 4) / 2, rowY);
+    });
+  }
+}
+
+// ── DSA: Dijkstra shortest path ─────────────────────────────────
+class DijkstraViz {
+  constructor(canvasId, logId) {
+    this.canvasId = canvasId;
+    this.logId = logId;
+    this.delay = 650;
+    this.reset();
+  }
+
+  reset() {
+    this.running = false;
+    this.nodes = [
+      { id: 0, label: "A", x: 8, y: 50 },
+      { id: 1, label: "B", x: 32, y: 15 },
+      { id: 2, label: "C", x: 32, y: 85 },
+      { id: 3, label: "D", x: 60, y: 15 },
+      { id: 4, label: "E", x: 60, y: 85 },
+      { id: 5, label: "F", x: 90, y: 50 },
+    ];
+    this.edges = [[0, 1, 4], [0, 2, 2], [1, 2, 1], [1, 3, 5], [2, 3, 8], [2, 4, 10], [3, 4, 2], [3, 5, 6], [4, 5, 3]];
+    this.dist = Array(6).fill(Infinity);
+    this.prev = Array(6).fill(null);
+    this.state = Array(6).fill("unvisited");
+    this.render();
+    log(this.logId, "Weighted graph ready. Run Dijkstra from A.", "info");
+  }
+
+  _adj(id) {
+    const out = [];
+    this.edges.forEach(([a, b, w]) => {
+      if (a === id) out.push([b, w]);
+      if (b === id) out.push([a, w]);
+    });
+    return out;
+  }
+
+  async run(startId = 0) {
+    if (this.running) return;
+    this.running = true;
+    this.dist = Array(6).fill(Infinity);
+    this.prev = Array(6).fill(null);
+    this.state = Array(6).fill("unvisited");
+    this.dist[startId] = 0;
+    this.state[startId] = "frontier";
+    const visited = new Set();
+    log(this.logId, `Start from ${this.nodes[startId].label}, dist=0. Always expand the closest unvisited node.`, "info");
+    this.render();
+    await sleep(this.delay);
+    while (this.running) {
+      let u = -1, best = Infinity;
+      for (let i = 0; i < 6; i++) if (!visited.has(i) && this.dist[i] < best) { best = this.dist[i]; u = i; }
+      if (u === -1) break;
+      visited.add(u);
+      this.state[u] = "current";
+      log(this.logId, `Visit ${this.nodes[u].label} (dist=${this.dist[u]}) — settled, never revisited`, "ok");
+      this.render();
+      await sleep(this.delay);
+      for (const [v, w] of this._adj(u)) {
+        if (visited.has(v)) continue;
+        const nd = this.dist[u] + w;
+        if (nd < this.dist[v]) {
+          this.dist[v] = nd;
+          this.prev[v] = u;
+          this.state[v] = "frontier";
+          log(this.logId, `Relax ${this.nodes[u].label}→${this.nodes[v].label} (w=${w}): dist[${this.nodes[v].label}]=${nd}`, "info");
+        }
+      }
+      this.state[u] = "done";
+      this.render();
+      await sleep(this.delay / 2);
+    }
+    log(this.logId, `Final distances: ${this.nodes.map((n, i) => `${n.label}=${this.dist[i] === Infinity ? "∞" : this.dist[i]}`).join(", ")}`, "ok");
+    this.running = false;
+  }
+
+  render() {
+    const canvas = document.getElementById(this.canvasId);
+    const sized = sizeCanvas(canvas, 300);
+    if (!sized) return;
+    const { ctx, W, H } = sized;
+    clearCanvas(ctx, W, H);
+    const colors = { unvisited: "#37474f", frontier: "#f57f17", current: "#b71c1c", done: "#1565c0" };
+    this.edges.forEach(([a, b, w]) => {
+      const na = this.nodes[a], nb = this.nodes[b];
+      const x1 = na.x / 100 * W, y1 = na.y / 100 * H, x2 = nb.x / 100 * W, y2 = nb.y / 100 * H;
+      const onPath = this.prev[b] === a || this.prev[a] === b;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = onPath ? "#66bb6a" : "#445";
+      ctx.lineWidth = onPath ? 3 : 2;
+      ctx.stroke();
+      ctx.fillStyle = "#9e9ec8";
+      ctx.font = "11px monospace";
+      ctx.textAlign = "center";
+      ctx.fillText(w, (x1 + x2) / 2, (y1 + y2) / 2 - 4);
+    });
+    this.nodes.forEach((n, i) => {
+      const x = n.x / 100 * W, y = n.y / 100 * H;
+      ctx.beginPath();
+      ctx.arc(x, y, 18, 0, Math.PI * 2);
+      ctx.fillStyle = colors[this.state[i]];
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(n.label, x, y - 4);
+      ctx.font = "9px monospace";
+      ctx.fillText(this.dist[i] === Infinity ? "∞" : this.dist[i], x, y + 8);
+    });
+  }
+}
+
+// ── DSA: Union-Find (path compression + union by rank) ─────────
+class UnionFindViz {
+  constructor(canvasId, logId) {
+    this.canvasId = canvasId;
+    this.logId = logId;
+    this.n = 10;
+    this.reset();
+  }
+
+  reset() {
+    this.running = false;
+    this.parent = Array.from({ length: this.n }, (_, i) => i);
+    this.rank = Array(this.n).fill(0);
+    this.highlight = new Set();
+    this.render();
+    log(this.logId, `${this.n} singleton sets. Union by rank + path compression keeps trees nearly flat.`, "info");
+  }
+
+  async union(a, b) {
+    if (this.running) return;
+    this.running = true;
+    log(this.logId, `Union(${a}, ${b})`, "info");
+    const ra = await this._findAnimated(a);
+    const rb = await this._findAnimated(b);
+    if (ra === rb) {
+      log(this.logId, `${a} and ${b} already share root ${ra} — no-op`, "warn");
+    } else if (this.rank[ra] < this.rank[rb]) {
+      this.parent[ra] = rb;
+      log(this.logId, `Attach root ${ra} under root ${rb} (rank ${this.rank[ra]} < ${this.rank[rb]})`, "ok");
+    } else if (this.rank[ra] > this.rank[rb]) {
+      this.parent[rb] = ra;
+      log(this.logId, `Attach root ${rb} under root ${ra} (rank ${this.rank[rb]} < ${this.rank[ra]})`, "ok");
+    } else {
+      this.parent[rb] = ra;
+      this.rank[ra]++;
+      log(this.logId, `Equal rank: attach ${rb} under ${ra}, bump rank to ${this.rank[ra]}`, "ok");
+    }
+    this.highlight = new Set();
+    this.render();
+    this.running = false;
+  }
+
+  async find(x) {
+    if (this.running) return;
+    this.running = true;
+    await this._findAnimated(x);
+    this.highlight = new Set();
+    this.render();
+    this.running = false;
+  }
+
+  async _findAnimated(x) {
+    const path = [];
+    let cur = x;
+    while (this.parent[cur] !== cur) { path.push(cur); cur = this.parent[cur]; }
+    path.push(cur);
+    log(this.logId, `Find(${x}): path to root = ${path.join("→")}`, "info");
+    this.highlight = new Set(path);
+    this.render();
+    await sleep(450);
+    path.slice(0, -1).forEach(node => { this.parent[node] = cur; });
+    if (path.length > 2) log(this.logId, `Path compression: nodes ${path.slice(0, -1).join(",")} now point directly to root ${cur}`, "ok");
+    this.render();
+    await sleep(350);
+    return cur;
+  }
+
+  render() {
+    const canvas = document.getElementById(this.canvasId);
+    const sized = sizeCanvas(canvas, 260);
+    if (!sized) return;
+    const { ctx, W, H } = sized;
+    clearCanvas(ctx, W, H);
+    const cols = 5;
+    const cellW = W / cols, cellH = (H - 40) / Math.ceil(this.n / cols);
+    const pos = {};
+    for (let i = 0; i < this.n; i++) {
+      const col = i % cols, row = Math.floor(i / cols);
+      pos[i] = { x: cellW * (col + 0.5), y: 30 + row * cellH * 1.6 };
+    }
+    ctx.lineWidth = 2;
+    for (let i = 0; i < this.n; i++) {
+      if (this.parent[i] !== i) {
+        ctx.beginPath();
+        ctx.moveTo(pos[i].x, pos[i].y);
+        ctx.lineTo(pos[this.parent[i]].x, pos[this.parent[i]].y);
+        ctx.strokeStyle = (this.highlight.has(i) && this.highlight.has(this.parent[i])) ? "#f57f17" : "#456";
+        ctx.stroke();
+      }
+    }
+    for (let i = 0; i < this.n; i++) {
+      const { x, y } = pos[i];
+      const isRoot = this.parent[i] === i;
+      ctx.beginPath();
+      ctx.arc(x, y, 16, 0, Math.PI * 2);
+      ctx.fillStyle = this.highlight.has(i) ? "#b71c1c" : (isRoot ? "#1565c0" : "#37474f");
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 12px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(i, x, y);
+    }
+  }
+}
+
+// ── DSA: N-Queens backtracking ──────────────────────────────────
+class NQueensViz {
+  constructor(containerId, logId) {
+    this.containerId = containerId;
+    this.logId = logId;
+    this.n = 8;
+    this.delay = 110;
+    this.reset();
+  }
+
+  reset() {
+    this.running = false;
+    this.stopFlag = false;
+    this.cols = new Set(); this.diag1 = new Set(); this.diag2 = new Set();
+    this.board = Array(this.n).fill(-1);
+    this.solutions = 0;
+    this.steps = 0;
+    this.current = null;
+    this.render();
+    log(this.logId, `${this.n}-Queens: place one queen per row, backtrack on conflict.`, "info");
+  }
+
+  stop() { this.stopFlag = true; this.running = false; }
+
+  async solve() {
+    if (this.running) return;
+    this.running = true; this.stopFlag = false;
+    this.cols.clear(); this.diag1.clear(); this.diag2.clear();
+    this.board = Array(this.n).fill(-1);
+    this.solutions = 0; this.steps = 0;
+    log(this.logId, "Backtracking search started — stops at first solution", "info");
+    await this._place(0);
+    this.running = false;
+  }
+
+  async _place(row) {
+    if (this.stopFlag) return false;
+    if (row === this.n) {
+      this.solutions++;
+      log(this.logId, `Solution found after ${this.steps} attempts`, "ok");
+      this.render();
+      return true;
+    }
+    for (let col = 0; col < this.n; col++) {
+      if (this.stopFlag) return false;
+      this.steps++;
+      this.current = { row, col };
+      const d1 = row - col, d2 = row + col;
+      if (this.cols.has(col) || this.diag1.has(d1) || this.diag2.has(d2)) {
+        this.render(false);
+        await sleep(this.delay);
+        continue;
+      }
+      this.board[row] = col;
+      this.cols.add(col); this.diag1.add(d1); this.diag2.add(d2);
+      this.render(true);
+      await sleep(this.delay);
+      if (await this._place(row + 1)) return true;
+      this.board[row] = -1;
+      this.cols.delete(col); this.diag1.delete(d1); this.diag2.delete(d2);
+      log(this.logId, `Backtrack: row ${row} col ${col} led to a dead end`, "warn");
+      this.render(false);
+      await sleep(this.delay);
+    }
+    return false;
+  }
+
+  render(ok = null) {
+    setStat("nq-steps", this.steps);
+    setStat("nq-solutions", this.solutions);
+    const grid = document.getElementById(this.containerId);
+    if (!grid) return;
+    grid.innerHTML = "";
+    grid.style.display = "grid";
+    grid.style.gridTemplateColumns = `repeat(${this.n}, 1fr)`;
+    grid.style.gap = "2px";
+    grid.style.maxWidth = "360px";
+    for (let r = 0; r < this.n; r++) {
+      for (let c = 0; c < this.n; c++) {
+        const cell = document.createElement("div");
+        cell.className = "dsa-cell";
+        cell.style.width = "100%";
+        cell.style.height = "40px";
+        cell.style.fontSize = "1.1rem";
+        if (this.current && this.current.row === r && this.current.col === c && this.board[r] !== c) {
+          cell.classList.add(ok ? "active" : "current");
+        }
+        if (this.board[r] === c) { cell.textContent = "♛"; cell.classList.add("optimal"); }
+        grid.appendChild(cell);
+      }
+    }
+  }
+}
+
+// ── DSA: Sorting (quicksort / mergesort / heapsort) ─────────────
+class SortViz {
+  constructor(canvasId, logId) {
+    this.canvasId = canvasId;
+    this.logId = logId;
+    this.delay = 55;
+    this.reset();
+  }
+
+  reset() {
+    this.running = false;
+    this.arr = Array.from({ length: 20 }, () => rand(5, 100));
+    this.compares = 0; this.swaps = 0;
+    this.active = [];
+    this.render();
+    log(this.logId, `New random array of ${this.arr.length} elements.`, "info");
+  }
+
+  async quicksort() { await this._run(() => this._qs(0, this.arr.length - 1), "Quicksort"); }
+  async mergesort() { await this._run(() => this._ms(0, this.arr.length - 1), "Merge sort"); }
+  async heapsort() { await this._run(() => this._hs(), "Heap sort"); }
+
+  async _run(fn, name) {
+    if (this.running) return;
+    this.running = true;
+    this.compares = 0; this.swaps = 0;
+    log(this.logId, `${name} started on ${this.arr.length} elements`, "info");
+    await fn();
+    this.active = [];
+    this.render();
+    log(this.logId, `${name} done: ${this.compares} comparisons, ${this.swaps} swaps`, "ok");
+    this.running = false;
+  }
+
+  async _swap(i, j) {
+    [this.arr[i], this.arr[j]] = [this.arr[j], this.arr[i]];
+    this.swaps++;
+    this.active = [i, j];
+    this.render();
+    await sleep(this.delay);
+  }
+
+  async _compare(i, j) {
+    this.compares++;
+    this.active = [i, j];
+    this.render();
+    await sleep(this.delay);
+  }
+
+  async _qs(lo, hi) {
+    if (lo >= hi) return;
+    const pivot = this.arr[hi];
+    let i = lo;
+    for (let j = lo; j < hi; j++) {
+      await this._compare(j, hi);
+      if (this.arr[j] < pivot) { await this._swap(i, j); i++; }
+    }
+    await this._swap(i, hi);
+    await this._qs(lo, i - 1);
+    await this._qs(i + 1, hi);
+  }
+
+  async _ms(lo, hi) {
+    if (lo >= hi) return;
+    const mid = Math.floor((lo + hi) / 2);
+    await this._ms(lo, mid);
+    await this._ms(mid + 1, hi);
+    const merged = [];
+    let i = lo, j = mid + 1;
+    while (i <= mid && j <= hi) {
+      await this._compare(i, j);
+      if (this.arr[i] <= this.arr[j]) merged.push(this.arr[i++]);
+      else merged.push(this.arr[j++]);
+    }
+    while (i <= mid) merged.push(this.arr[i++]);
+    while (j <= hi) merged.push(this.arr[j++]);
+    for (let k = 0; k < merged.length; k++) { this.arr[lo + k] = merged[k]; this.swaps++; }
+    this.active = [lo, hi];
+    this.render();
+    await sleep(this.delay);
+  }
+
+  async _hs() {
+    const n = this.arr.length;
+    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) await this._siftDown(i, n);
+    for (let end = n - 1; end > 0; end--) {
+      await this._swap(0, end);
+      await this._siftDown(0, end);
+    }
+  }
+
+  async _siftDown(i, n) {
+    while (true) {
+      const l = 2 * i + 1, r = 2 * i + 2;
+      let largest = i;
+      if (l < n) { await this._compare(l, largest); if (this.arr[l] > this.arr[largest]) largest = l; }
+      if (r < n) { await this._compare(r, largest); if (this.arr[r] > this.arr[largest]) largest = r; }
+      if (largest === i) break;
+      await this._swap(i, largest);
+      i = largest;
+    }
+  }
+
+  render() {
+    setStat("sort-compares", this.compares);
+    setStat("sort-swaps", this.swaps);
+    const canvas = document.getElementById(this.canvasId);
+    const sized = sizeCanvas(canvas, 240);
+    if (!sized) return;
+    const { ctx, W, H } = sized;
+    clearCanvas(ctx, W, H);
+    const max = Math.max(...this.arr);
+    const bw = W / this.arr.length;
+    this.arr.forEach((v, i) => {
+      const h = (v / max) * (H - 20);
+      ctx.fillStyle = this.active.includes(i) ? "#b71c1c" : "#1565c0";
+      ctx.fillRect(i * bw + 1, H - h, bw - 2, h);
+    });
+  }
+}
+
+// ── DSA: Trie (prefix tree) ──────────────────────────────────────
+class TrieViz {
+  constructor(canvasId, logId) {
+    this.canvasId = canvasId;
+    this.logId = logId;
+    this.delay = 380;
+    this.reset();
+  }
+
+  reset() {
+    this.running = false;
+    this.root = { char: "•", children: {}, end: false };
+    this.highlight = null;
+    ["cat", "car", "card", "care", "dog", "do"].forEach(w => this._insertSync(w));
+    this.render();
+    log(this.logId, "Trie preloaded with: cat, car, card, care, dog, do", "info");
+  }
+
+  _insertSync(word) {
+    let node = this.root;
+    for (const ch of word) {
+      if (!node.children[ch]) node.children[ch] = { char: ch, children: {}, end: false };
+      node = node.children[ch];
+    }
+    node.end = true;
+  }
+
+  async insert(word) {
+    if (this.running || !word) return;
+    this.running = true;
+    word = word.toLowerCase();
+    log(this.logId, `Insert "${word}"`, "info");
+    let node = this.root;
+    const path = [node];
+    for (const ch of word) {
+      if (!node.children[ch]) {
+        node.children[ch] = { char: ch, children: {}, end: false };
+        log(this.logId, `Create new node for '${ch}'`, "ok");
+      }
+      node = node.children[ch];
+      path.push(node);
+      this.highlight = path.slice();
+      this.render();
+      await sleep(this.delay);
+    }
+    node.end = true;
+    log(this.logId, `Mark end-of-word at '${node.char}'`, "ok");
+    this.highlight = null;
+    this.render();
+    this.running = false;
+  }
+
+  async search(word) {
+    if (this.running || !word) return;
+    this.running = true;
+    word = word.toLowerCase();
+    log(this.logId, `Search "${word}"`, "info");
+    let node = this.root;
+    const path = [node];
+    let found = true;
+    for (const ch of word) {
+      if (!node.children[ch]) { found = false; log(this.logId, `No child '${ch}' — not found`, "err"); break; }
+      node = node.children[ch];
+      path.push(node);
+      this.highlight = path.slice();
+      this.render();
+      await sleep(this.delay);
+    }
+    if (found) log(this.logId, node.end ? `"${word}" is a complete word` : `"${word}" is a prefix but not a complete word`, node.end ? "ok" : "warn");
+    await sleep(this.delay);
+    this.highlight = null;
+    this.render();
+    this.running = false;
+  }
+
+  render() {
+    const canvas = document.getElementById(this.canvasId);
+    const sized = sizeCanvas(canvas, 320);
+    if (!sized) return;
+    const { ctx, W, H } = sized;
+    clearCanvas(ctx, W, H);
+    const countLeaves = node => {
+      const keys = Object.keys(node.children);
+      if (!keys.length) return 1;
+      return keys.reduce((s, k) => s + countLeaves(node.children[k]), 0);
+    };
+    const layout = (node, depth, xStart, xEnd) => {
+      node.y = 22 + depth * 40;
+      const keys = Object.keys(node.children).sort();
+      if (!keys.length) { node.x = (xStart + xEnd) / 2; return; }
+      let cursor = xStart;
+      const total = countLeaves(node);
+      keys.forEach(k => {
+        const child = node.children[k];
+        const w = (xEnd - xStart) * (countLeaves(child) / total);
+        layout(child, depth + 1, cursor, cursor + w);
+        cursor += w;
+      });
+      node.x = (xStart + xEnd) / 2;
+    };
+    layout(this.root, 0, 10, W - 10);
+    const inHighlight = node => this.highlight && this.highlight.includes(node);
+    const drawEdges = node => {
+      Object.values(node.children).forEach(child => {
+        ctx.beginPath();
+        ctx.moveTo(node.x, node.y);
+        ctx.lineTo(child.x, child.y);
+        ctx.strokeStyle = (inHighlight(node) && inHighlight(child)) ? "#f57f17" : "#445";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        drawEdges(child);
+      });
+    };
+    drawEdges(this.root);
+    const drawNodes = node => {
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, 14, 0, Math.PI * 2);
+      ctx.fillStyle = inHighlight(node) ? "#b71c1c" : (node.end ? "#1b5e20" : "#37474f");
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 11px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(node.char, node.x, node.y);
+      Object.values(node.children).forEach(drawNodes);
+    };
+    drawNodes(this.root);
+  }
+}
+
+// ── DSA: Greedy interval scheduling ─────────────────────────────
+class GreedyViz {
+  constructor(canvasId, logId) {
+    this.canvasId = canvasId;
+    this.logId = logId;
+    this.delay = 600;
+    this.reset();
+  }
+
+  reset() {
+    this.running = false;
+    this.intervals = [
+      { s: 1, e: 4, l: "A" }, { s: 3, e: 5, l: "B" }, { s: 0, e: 6, l: "C" }, { s: 5, e: 7, l: "D" },
+      { s: 3, e: 9, l: "E" }, { s: 5, e: 9, l: "F" }, { s: 6, e: 10, l: "G" }, { s: 8, e: 11, l: "H" },
+      { s: 8, e: 12, l: "I" }, { s: 2, e: 14, l: "J" }, { s: 12, e: 16, l: "K" },
+    ];
+    this.intervals.forEach(iv => iv.state = "pending");
+    setStat("greedy-count", "—");
+    this.render();
+    log(this.logId, `${this.intervals.length} intervals loaded. Greedy: sort by end time, accept if compatible.`, "info");
+  }
+
+  async run() {
+    if (this.running) return;
+    this.running = true;
+    this.intervals.forEach(iv => iv.state = "pending");
+    const sorted = [...this.intervals].sort((a, b) => a.e - b.e);
+    log(this.logId, `Sorted by end time: ${sorted.map(i => i.l).join(", ")}`, "info");
+    let lastEnd = -Infinity;
+    let count = 0;
+    for (const iv of sorted) {
+      iv.state = "current";
+      this.render();
+      await sleep(this.delay);
+      if (iv.s >= lastEnd) {
+        iv.state = "accepted";
+        lastEnd = iv.e;
+        count++;
+        log(this.logId, `Accept ${iv.l} [${iv.s},${iv.e}] — starts at/after last accepted end`, "ok");
+      } else {
+        iv.state = "rejected";
+        log(this.logId, `Reject ${iv.l} [${iv.s},${iv.e}] — overlaps last accepted (ends ${lastEnd})`, "err");
+      }
+      this.render();
+      await sleep(this.delay / 2);
+    }
+    log(this.logId, `Max non-overlapping intervals: ${count}`, "ok");
+    setStat("greedy-count", count);
+    this.running = false;
+  }
+
+  render() {
+    const canvas = document.getElementById(this.canvasId);
+    const sized = sizeCanvas(canvas, 300);
+    if (!sized) return;
+    const { ctx, W, H } = sized;
+    clearCanvas(ctx, W, H);
+    const maxT = Math.max(...this.intervals.map(i => i.e)) + 1;
+    const rowH = (H - 20) / this.intervals.length;
+    const colors = { pending: "#37474f", current: "#f57f17", accepted: "#1b5e20", rejected: "#7f1d1d" };
+    this.intervals.forEach((iv, i) => {
+      const x1 = 10 + (iv.s / maxT) * (W - 20);
+      const x2 = 10 + (iv.e / maxT) * (W - 20);
+      const y = 10 + i * rowH;
+      ctx.fillStyle = colors[iv.state];
+      ctx.fillRect(x1, y, x2 - x1, rowH - 6);
+      ctx.fillStyle = "#fff";
+      ctx.font = "11px monospace";
+      ctx.textAlign = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`${iv.l} [${iv.s},${iv.e}]`, x1 + 4, y + (rowH - 6) / 2);
+    });
+  }
+}
+
+// ── DSA: KMP pattern matching ────────────────────────────────────
+class KmpViz {
+  constructor(containerId, logId) {
+    this.containerId = containerId;
+    this.logId = logId;
+    this.delay = 420;
+    this.reset();
+  }
+
+  reset() {
+    this.running = false;
+    this.text = "ababcabcabababd";
+    this.pattern = "ababd";
+    this.i = -1; this.j = -1;
+    this.matches = [];
+    this.render();
+    log(this.logId, `Text="${this.text}"  Pattern="${this.pattern}"`, "info");
+  }
+
+  _lps(pattern) {
+    const lps = Array(pattern.length).fill(0);
+    let len = 0, i = 1;
+    while (i < pattern.length) {
+      if (pattern[i] === pattern[len]) { len++; lps[i] = len; i++; }
+      else if (len > 0) { len = lps[len - 1]; }
+      else { lps[i] = 0; i++; }
+    }
+    return lps;
+  }
+
+  async run() {
+    if (this.running) return;
+    this.running = true;
+    this.matches = [];
+    const lps = this._lps(this.pattern);
+    log(this.logId, `LPS (failure function) for "${this.pattern}": [${lps.join(",")}]`, "info");
+    let i = 0, j = 0;
+    while (i < this.text.length) {
+      this.i = i; this.j = j;
+      this.render();
+      await sleep(this.delay);
+      if (this.text[i] === this.pattern[j]) {
+        i++; j++;
+        if (j === this.pattern.length) {
+          this.matches.push(i - j);
+          log(this.logId, `Match found at index ${i - j}`, "ok");
+          j = lps[j - 1];
+        }
+      } else if (j > 0) {
+        log(this.logId, `Mismatch text[${i}]='${this.text[i]}' — fall back j=${j}→${lps[j - 1]} via LPS (text pointer never rewinds)`, "warn");
+        j = lps[j - 1];
+      } else {
+        i++;
+      }
+    }
+    log(this.logId, `Done. Matches at: [${this.matches.join(", ")}]`, "ok");
+    this.i = -1; this.j = -1;
+    this.render();
+    this.running = false;
+  }
+
+  render() {
+    const el = document.getElementById(this.containerId);
+    if (!el) return;
+    el.innerHTML = "";
+    const textRow = document.createElement("div");
+    textRow.style.display = "flex"; textRow.style.gap = "2px"; textRow.style.marginBottom = "8px"; textRow.style.flexWrap = "wrap";
+    [...this.text].forEach((ch, idx) => {
+      const cell = document.createElement("div");
+      cell.className = "dsa-cell";
+      cell.style.width = "28px"; cell.style.height = "28px"; cell.style.fontSize = "0.8rem";
+      cell.textContent = ch;
+      if (idx === this.i) cell.classList.add("current");
+      if (this.matches.some(m => idx >= m && idx < m + this.pattern.length)) cell.classList.add("optimal");
+      textRow.appendChild(cell);
+    });
+    const patRow = document.createElement("div");
+    patRow.style.display = "flex"; patRow.style.gap = "2px";
+    patRow.style.marginLeft = (this.i >= 0 ? Math.max(0, this.i - this.j) : 0) * 30 + "px";
+    [...this.pattern].forEach((ch, idx) => {
+      const cell = document.createElement("div");
+      cell.className = "dsa-cell";
+      cell.style.width = "28px"; cell.style.height = "28px"; cell.style.fontSize = "0.8rem";
+      cell.textContent = ch;
+      if (idx === this.j) cell.classList.add("active");
+      patRow.appendChild(cell);
+    });
+    el.appendChild(textRow);
+    el.appendChild(patRow);
+  }
+}
+
 // ── Auto-init ─────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("ch-ring")) {
@@ -1838,6 +2717,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if (document.getElementById("ll-lambda")) window._math = new MathCalc();
   if (document.getElementById("dp-grid")) window._dp = new DpViz();
+  if (document.getElementById("heap-canvas")) window._heap = new HeapViz("heap-canvas", "heap-log");
+  if (document.getElementById("dijkstra-canvas")) window._dijkstra = new DijkstraViz("dijkstra-canvas", "dijkstra-log");
+  if (document.getElementById("uf-canvas")) window._uf = new UnionFindViz("uf-canvas", "uf-log");
+  if (document.getElementById("nqueens-board")) window._nq = new NQueensViz("nqueens-board", "nqueens-log");
+  if (document.getElementById("sort-canvas")) window._sort = new SortViz("sort-canvas", "sort-log");
+  if (document.getElementById("trie-canvas")) window._trie = new TrieViz("trie-canvas", "trie-log");
+  if (document.getElementById("greedy-canvas")) window._greedy = new GreedyViz("greedy-canvas", "greedy-log");
+  if (document.getElementById("kmp-strip")) window._kmp = new KmpViz("kmp-strip", "kmp-log");
 });
 
 // Expose constructors for tests / playgrounds
@@ -1846,4 +2733,5 @@ window.AcademySims = {
   ShardingSimulator, LoadBalancerSim, RetryStormSim, CircuitBreakerSim, RaftSim,
   SagaSim, TailLatencySim, DnsSim, TcpSim, K8sSim, CapacityCalc, MathCalc,
   SlidingWindowViz, GraphViz, DpViz, FrameworkWalkthrough,
+  HeapViz, DijkstraViz, UnionFindViz, NQueensViz, SortViz, TrieViz, GreedyViz, KmpViz,
 };

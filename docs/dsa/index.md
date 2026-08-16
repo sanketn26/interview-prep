@@ -147,12 +147,16 @@ Skipping to step 5 is the most common way strong programmers fail these intervie
 | [BFS & DFS](bfs-dfs.md) | shortest unweighted path / explore all | Complete |
 | [Dynamic programming](dynamic-programming.md) | overlapping subproblems | Complete |
 | [Pattern index](pattern-recognition.md) | which pattern for which clue | Complete |
+| [Heaps & Priority Queues](heaps.md) | top k / k-th largest / merge k streams | Complete |
+| [Graph Algorithms](graph-algorithms.md) | shortest weighted path / MST / dependency order | Complete |
+| [Union-Find](union-find.md) | dynamic connectivity / cycle detection | Complete |
+| [Backtracking](backtracking.md) | all configurations under constraints | Complete |
+| [Sorting Algorithms](sorting.md) | quicksort / merge sort / heapsort trade-offs | Complete |
+| [Tries](tries.md) | prefix search / autocomplete | Complete |
+| [Greedy Algorithms](greedy.md) | locally optimal choice, provably global | Complete |
+| [String Matching](string-matching.md) | substring search (KMP / Rabin-Karp) | Complete |
 
 Start with [foundations](foundations.md) for Big-O and the approach loop, then work the patterns in the order above — each has an animated visualizer with Step / Reset / Auto Play.
-
-## Planned
-
-Heaps, Dijkstra, union-find, topo sort, backtracking, sorting algorithms, tries, greedy, KMP/Rabin-Karp, interval scheduling.
 
 ---
 

@@ -91,6 +91,14 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Distributed Fundamentals: leases, gossip, Paxos vs Raft, service discovery | Complete | `distributed-systems/fundamentals.md` — extended from existing clocks/locks content |
 | API Design (REST verb contracts, idempotency keys, GraphQL, API Gateway pattern) | Complete | `foundations/api-design.md` |
 | Production Reliability Practices (chaos engineering, capacity/load testing, blameless postmortems) | Complete | `observability/production-reliability-practices.md` |
+| DSA: Heaps & Priority Queues | Interactive | `dsa/heaps.md` — insert/extract-min visualizer |
+| DSA: Graph Algorithms (Dijkstra, MST, topo sort) | Interactive | `dsa/graph-algorithms.md` — Dijkstra relaxation visualizer |
+| DSA: Union-Find | Interactive | `dsa/union-find.md` — path compression visualizer |
+| DSA: Backtracking (N-Queens, Sudoku) | Interactive | `dsa/backtracking.md` — N-Queens 8x8 visualizer |
+| DSA: Sorting Algorithms | Interactive | `dsa/sorting.md` — quicksort/merge sort/heapsort comparison visualizer |
+| DSA: Tries | Interactive | `dsa/tries.md` — insert/search visualizer |
+| DSA: Greedy Algorithms | Interactive | `dsa/greedy.md` — interval scheduling visualizer |
+| DSA: String Matching (KMP, Rabin-Karp) | Interactive | `dsa/string-matching.md` — KMP pointer-movement visualizer |
 
 ---
 
@@ -113,6 +121,14 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | TCP lifecycle | [HTTP & TCP](networking/http-tcp.md) | Interactive |
 | K8s request flow | [Kubernetes](kubernetes/index.md) | Interactive |
 | Capacity calculator | [Requirements & estimation](foundations/requirements-estimation.md) | Interactive |
+| Heap insert / extract-min | [Heaps & Priority Queues](dsa/heaps.md) | Interactive |
+| Dijkstra relaxation | [Graph Algorithms](dsa/graph-algorithms.md) | Interactive |
+| Union-Find path compression | [Union-Find](dsa/union-find.md) | Interactive |
+| N-Queens backtracking | [Backtracking](dsa/backtracking.md) | Interactive |
+| Sorting comparison (quicksort/merge/heap) | [Sorting Algorithms](dsa/sorting.md) | Interactive |
+| Trie insert / search | [Tries](dsa/tries.md) | Interactive |
+| Interval scheduling (greedy) | [Greedy Algorithms](dsa/greedy.md) | Interactive |
+| KMP pattern matching | [String Matching](dsa/string-matching.md) | Interactive |
 
 ---
 
@@ -129,7 +145,7 @@ Do **not** mass-generate these as stubs.
 - Cloud vendor catalog (`ai-native/` is still an index-only stub; `cloud/` now has Docker, Terraform, CI/CD, and Deployment Strategies but no vendor-mapped IAM/managed-DB/event-bus content yet), FinOps, AI-native serving
 - Capstone project; interview-mode tabs (Learn/Practice/Hint/Interview/Solution/Staff) as a reusable UX pattern; Go example parity for retry/queue/thread-pool/producer-consumer/distributed-lock/WebSocket/gRPC/REST
 - Deeper distributed-systems topics — vector clocks, gossip protocols, Paxos vs Raft, distributed locks, leases, and service discovery all now shipped in `distributed-systems/fundamentals.md`; CRDTs still only covered inside `databases/ddia-concepts.md`, not as a dedicated page
-- Remaining DSA visualizers and topics (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp)
+- DSA visualizers (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp) — shipped, see `dsa/heaps.md`, `dsa/graph-algorithms.md`, `dsa/union-find.md`, `dsa/backtracking.md`, `dsa/sorting.md`, `dsa/tries.md`, `dsa/greedy.md`, `dsa/string-matching.md`
 - Remaining behavioural themes (hiring, tech debt, influence, mentorship, managing up, saying no, ambiguity)
 - Production/observability depth — SLI/SLO & error budgets and distributed tracing basics already covered in `observability/index.md`; chaos engineering, capacity/load testing, and blameless postmortems now shipped in `observability/production-reliability-practices.md`
 - Python/Go servers (WebSocket, gRPC) beyond the core library examples
