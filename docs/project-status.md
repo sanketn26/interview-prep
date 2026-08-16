@@ -53,6 +53,9 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Terraform (state, plan/apply, modules, drift, blast radius) | Complete | `cloud/terraform.md` — no simulation |
 | CI/CD (pipeline stages, artifact promotion, GitOps) | Complete | `cloud/cicd.md` — no simulation |
 | Deployment strategies (15, incl. canary, blue-green, expand-contract) | Complete | `cloud/deployment-strategies.md` — no simulation |
+| IAM & Managed Services (vendor-mapped IAM/DB/event-bus comparison) | Complete | `cloud/iam-managed-services.md` — no simulation |
+| FinOps (tagging, commitment models, rightsizing, cost debugging) | Complete | `cloud/finops.md` — no simulation |
+| AI-Native Model Serving (batching, KV cache, GPU autoscaling, quantization) | Complete | `ai-native/model-serving.md` — no simulation |
 | Microservices communication (8 patterns) | Complete | `architecture-patterns/microservices-communication.md` — no simulation |
 | Low-Level Design pillar (OOP, SOLID, patterns, concurrency) | Complete | `low-level-design/` — 4 pages, no simulation |
 | LLD problems: Parking Lot, Elevator System, LRU Cache | Complete | `lld-exercises/` — 9-step approach, class diagrams, code, concurrency section per problem |
@@ -131,7 +134,7 @@ Do **not** mass-generate these as stubs.
 - Event Sourcing & CQRS — shipped (`architecture-patterns/event-sourcing-cqrs.md`); Event-Driven Architecture also now shipped (`architecture-patterns/event-driven-architecture.md`); Streams/Flink now shipped (`architecture-patterns/stream-processing.md`)
 - Distributed fundamentals — `distributed-systems/fundamentals.md` now covers Lamport/vector clocks, leader election, split-brain, distributed locks, leases, gossip protocols, Paxos vs Raft, and service discovery as first-class sections
 - Monolith vs Microservices vs Serverless — Microservices vs Monolith now shipped (`architecture-patterns/microservices-vs-monolith.md`); Serverless comparison now shipped (`architecture-patterns/serverless-vs-containers.md`)
-- Cloud vendor catalog (`ai-native/` is still an index-only stub; `cloud/` now has Docker, Terraform, CI/CD, and Deployment Strategies but no vendor-mapped IAM/managed-DB/event-bus content yet), FinOps, AI-native serving
+- Cloud vendor catalog — shipped (`cloud/iam-managed-services.md`, vendor-mapped IAM/managed-DB/event-bus content); FinOps shipped (`cloud/finops.md`); AI-native serving shipped (`ai-native/model-serving.md` — first real content page, rest of `ai-native/` is still planned-only)
 - Capstone project; interview-mode tabs (Learn/Practice/Hint/Interview/Solution/Staff) as a reusable UX pattern; Go example parity for retry/queue/thread-pool/producer-consumer/distributed-lock/WebSocket/gRPC/REST
 - Deeper distributed-systems topics — vector clocks, gossip protocols, Paxos vs Raft, distributed locks, leases, and service discovery all now shipped in `distributed-systems/fundamentals.md`; CRDTs now also have a dedicated page (`architecture-patterns/crdts.md`), cross-linked from `databases/ddia-concepts.md`
 - Remaining DSA visualizers and topics (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp)
