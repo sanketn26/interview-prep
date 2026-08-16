@@ -52,6 +52,9 @@ visit B(3) → done. Shortest A→B = 3, not the direct edge's 4.
 
 ## Interactive Dijkstra Visualizer
 
+!!! note "Scope of this visualizer"
+    This interactive simulation demonstrates **Dijkstra's algorithm only**. MST (Prim's/Kruskal's) and Topological Sort are covered in full in the code walkthroughs below, but don't yet have a dedicated visualization.
+
 <div class="sim-container">
   <div class="sim-title">🛰️ Dijkstra's Shortest Path</div>
 
