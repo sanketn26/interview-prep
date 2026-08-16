@@ -137,8 +137,8 @@ State is what makes stream processing hard: a running count, a join buffer, a de
 
 - Source: Kafka topic `transactions`, 64 partitions, ~4.3B events/day
 - Job: keyed by `account_id`, tumbling 1-minute window computing `sum(amount)`, `count(*)`, joined against a 2-hour sliding window of the same key for velocity checks
-- State size: 8M active accounts × ~200 bytes of window state ≈ 1.6 GB live state, backed by RocksDB per task, ~40 GB total across 24 task managers with history retained
-- Checkpoint interval: 30 seconds, checkpoint duration p50 = 4s, p99 = 22s (state size and S3 write latency dominate)
+- State size: 8M active accounts × ~200 bytes of window state ≈ 1.6 GB live in-memory state, backed by RocksDB per task. On disk this is multiplied by two named factors: RocksDB's LSM-tree layout adds ~5x overhead (uncompacted SSTables, column-family metadata, local snapshot copies), and Flink is configured to retain the last 5 completed checkpoints in S3 for rollback (`state.checkpoints.num-retained: 5`) rather than deleting the prior one as soon as a new checkpoint completes — 1.6 GB × 5 × 5 ≈ 40 GB total across 24 task managers.
+- Checkpoint interval: 30 seconds. Checkpoint duration scales with how much state changed since the prior checkpoint and with S3 write throughput — RocksDB's incremental checkpointing uploads only the delta, not the full ~40 GB, so under steady load the delta is small (p50 = 4s), but traffic bursts that inflate the per-key delta, or S3 throttling, push the tail out (p99 = 22s).
 - Allowed lateness: 10 seconds (mobile network jitter tolerance) — beyond that, late events go to a side-output topic for a separate reconciliation batch job
 - End-to-end latency (event generated → fraud score available): p50 = 1.2s, p99 = 14s (dominated by watermark wait, not compute)
 - Exactly-once sink: Kafka transactional producer writing `fraud_scores` topic, transaction timeout 60s (must exceed checkpoint interval or aborted transactions pile up)
