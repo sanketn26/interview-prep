@@ -7,7 +7,10 @@ description: KMP and Rabin-Karp pattern matching algorithms with an interactive 
 
 **Difficulty:** Hard | **Pattern Type:** Substring search
 
-[← DSA Overview](index.md) | [← Greedy Algorithms](greedy.md) | [Back to DSA Overview →](index.md)
+[← DSA Overview](index.md) | [← Greedy Algorithms](greedy.md) | [Next: Advanced String Matching →](advanced-string-matching.md)
+
+!!! note "Multi-pattern matching and beyond"
+    This page covers single-pattern KMP and Rabin-Karp. For multi-pattern matching (Aho-Corasick), the Z-algorithm, suffix arrays, Boyer-Moore, and Manacher's algorithm, see [Advanced String Matching](advanced-string-matching.md).
 
 ---
 
@@ -254,7 +257,7 @@ def longest_dup_substring(s: str) -> str:
 | Naive search | O(nm) | O(nm) | O(1) | None |
 | KMP | O(n + m) | O(n + m) | O(m) for LPS table | Hard guarantee, no degradation |
 | Rabin-Karp | O(n + m) | O(nm) | O(1) extra | Probabilistic — degrades on hash collisions |
-| Aho-Corasick (multi-pattern, not detailed above) | O(n + Σm + z) | Same | O(Σm) | z = number of matches; extends KMP's failure function to a trie |
+| [Aho-Corasick](advanced-string-matching.md#aho-corasick-multi-pattern-matching) (multi-pattern) | O(n + Σm + z) | Same | O(Σm) | z = number of matches; extends KMP's failure function to a trie |
 
 n = text length, m = pattern length.
 

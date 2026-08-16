@@ -61,6 +61,8 @@ This is the core of pattern recognition. Read the problem, find the clue, get th
 | "have I seen this before" | Hash map/set | O(1) membership |
 | "next greater element" | Monotonic stack | Amortized O(n) |
 | "detect a cycle" | Fast/slow pointers | Meets inside the cycle |
+| "might this key exist" / cardinality at huge scale | [Advanced hashing](hashing-techniques.md) | Bloom filters, cuckoo hashing, HyperLogLog trade exactness for space |
+| "find many patterns" / palindrome / suffix queries | [Advanced string matching](advanced-string-matching.md) | Aho-Corasick, Z-algorithm, suffix arrays, Boyer-Moore, Manacher's |
 
 Two clarifications that recur:
 
@@ -155,6 +157,8 @@ Skipping to step 5 is the most common way strong programmers fail these intervie
 | [Tries](tries.md) | prefix search / autocomplete | Complete |
 | [Greedy Algorithms](greedy.md) | locally optimal choice, provably global | Complete |
 | [String Matching](string-matching.md) | substring search (KMP / Rabin-Karp) | Complete |
+| [Advanced Hashing Techniques](hashing-techniques.md) | probabilistic membership / cardinality (Bloom, cuckoo, HyperLogLog) | Complete |
+| [Advanced String Matching](advanced-string-matching.md) | multi-pattern search / palindromes (Aho-Corasick, Z-algorithm, Manacher's) | Complete |
 
 Start with [foundations](foundations.md) for Big-O and the approach loop, then work the patterns in the order above — each has an animated visualizer with Step / Reset / Auto Play.
 

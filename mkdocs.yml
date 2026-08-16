@@ -232,6 +232,8 @@ nav:
       - Tries: dsa/tries.md
       - Greedy Algorithms: dsa/greedy.md
       - String Matching: dsa/string-matching.md
+      - Advanced Hashing Techniques: dsa/hashing-techniques.md
+      - Advanced String Matching: dsa/advanced-string-matching.md
     - Simulations:
       - playgrounds/index.md
   - Behavioural:
