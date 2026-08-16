@@ -91,6 +91,9 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Distributed Fundamentals: leases, gossip, Paxos vs Raft, service discovery | Complete | `distributed-systems/fundamentals.md` — extended from existing clocks/locks content |
 | API Design (REST verb contracts, idempotency keys, GraphQL, API Gateway pattern) | Complete | `foundations/api-design.md` |
 | Production Reliability Practices (chaos engineering, capacity/load testing, blameless postmortems) | Complete | `observability/production-reliability-practices.md` |
+| Stream Processing (Flink, Kafka Streams, Spark Structured Streaming) | Complete | `architecture-patterns/stream-processing.md` — event time/watermarks/windowing, checkpointing, exactly-once |
+| Serverless vs Containers (monolith/microservices/serverless spectrum) | Complete | `architecture-patterns/serverless-vs-containers.md` — cold starts, cost model crossover |
+| CRDTs (dedicated deep dive) | Complete | `architecture-patterns/crdts.md` — state-based vs operation-based, concrete types, cross-linked from `databases/ddia-concepts.md` |
 
 ---
 
@@ -123,12 +126,12 @@ Do **not** mass-generate these as stubs.
 - Remaining ~27 system-design exercises (Pastebin, Uber, Netflix, …)
 - Remaining ~11 LLD problems (Tic Tac Toe, Library Management, Splitwise, ATM, Vending Machine, Chess, Car Rental, Rate Limiter LLD, Logger, Notification System LLD, Pub/Sub, Task Scheduler) — see `lld-exercises/index.md` for the tiered list. These will be written to the same bar as Parking Lot / Elevator System / LRU Cache; not stubs.
 - Security & Auth — `security/` pillar now has Authentication & Authorization, Zero Trust Architecture, and Threat Modeling all shipped; still missing: dedicated deep-dive OAuth2/OIDC flow page (currently covered at intro depth inside Auth Fundamentals), session management deep dive
-- Event Sourcing & CQRS — shipped (`architecture-patterns/event-sourcing-cqrs.md`); Event-Driven Architecture also now shipped (`architecture-patterns/event-driven-architecture.md`); Streams/Flink still missing
+- Event Sourcing & CQRS — shipped (`architecture-patterns/event-sourcing-cqrs.md`); Event-Driven Architecture also now shipped (`architecture-patterns/event-driven-architecture.md`); Streams/Flink now shipped (`architecture-patterns/stream-processing.md`)
 - Distributed fundamentals — `distributed-systems/fundamentals.md` now covers Lamport/vector clocks, leader election, split-brain, distributed locks, leases, gossip protocols, Paxos vs Raft, and service discovery as first-class sections
-- Monolith vs Microservices vs Serverless — Microservices vs Monolith now shipped (`architecture-patterns/microservices-vs-monolith.md`); Serverless comparison still missing
+- Monolith vs Microservices vs Serverless — Microservices vs Monolith now shipped (`architecture-patterns/microservices-vs-monolith.md`); Serverless comparison now shipped (`architecture-patterns/serverless-vs-containers.md`)
 - Cloud vendor catalog (`ai-native/` is still an index-only stub; `cloud/` now has Docker, Terraform, CI/CD, and Deployment Strategies but no vendor-mapped IAM/managed-DB/event-bus content yet), FinOps, AI-native serving
 - Capstone project; interview-mode tabs (Learn/Practice/Hint/Interview/Solution/Staff) as a reusable UX pattern; Go example parity for retry/queue/thread-pool/producer-consumer/distributed-lock/WebSocket/gRPC/REST
-- Deeper distributed-systems topics — vector clocks, gossip protocols, Paxos vs Raft, distributed locks, leases, and service discovery all now shipped in `distributed-systems/fundamentals.md`; CRDTs still only covered inside `databases/ddia-concepts.md`, not as a dedicated page
+- Deeper distributed-systems topics — vector clocks, gossip protocols, Paxos vs Raft, distributed locks, leases, and service discovery all now shipped in `distributed-systems/fundamentals.md`; CRDTs now also have a dedicated page (`architecture-patterns/crdts.md`), cross-linked from `databases/ddia-concepts.md`
 - Remaining DSA visualizers and topics (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp)
 - Remaining behavioural themes (hiring, tech debt, influence, mentorship, managing up, saying no, ambiguity)
 - Production/observability depth — SLI/SLO & error budgets and distributed tracing basics already covered in `observability/index.md`; chaos engineering, capacity/load testing, and blameless postmortems now shipped in `observability/production-reliability-practices.md`

@@ -152,6 +152,9 @@ The credible interview position: **start with a modular monolith** — clear int
 | [Event Sourcing & CQRS](event-sourcing-cqrs.md) | **Complete** — when they earn their complexity, trade-offs, projections, failure modes |
 | [Microservices vs. Monolith](microservices-vs-monolith.md) | **Complete** — antipatterns, real tradeoffs, when to adopt, Netflix case study |
 | [Event-Driven Architecture](event-driven-architecture.md) | **Complete** — notification vs. state-transfer events, choreography vs. orchestration, the distributed-monolith antipattern |
+| [Stream Processing](stream-processing.md) | **Complete** — Flink/Kafka Streams/Spark Structured Streaming, event time vs. processing time, watermarks, checkpointing, exactly-once |
+| [Serverless vs. Containers](serverless-vs-containers.md) | **Complete** — monolith vs. microservices vs. serverless spectrum, cold starts, cost model crossover |
+| [CRDTs](crdts.md) | **Complete** — state-based vs. operation-based, G-Counter/OR-Set/RGA, convergence guarantees and where they break |
 
 [Sagas](sagas.md) covers orchestration vs choreography with a simulator where shipping fails after the card is charged and you watch compensations run. Prerequisites: [distributed systems](../distributed-systems/index.md) for why the ambiguity exists, and [messaging](../messaging/index.md) for the delivery semantics sagas depend on.
 
@@ -162,6 +165,12 @@ The credible interview position: **start with a modular monolith** — clear int
 [Microservices vs. Monolith](microservices-vs-monolith.md) teaches the organizational pressure that actually drives microservices (not scaling), the real tradeoffs (debugging complexity, operational overhead, data consistency), five critical antipatterns (shared database, chatty services, circular deps, synchronous everything, missing ownership), and when to adopt (start with a modular monolith, extract only when concrete pressure exists). Includes Netflix transition case study and interview progression from foundation to staff level.
 
 [Event-Driven Architecture](event-driven-architecture.md) covers events as the default coordination style between services: notification vs. event-carried-state-transfer payloads, why choreography trades traceability for extensibility, when to switch to orchestration instead, and the "distributed monolith wearing an event bus" antipattern where 200 event types replace direct calls but keep all the coupling. Distinguishes event-driven architecture from event sourcing — related, composable, but answering different questions.
+
+[Stream Processing](stream-processing.md) covers why batch has an inescapable latency floor, event time vs. processing time, watermarks and windowing (tumbling/sliding/session), stateful processing with checkpointing, and exactly-once semantics in Flink and Kafka Streams. Compares Flink, Kafka Streams, and Spark Structured Streaming head to head, with production debugging for watermark stalls, state bloat, and backpressure.
+
+[Serverless vs. Containers](serverless-vs-containers.md) frames monolith, microservices, and serverless as one spectrum of operational control vs. responsibility rather than three unrelated choices. Covers cold starts, statelessness, the pay-per-invocation vs. pay-per-reservation cost crossover, and when each point on the spectrum wins — with a three-way trade-off table.
+
+[CRDTs](crdts.md) goes deeper than the [DDIA Concepts](../databases/ddia-concepts.md) mention: state-based vs. operation-based CRDTs, concrete types (G-Counter, PN-Counter, G-Set, 2P-Set, OR-Set, LWW-Register, RGA), convergence guarantees, and where they genuinely can't help (global invariants like non-negative balances).
 
 ---
 
