@@ -224,6 +224,14 @@ nav:
       - BFS & DFS: dsa/bfs-dfs.md
       - Dynamic Programming: dsa/dynamic-programming.md
       - Pattern Recognition: dsa/pattern-recognition.md
+      - Heaps & Priority Queues: dsa/heaps.md
+      - Graph Algorithms: dsa/graph-algorithms.md
+      - Union-Find: dsa/union-find.md
+      - Backtracking: dsa/backtracking.md
+      - Sorting Algorithms: dsa/sorting.md
+      - Tries: dsa/tries.md
+      - Greedy Algorithms: dsa/greedy.md
+      - String Matching: dsa/string-matching.md
     - Simulations:
       - playgrounds/index.md
   - Behavioural:
