@@ -30,12 +30,18 @@ This section teaches the tools to answer them.
 | [Authentication & Authorization Fundamentals](authentication-authorization.md) | **Complete** — TLS, encryption, JWT/OAuth2, RBAC, secrets, payment system case study |
 | [Zero Trust Architecture](zero-trust-architecture.md) | **Complete** — mTLS, SPIFFE/SPIRE, policy-as-code, perimeter-to-Zero-Trust migration sequencing |
 | [Threat Modeling](threat-modeling.md) | **Complete** — trust boundaries, STRIDE, attack trees, risk scoring and acceptance |
+| [OAuth2 & OIDC Deep Dive](oauth2-oidc.md) | **Complete** — Authorization Code + PKCE flow internals, token validation, refresh rotation, vulnerabilities |
+| [Session Management Deep Dive](session-management.md) | **Complete** — server-side sessions vs JWT, cookie security, fixation/hijacking, revocation problem |
 
 [Authentication & Authorization Fundamentals](authentication-authorization.md) covers how users prove identity (TLS, passwords, OAuth2), how data is protected (encryption, secrets management), and how permissions work (RBAC, least privilege). Includes a payment system case study where PCI compliance drives design decisions.
 
 [Zero Trust Architecture](zero-trust-architecture.md) covers why network location stopped being a valid trust signal, how service identity (mTLS, SPIFFE/SPIRE) and centrally enforced policy replace it, and — the part most explanations skip — how to migrate an existing perimeter-model system to Zero Trust without an outage.
 
 [Threat Modeling](threat-modeling.md) covers how to systematically find security gaps before an attacker does: trust-boundary diagrams, the STRIDE checklist, attack trees for high-value targets, and how to rank and explicitly accept/mitigate/fix what you find instead of trying to fix everything.
+
+[OAuth2 & OIDC Deep Dive](oauth2-oidc.md) goes past the intro-level flow covered in Auth Fundamentals: the Authorization Code + PKCE sequence in full, why Implicit and Resource Owner Password grants are deprecated, JWT structure and the five checks real validation requires, refresh token rotation and revocation, and the vulnerability classes (open redirect, CSRF via `state`, code interception, `alg:none`, confused deputy) that show up when any of it is implemented sloppily.
+
+[Session Management Deep Dive](session-management.md) covers how identity persists across stateless HTTP requests: server-side sessions vs stateless JWTs, the cookie attributes that actually matter (Secure, HttpOnly, SameSite), session fixation and hijacking defenses, scaling strategies (sticky sessions, centralized Redis, stateless JWT), and the JWT revocation problem that never fully goes away.
 
 ---
 

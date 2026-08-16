@@ -87,6 +87,8 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Authentication & Authorization Fundamentals | Complete | `security/authentication-authorization.md` |
 | Zero Trust Architecture | Complete | `security/zero-trust-architecture.md` — mTLS, SPIFFE/SPIRE, policy-as-code, migration sequencing |
 | Threat Modeling | Complete | `security/threat-modeling.md` — trust boundaries, STRIDE, attack trees, risk scoring |
+| OAuth2 & OIDC Deep Dive | Complete | `security/oauth2-oidc.md` — Authorization Code + PKCE flow, token validation, refresh rotation, vulnerabilities |
+| Session Management Deep Dive | Complete | `security/session-management.md` — server-side sessions vs JWT, cookie security, fixation/hijacking, revocation problem |
 | Event-Driven Architecture | Complete | `architecture-patterns/event-driven-architecture.md` — choreography vs orchestration, notification vs state-transfer events, distributed-monolith antipattern |
 | Distributed Fundamentals: leases, gossip, Paxos vs Raft, service discovery | Complete | `distributed-systems/fundamentals.md` — extended from existing clocks/locks content |
 | API Design (REST verb contracts, idempotency keys, GraphQL, API Gateway pattern) | Complete | `foundations/api-design.md` |
@@ -122,7 +124,7 @@ Do **not** mass-generate these as stubs.
 
 - Remaining ~27 system-design exercises (Pastebin, Uber, Netflix, …)
 - Remaining ~11 LLD problems (Tic Tac Toe, Library Management, Splitwise, ATM, Vending Machine, Chess, Car Rental, Rate Limiter LLD, Logger, Notification System LLD, Pub/Sub, Task Scheduler) — see `lld-exercises/index.md` for the tiered list. These will be written to the same bar as Parking Lot / Elevator System / LRU Cache; not stubs.
-- Security & Auth — `security/` pillar now has Authentication & Authorization, Zero Trust Architecture, and Threat Modeling all shipped; still missing: dedicated deep-dive OAuth2/OIDC flow page (currently covered at intro depth inside Auth Fundamentals), session management deep dive
+- Security & Auth — `security/` pillar now has Authentication & Authorization, Zero Trust Architecture, Threat Modeling, OAuth2 & OIDC Deep Dive, and Session Management Deep Dive all shipped; no known gaps in first-release scope
 - Event Sourcing & CQRS — shipped (`architecture-patterns/event-sourcing-cqrs.md`); Event-Driven Architecture also now shipped (`architecture-patterns/event-driven-architecture.md`); Streams/Flink still missing
 - Distributed fundamentals — `distributed-systems/fundamentals.md` now covers Lamport/vector clocks, leader election, split-brain, distributed locks, leases, gossip protocols, Paxos vs Raft, and service discovery as first-class sections
 - Monolith vs Microservices vs Serverless — Microservices vs Monolith now shipped (`architecture-patterns/microservices-vs-monolith.md`); Serverless comparison still missing

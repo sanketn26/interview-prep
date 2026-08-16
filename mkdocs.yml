@@ -171,6 +171,8 @@ nav:
       - Authentication & Authorization: security/authentication-authorization.md
       - Zero Trust Architecture: security/zero-trust-architecture.md
       - Threat Modeling: security/threat-modeling.md
+      - OAuth2 & OIDC Deep Dive: security/oauth2-oidc.md
+      - Session Management Deep Dive: security/session-management.md
     - Cloud & Kubernetes:
       - cloud/index.md
       - Cloud Provider Comparison: cloud/providers.md
