@@ -246,6 +246,8 @@ If RefreshToken is stolen:
   And AccessToken is short-lived
 ```
 
+**Going deeper:** this covers JWTs at intro depth — enough to reason about expiration and refresh tokens. It doesn't cover cookie security attributes, session fixation/hijacking, sliding vs. absolute expiration, or the full "why can't you revoke a JWT" trade-off against server-side sessions. See [Session Management Deep Dive](session-management.md) for that.
+
 ---
 
 ## OAuth2: The "Sign In With" Protocol
@@ -312,6 +314,8 @@ sequenceDiagram
 - ✓ You trust Google's security, not your own
 - ✓ User can revoke your app's access anytime
 - ✗ If your app is hacked, attacker can't change your Google password
+
+**Going deeper:** this is OAuth2 at intro depth — enough to explain the "Sign in with Google" flow at a high level. It skips PKCE, why two of the grant types are deprecated, what JWT validation actually requires (signature, `iss`, `aud`, `exp`, `nbf`, `nonce`), refresh token rotation, and the OAuth2/OIDC distinction. See [OAuth2 & OIDC Deep Dive](oauth2-oidc.md) for that.
 
 ---
 

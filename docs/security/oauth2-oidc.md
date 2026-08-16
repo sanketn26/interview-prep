@@ -65,22 +65,18 @@ The access token is the valet key: it grants a scoped, revocable capability. The
 
 ```mermaid
 flowchart LR
-    subgraph Client["Client (your app)"]
-        SPA["Browser / mobile app\n(public client)"]
-        BE["Backend\n(confidential client)"]
-    end
+    C["Client\n(public client: SPA or mobile app)"]
     UA["User Agent\n(browser)"]
     AS["Authorization Server\n/authorize, /token,\n/.well-known/openid-configuration"]
     RS["Resource Server\n(the API being protected)"]
 
     UA -- "1. Login redirect" --> AS
     AS -- "2. Auth code" --> UA
-    UA -- "3. Code + PKCE verifier" --> BE
-    BE -- "4. Exchange code for tokens" --> AS
-    AS -- "5. access_token, id_token, refresh_token" --> BE
-    BE -- "6. Bearer access_token" --> RS
+    UA -- "3. Code" --> C
+    C -- "4. Exchange code + code_verifier for tokens" --> AS
+    AS -- "5. access_token, id_token, refresh_token" --> C
+    C -- "6. Bearer access_token" --> RS
     RS -- "7. Validates signature, iss, aud, exp" --> RS
-    SPA -.->|"never sees client_secret"| BE
 ```
 
 Four roles, always: **Resource Owner** (the user), **Client** (your app — public if it can't keep a secret, like a SPA or mobile app; confidential if it can, like a backend server), **Authorization Server** (issues tokens — Auth0, Okta, Google, your own Keycloak), **Resource Server** (the API that accepts the token).
@@ -209,7 +205,7 @@ id_token        OIDC only. Always a JWT. Proves identity, not access.
 
 ### JWT Structure and What Validation Actually Means
 
-A JWT access/ID token is `base64url(header).base64url(payload).base64url(signature)`. Anyone can *decode* it — it's not encrypted, just signed. "Validating" a JWT means checking five things, and skipping any one of them is a real vulnerability class:
+A JWT access/ID token is `base64url(header).base64url(payload).base64url(signature)`. Anyone can *decode* it — it's not encrypted, just signed. "Validating" a JWT means checking six things, and skipping any one of them is a real vulnerability class:
 
 ```
 1. Signature   — verify against the Authorization Server's public key
@@ -231,6 +227,11 @@ A JWT access/ID token is `base64url(header).base64url(payload).base64url(signatu
 5. nonce (OIDC id_token only) — does it match the nonce the client
                   sent in the original /authorize request? Prevents
                   replay of a stolen id_token from an unrelated session.
+
+6. nbf (not before) — is the current time before this? Reject if so.
+                  Rare in practice, but a token deliberately issued
+                  for future use (e.g. a scheduled credential rollout)
+                  must not be accepted early.
 ```
 
 ```python
@@ -267,6 +268,9 @@ Revocation:     the whole reason to keep refresh tokens server-side
                 immediately, unlike a bare access-token-only JWT setup
                 where nothing can be revoked before natural expiry.
 ```
+
+!!! note "DPoP: closing the bearer-token gap"
+    Everything above bounds the *blast radius* of a stolen token — it doesn't stop a stolen token from working. A plain bearer access token is usable by anyone who has it, full stop, for as long as it's valid. DPoP (Demonstrating Proof-of-Possession, RFC 9449) closes that gap by binding the token to a private key the client holds: each request carries a signed proof made with that key, and the resource server rejects the token if the proof doesn't match. Steal the token alone — via a logged header, an XSS read, a leaky proxy — and it's useless without the client's private key.
 
 ---
 
@@ -456,7 +460,7 @@ Decision tree: "users randomly getting logged out"
 !!! success "Remember"
     1. **OAuth2 is authorization; OIDC adds identity.** The id_token (OIDC) proves who; the access_token (OAuth2) grants scoped API access — never use one for the other's job.
     2. **Authorization Code + PKCE is the only flow to use for user-facing apps in 2026.** Implicit and Resource Owner Password are both deprecated for good reasons (token exposure, password handling).
-    3. **JWT validation means five checks, not one:** signature, `iss`, `aud`, `exp`, and (for id_tokens) `nonce`. Skipping `aud` is the confused-deputy hole; skipping `iss` lets in tokens from the wrong issuer.
+    3. **JWT validation means six checks, not one:** signature, `iss`, `aud`, `exp`, `nbf`, and (for id_tokens) `nonce`. Skipping `aud` is the confused-deputy hole; skipping `iss` lets in tokens from the wrong issuer.
     4. **Refresh token rotation turns theft into a detectable event.** Reuse of an already-rotated token is a compromise signal — revoke the whole token family, not just that one token.
     5. **JWT vs opaque tokens is a real trade-off, not a default choice:** JWTs validate locally but can't be revoked before expiry; opaque tokens need an introspection call but revoke instantly.
 
