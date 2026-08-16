@@ -178,9 +178,12 @@ nav:
       - Terraform: cloud/terraform.md
       - CI/CD: cloud/cicd.md
       - Deployment Strategies: cloud/deployment-strategies.md
+      - IAM & Managed Services: cloud/iam-managed-services.md
+      - FinOps: cloud/finops.md
       - kubernetes/index.md
     - AI-Native Systems:
       - ai-native/index.md
+      - Model Serving: ai-native/model-serving.md
     - Low-Level Design:
       - low-level-design/index.md
       - OOP Fundamentals: low-level-design/oop-fundamentals.md
