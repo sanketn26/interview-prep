@@ -67,6 +67,13 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Reliability: failure library | Complete | 14-entry catalog across 5 failure categories |
 | Distributed cache (exercise) | Complete | |
 | Behavioural: failure & learning | Complete | |
+| Behavioural: hiring & raising the bar | Complete | `behavioural/hiring.md` |
+| Behavioural: technical debt | Complete | `behavioural/technical-debt.md` |
+| Behavioural: influence without authority | Complete | `behavioural/influence-without-authority.md` |
+| Behavioural: mentorship | Complete | `behavioural/mentorship.md` |
+| Behavioural: managing up | Complete | `behavioural/managing-up.md` |
+| Behavioural: saying no | Complete | `behavioural/saying-no.md` |
+| Behavioural: ambiguity | Complete | `behavioural/ambiguity.md` |
 | Reference: cheat sheets, glossary, trade-off matrix | Complete | |
 | Payment processing — Alternative Architectures + Interview Follow-ups | Complete | Backfilled to match sibling exercises |
 | Load balancer (exercise) | Complete | Embeds `LoadBalancerSim` |
@@ -130,7 +137,7 @@ Do **not** mass-generate these as stubs.
 - Capstone project; interview-mode tabs (Learn/Practice/Hint/Interview/Solution/Staff) as a reusable UX pattern; Go example parity for retry/queue/thread-pool/producer-consumer/distributed-lock/WebSocket/gRPC/REST
 - Deeper distributed-systems topics — vector clocks, gossip protocols, Paxos vs Raft, distributed locks, leases, and service discovery all now shipped in `distributed-systems/fundamentals.md`; CRDTs still only covered inside `databases/ddia-concepts.md`, not as a dedicated page
 - Remaining DSA visualizers and topics (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp)
-- Remaining behavioural themes (hiring, tech debt, influence, mentorship, managing up, saying no, ambiguity)
+- Remaining behavioural themes — all seven now shipped (hiring, tech debt, influence without authority, mentorship, managing up, saying no, ambiguity)
 - Production/observability depth — SLI/SLO & error budgets and distributed tracing basics already covered in `observability/index.md`; chaos engineering, capacity/load testing, and blameless postmortems now shipped in `observability/production-reliability-practices.md`
 - Python/Go servers (WebSocket, gRPC) beyond the core library examples
 

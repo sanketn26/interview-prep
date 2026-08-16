@@ -114,8 +114,15 @@ What they are actually testing is whether you can hold **genuine ownership witho
 | [Technical disagreement](technical-disagreement.md) | Complete |
 | [Leading a production incident](production-incident.md) | Complete |
 | [Failure & learning](failure-learning.md) | Complete |
+| [Hiring & raising the bar](hiring.md) | Complete |
+| [Technical debt](technical-debt.md) | Complete |
+| [Influence without authority](influence-without-authority.md) | Complete |
+| [Mentorship](mentorship.md) | Complete |
+| [Managing up](managing-up.md) | Complete |
+| [Saying no](saying-no.md) | Complete |
+| [Ambiguity](ambiguity.md) | Complete |
 
-Start with the [framework](framework.md) for structure and the seniority ladder, then work the three story pages — each shows the same scenario answered at mid, senior, and staff level so you can hear the difference directly.
+Start with the [framework](framework.md) for structure and the seniority ladder, then work the story pages — each shows the same kind of scenario answered at mid, senior, and staff level so you can hear the difference directly.
 
 ---
 

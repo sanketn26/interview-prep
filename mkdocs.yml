@@ -225,6 +225,13 @@ nav:
       - Technical Disagreement: behavioural/technical-disagreement.md
       - Production Incident: behavioural/production-incident.md
       - Failure & Learning: behavioural/failure-learning.md
+      - Hiring & Raising the Bar: behavioural/hiring.md
+      - Technical Debt: behavioural/technical-debt.md
+      - Influence Without Authority: behavioural/influence-without-authority.md
+      - Mentorship: behavioural/mentorship.md
+      - Managing Up: behavioural/managing-up.md
+      - Saying No: behavioural/saying-no.md
+      - Ambiguity: behavioural/ambiguity.md
   - Reference:
     - reference/index.md
     - Cheat Sheets: reference/cheat-sheets.md
