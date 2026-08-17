@@ -162,6 +162,50 @@ Standard practice: **150–200 virtual nodes** per physical node.
 
 ---
 
+## Rebalancing — Why It's the Part That Actually Matters
+
+Consistent hashing gets talked about as if computing "which node owns this key" is the hard part. It isn't — that's a hash and a binary search. **Rebalancing is the hard part**: physically moving the data for those K/N keys to their new owner, while the cluster keeps serving reads and writes.
+
+### What rebalancing actually involves
+
+Adding a node doesn't just repoint lookups — every key that now maps to the new node still lives on its *old* node's disk until something copies it over. Until that copy finishes, you have to choose one of two bad-sounding options and make it not bad:
+
+1. **Serve from the old owner until migration completes**, then cut over — simple, but the new node sits idle while doing this, and you need a way to know when a given key's migration is done.
+2. **Dual-read/dual-write during the transition** — writes go to both old and new owner, reads check new-then-old (or vice versa) — handles in-flight traffic correctly but doubles write load on the affected key range for the duration.
+
+Real systems (Cassandra, DynamoDB, Redis Cluster) use a variant of #2: a key range is marked "migrating," writes are dual-written, and a background process streams the bulk data across while a smaller "catch-up" pass handles anything written during the streaming window.
+
+### Why this is "super important," not just a detail
+
+- **Blast radius during the move.** The whole reason consistent hashing exists is to bound the blast radius of a topology change to K/N keys instead of nearly all of them. If rebalancing itself is not throttled and coordinated, you've reintroduced the exact failure mode consistent hashing was supposed to prevent — a burst of migration traffic that saturates the new node's disk/network and takes it down before it's even serving production reads.
+- **It's not instantaneous.** For a node holding, say, 500 GB, moving its ~1/N share to a new peer over a 1 Gbps link is a multi-hour operation, not a config change. Anything that assumes rebalancing is atomic — a naive "just update the ring and move on" implementation — will serve wrong or missing data for every key mid-migration.
+- **Uncontrolled rebalancing cascades.** If migration itself isn't rate-limited, the new node's disk I/O and network saturate, its read latency spikes, health checks start failing, and the orchestrator may conclude the *new* node is unhealthy and route around it — the exact opposite of the intended outcome.
+- **Virtual nodes make rebalancing granular, not free.** Moving whole virtual nodes (each a fixed hash range, typically low tens of MB to a few GB) rather than the whole physical node's data is what makes it possible to throttle and checkpoint the migration — but the operator still has to actually rate-limit it; consistent hashing bounds *what* moves, not *how fast* it's safe to move it.
+
+### A concrete throttled-rebalance walkthrough
+
+```
+Cluster: 3 nodes, 500 GB total data, adding a 4th node
+Expected data movement: ~125 GB (1/4 of total) to the new node
+
+Naive (unthrottled):
+  New node receives 125 GB as fast as the network allows
+  → saturates its NIC and disk, read latency on the new node spikes 10-50x
+  → health checks start failing, orchestrator flags it unhealthy
+  → migration aborts or restarts, no forward progress
+
+Throttled (real-world):
+  Migration capped at, say, 50 MB/s per virtual node,
+  4-8 virtual node migrations running concurrently
+  → ~125 GB / (50 MB/s × 6 concurrent) ≈ 7 minutes of *sustained* migration bandwidth,
+    but spread so the node's read/write capacity for live traffic is never starved
+  → each virtual node's migration is checkpointed — a restart resumes, doesn't restart from zero
+```
+
+The number to know for an interview: rebalancing bandwidth is a **deliberate trade-off between migration speed and live-traffic capacity**, not a fixed cost — and the right answer to "how fast should we rebalance" is "as fast as we can without starving production traffic," which requires the throttle to be tunable, not hardcoded.
+
+---
+
 ## Realistic Example: Redis Cluster
 
 Redis Cluster uses a variant — 16,384 **hash slots** (not a pure ring, but same concept):
@@ -174,7 +218,7 @@ Node 2: slots 5461–10922
 Node 3: slots 10923–16383
 ```
 
-Adding a node: move some slots from existing nodes. No full rehash needed.
+Adding a node: move some slots from existing nodes. No full rehash needed — Redis Cluster's `CLUSTER SETSLOT ... MIGRATING`/`IMPORTING` commands implement exactly the dual-state migration described above, one hash slot at a time, so the cluster keeps serving both old and new owners correctly mid-move.
 
 ---
 
@@ -266,6 +310,7 @@ Fix:
     1. Consistent hashing maps both keys and nodes to a ring; keys route to the next clockwise node
     2. Adding/removing a node remaps only K/N keys, not all keys
     3. Virtual nodes (150–200 per physical node) ensure even load distribution
-    4. Hot keys require separate solutions — consistent hashing doesn't help
-    5. Used in: Redis Cluster (hash slots), Cassandra (vnodes), Memcached, CDN routing
+    4. Rebalancing is the part that actually matters operationally — throttled, checkpointed migration (dual-read/dual-write) is what keeps K/N keys moving from becoming a self-inflicted outage
+    5. Hot keys require separate solutions — consistent hashing doesn't help
+    6. Used in: Redis Cluster (hash slots), Cassandra (vnodes), Memcached, CDN routing
 

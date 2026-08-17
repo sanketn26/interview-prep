@@ -168,6 +168,8 @@ Work top-down: **schedule → pull → start → live → ready → route → se
 - **Causes:** wrong Service name/port (`servicePort` vs named port), no TLS secret, controller not watching the namespace, path `Prefix` vs `Exact`.
 - **Move:** curl the controller pod directly; bypass DNS.
 
+**Where TLS terminates decides more than certificates.** Terminate at the Ingress/Gateway and the connection from there to the Pod is plain HTTP by default — fine for most apps, wrong if you need mTLS all the way to the container (compliance, zero-trust) or if a downstream service trusts `X-Forwarded-For`/`X-Real-IP` without validating it came from a trusted proxy (that header is attacker-controlled if anything upstream of your edge doesn't strip and re-set it). Also check body-size and timeout defaults at the termination point — a Pod that accepts 50 MB uploads behind an Ingress controller defaulting to a 1 MB body limit fails with a controller-generated 413 that never reaches your app's logs.
+
 ### High CPU
 - **Look:** `kubectl top pod`, CPU throttle (`container_cpu_cfs_throttled_seconds`).
 - **Causes:** limit too tight (throttle looks like "mystery latency"), real hot loop, HPA not firing (wrong metric).
@@ -177,6 +179,55 @@ Work top-down: **schedule → pull → start → live → ready → route → se
 - **Look:** node condition `MemoryPressure`, evicted pods, `describe node`.
 - **Causes:** sum of working sets > allocatable; cache; one burstable hog.
 - **Move:** requests that match reality; PriorityClass for critical daemon; don't run CI on the same nodes as checkout.
+
+---
+
+## Storage — Don't Treat Stateful Like Stateless
+
+A Pod's local filesystem dies with the Pod. For anything that needs to survive a reschedule, three objects do the work:
+
+| Object | What it is | The mistake |
+|--------|------------|-------------|
+| **PersistentVolume (PV)** | The actual storage — a cloud disk, NFS export, etc. Cluster-scoped. | Treating it as tied to one node when it isn't (or is, depending on access mode) |
+| **PersistentVolumeClaim (PVC)** | A Pod's *request* for storage — size, access mode, StorageClass. Namespace-scoped. | Deleting a PVC assuming it deletes the underlying data — depends on the StorageClass's reclaim policy (`Delete` vs `Retain`) |
+| **StorageClass** | The provisioner template (`gp3`, `pd-ssd`, etc.) — what kind of disk a PVC actually gets. | Not setting one → falls back to a cluster default that may be the wrong performance tier for a database workload |
+
+**Access modes matter more than the name suggests:**
+
+- `ReadWriteOnce` (RWO) — one node at a time. This is the default for block storage (EBS, PD). A StatefulSet pod that gets rescheduled to a new node has to wait for the volume to detach from the old node first — that's a real, sometimes multi-minute, availability gap.
+- `ReadWriteMany` (RWX) — many nodes concurrently (NFS, EFS, Filestore). Needed for genuinely shared state; usually slower than block storage for random I/O.
+- `ReadOnlyMany` (ROX) — many nodes, read-only. Good fit for shared config/reference data.
+
+**Volume expansion** (`allowVolumeExpansion: true` on the StorageClass) lets you grow a PVC without recreating it — but the filesystem still needs an online resize (usually automatic on modern CSI drivers, but confirm for your provisioner) and expansion is one-directional; you can't shrink.
+
+!!! warning "The actual mistake"
+    Running a database as a plain Deployment instead of a StatefulSet. A Deployment's Pods are interchangeable and get random names/IPs on reschedule — fine for stateless replicas, actively dangerous for anything that needs a stable identity (`db-0`, `db-1`) to reattach to *its own* PVC. Use StatefulSet for anything where "which specific replica" matters.
+
+---
+
+## RBAC & Service Accounts
+
+Every Pod runs as a ServiceAccount, and every ServiceAccount not explicitly configured runs as `default` in its namespace — which historically had broad-enough permissions in many clusters to be a real lateral-movement path if that Pod is compromised.
+
+**The least-privilege pattern:**
+
+1. Create a dedicated ServiceAccount per workload, not a shared one.
+2. Grant a `Role` (namespace-scoped) or `ClusterRole` (cluster-scoped) with only the verbs/resources that workload actually needs — `get`/`list`/`watch` on its own ConfigMaps, not `*` on everything.
+3. Bind them with a `RoleBinding` (or `ClusterRoleBinding` only when the access genuinely needs to span namespaces).
+4. Set `automountServiceAccountToken: false` on Pods that never call the Kubernetes API at all — most application workloads don't need a token mounted.
+
+**What to audit:** who can `kubectl exec` or `port-forward` into production Pods — those two verbs bypass every network-layer control (NetworkPolicy, Service, Ingress) and reach the container directly. Treat `pods/exec` RBAC grants with the same scrutiny as SSH access to a prod host, and log them — `kubectl exec` doesn't show up in application logs at all.
+
+---
+
+## NetworkPolicy
+
+By default, every Pod can talk to every other Pod in the cluster — there's no network isolation until you add a `NetworkPolicy`. This is genuinely useful for blast-radius containment (a compromised Pod in one namespace can't reach the payments database in another), and genuinely easy to get backwards.
+
+!!! warning "The classic self-inflicted outage"
+    A `NetworkPolicy` that selects a Pod and specifies `Ingress` rules implicitly denies **all** traffic not explicitly allowed — including DNS. Lock down egress on a namespace without an explicit "allow to `kube-dns` on port 53" rule, and every Pod in that namespace loses the ability to resolve *any* hostname, including your own Services. The failure looks like a total outage with no useful error beyond `dial tcp: lookup ... i/o timeout` — nothing in the NetworkPolicy object itself tells you DNS is the cause.
+
+**The safe rollout pattern:** start with an explicit allow-list — allow DNS egress, allow the specific dependencies a workload calls, allow ingress from the specific namespaces/Pods that call it — and apply it to one namespace at a time with monitoring, rather than a cluster-wide default-deny in one shot.
 
 ---
 
@@ -216,6 +267,9 @@ Symptom: Ingress 502, Deployment 3/3
 5. kubectl get ing -o yaml   vs  actual Service port name
 6. Node: kubectl top node; describe node  (pressure, taints)
 ```
+
+!!! warning "The cardinality trap"
+    Adding a `pod_name` or `request_id` label to a metric (as opposed to a log field, where it belongs) multiplies your time-series count by every Pod restart and every request. One high-cardinality label on a frequently-emitted metric can silently blow up Prometheus's memory and your storage bill in the same afternoon — it looks like "observability got expensive" long before anyone traces it to one bad label. Keep unbounded/high-cardinality values (IDs, timestamps, freeform strings) in logs and traces; keep metric labels to a small, bounded set (`namespace`, `service`, `status_code`).
 
 ---
 
