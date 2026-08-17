@@ -1,6 +1,6 @@
 ---
 title: SQL vs NoSQL
-description: A decision framework for relational, document, key-value, wide-column, and graph databases — and why real systems use several at once.
+description: A decision framework for relational, document, key-value, wide-column, graph, and time-series databases — and why real systems use several at once.
 ---
 
 # SQL vs NoSQL
@@ -13,7 +13,7 @@ description: A decision framework for relational, document, key-value, wide-colu
 
 ## Why This Exists
 
-"SQL vs NoSQL" is a bad framing. It suggests a single axis with relational databases on one end and everything else lumped together on the other. In practice there are at least five distinct data models, each optimized for a different **access pattern**, and the question a Staff engineer actually answers is not "which side am I on" but "what does this workload need to do fast, and what can it afford to get eventually."
+"SQL vs NoSQL" is a bad framing. It suggests a single axis with relational databases on one end and everything else lumped together on the other. In practice there are at least six distinct data models, each optimized for a different **access pattern**, and the question a Staff engineer actually answers is not "which side am I on" but "what does this workload need to do fast, and what can it afford to get eventually."
 
 The stub version of this debate — "SQL is old and rigid, NoSQL is new and scalable" — is wrong on both counts. Modern relational databases shard, replicate, and scale writes into the millions per second (see [Sharding](sharding.md)). Modern NoSQL databases support secondary indexes, transactions, and joins. The real differences are in the data model's native shape and what it optimizes away.
 
@@ -29,13 +29,17 @@ Document     → "What does one aggregate look like as a whole?"
 Key-Value    → "Give me the value for this exact key, fast."
 Wide-Column  → "Give me a time-ordered slice of this partition."
 Graph        → "How are these nodes connected, and how deep?"
+Time-Series  → "How has this metric moved, and what's the trend/aggregate over a window?"
 ```
 
 The model you pick shapes how painful every future query, migration, and scale-out will be. Picking wrong doesn't fail immediately — it fails two years later when a "just add a join" ticket turns into a rewrite.
 
+!!! info "Most of these are BASE, not ACID"
+    Every non-relational family in this list is typically **BASE** rather than fully ACID: **B**asically **A**vailable (the system responds, even if a partition is degraded), **S**oft state (data can change without a write, e.g. TTL expiry or convergence), **E**ventually consistent (replicas converge given enough time, not instantly). This isn't a defect — it's the explicit trade for horizontal scale and availability under partition (see [CAP theorem](../distributed-systems/cap-theorem.md)). Relational databases default to the opposite trade: full ACID, at the cost of harder horizontal write scaling. Graph databases are the one family in this list that's typically still ACID — the win there is traversal speed, not a relaxed consistency model.
+
 ---
 
-## The Five Families
+## The Six Families
 
 ### 1. Relational (SQL) — Postgres, MySQL, Aurora
 
@@ -105,6 +109,27 @@ Partition: device_id=42
 - **Transactions:** ACID, but the win is traversal speed, not consistency
 - **Example use case:** "friends of friends who are not already friends" for a social network, or fraud rings — "accounts that share a device fingerprint within 2 hops of a known bad actor." A relational equivalent needs a self-join per hop and gets slower with every hop; a graph traversal stays roughly constant per hop.
 
+### 6. Time-Series — InfluxDB, TimescaleDB, OpenTSDB, Prometheus
+
+**Optimized for:** extremely high-rate appends of timestamped points, and range/aggregate queries over a time window.
+
+- **Schema:** a metric name + tags/labels + timestamp + value; the shape is fixed but the *label set* per metric is not
+- **Joins:** not supported in the relational sense — you correlate series by shared tags, not foreign keys
+- **Transactions:** none in the traditional sense — points are append-only and immutable once written; "correctness" here means never losing or misordering a point within a series, not multi-row atomicity
+- **Example use case:** IoT sensor telemetry or infrastructure metrics — `cpu_usage{host="web-1", region="us-east"}` written every 10 seconds — and a dashboard query like "p99 latency for this service, 5-minute buckets, last 24 hours."
+
+```
+metric: cpu_usage  tags: {host: web-1, region: us-east}
+2026-08-13T00:00:00Z → 21.3
+2026-08-13T00:00:10Z → 21.4
+2026-08-13T00:00:20Z → 21.4
+```
+
+Time-series stores are easy to mistake for wide-column stores (Cassandra's `partition_key=device_id, clustering_key=timestamp` pattern from §4 looks almost identical), and the two do share a storage shape — sequential, time-ordered writes within a partition. The real difference is that a dedicated time-series engine bakes in the operations you'd otherwise build by hand on top of wide-column: automatic downsampling/rollups, retention-by-age, and delta/Gorilla-style compression tuned specifically for slowly-changing numeric values (see [Metrics & Monitoring](../system-design-exercises/metrics-monitoring.md) for the full ingestion/storage/cardinality design). Reach for a purpose-built time-series database once you need those built in; Cassandra-style wide-column is still the right call for time-ordered data that *isn't* purely numeric-metric shaped (event logs, telemetry blobs).
+
+!!! warning "Production Trap ⚠️"
+    The failure mode that's unique to this family is **cardinality explosion**: every distinct combination of metric name + tag values is a separate series. A well-intentioned tag like `user_id` or `request_id` on a metric can multiply storage and query cost by orders of magnitude overnight — this is covered in depth, with concrete numbers, in [Metrics & Monitoring](../system-design-exercises/metrics-monitoring.md).
+
 ---
 
 ## Architecture: Where Each Fits in a Request Path
@@ -117,8 +142,10 @@ graph TD
     API --> SQL[(Relational: orders, payments)]
     API --> WC[(Wide-Column: event stream, telemetry)]
     API --> Graph[(Graph: recommendations, fraud graph)]
+    API --> TS[(Time-Series: metrics, IoT sensor data)]
     WC --> Warehouse[(Analytics Warehouse)]
     SQL --> Warehouse
+    TS --> Dashboards[Monitoring Dashboards / Alerting]
 ```
 
 ---
@@ -127,14 +154,14 @@ graph TD
 
 These are the axes that actually matter — not "SQL vs NoSQL" but where each family lands on each axis.
 
-| Axis | Relational | Document | Key-Value | Wide-Column | Graph |
-|------|-----------|----------|-----------|-------------|-------|
-| Schema flexibility | Low (migrations) | High (per-doc) | Highest (opaque) | Medium (per-partition) | Medium |
-| Join support | Native, optimized | Emulated via embedding | None | None (denormalize) | Native (traversal) |
-| Horizontal write scale | Harder (needs sharding) | Good | Excellent | Excellent | Moderate |
-| Consistency guarantee | Strong (ACID) | Strong per-doc | Eventual (usually) | Tunable (Cassandra: per-query) | Strong |
-| Query flexibility | Highest (arbitrary SQL) | Medium (query language per doc shape) | Lowest (key only) | Low (query = table design) | High for relationships, low otherwise |
-| Read pattern | Ad-hoc, joins | Whole aggregate | Point lookup | Range scan in partition | Traversal |
+| Axis | Relational | Document | Key-Value | Wide-Column | Graph | Time-Series |
+|------|-----------|----------|-----------|-------------|-------|-------------|
+| Schema flexibility | Low (migrations) | High (per-doc) | Highest (opaque) | Medium (per-partition) | Medium | Medium (fixed shape, free-form tags) |
+| Join support | Native, optimized | Emulated via embedding | None | None (denormalize) | Native (traversal) | None (correlate by shared tags) |
+| Horizontal write scale | Harder (needs sharding) | Good | Excellent | Excellent | Moderate | Excellent |
+| Consistency guarantee | Strong (ACID) | Strong per-doc | Eventual (usually) | Tunable (Cassandra: per-query) | Strong | Eventual (usually) |
+| Query flexibility | Highest (arbitrary SQL) | Medium (query language per doc shape) | Lowest (key only) | Low (query = table design) | High for relationships, low otherwise | Low (time-range + aggregate only) |
+| Read pattern | Ad-hoc, joins | Whole aggregate | Point lookup | Range scan in partition | Traversal | Time-window scan + downsample |
 
 ---
 
@@ -222,6 +249,7 @@ Symptom: Feature works in staging, times out in production at scale.
 - Key-value stores scale almost linearly but offer no query flexibility — if you find yourself scanning keys by pattern, it's the wrong store.
 - Wide-column stores scale to petabytes and huge write volume but every new query pattern may need a new table (denormalized copy) — schema evolution has an operational cost.
 - Graph traversal performance degrades with unconstrained hop count on dense graphs — bound the traversal depth or pre-materialize common paths.
+- Time-series stores scale write throughput almost linearly, but unbounded label cardinality (see the cardinality trap above) is the failure mode that actually takes them down — not raw point volume.
 
 ---
 
@@ -234,6 +262,7 @@ Symptom: Feature works in staging, times out in production at scale.
 | Exact-key lookup, cache, session, counter | Eventual is fine | Very high, low latency required | **Key-Value** |
 | Time-ordered or partitioned range scans | Tunable (per-query) | Very high write throughput, many nodes | **Wide-Column** |
 | Multi-hop relationship traversal | Strong | Traversal-bound, not row-count-bound | **Graph** |
+| Timestamped metric/event append + range aggregate | Eventual is fine | Very high write rate, needs built-in downsampling/retention | **Time-Series** |
 
 ```mermaid
 flowchart TD
@@ -242,6 +271,7 @@ flowchart TD
     A -->|Exact key, O(1)| D[Key-Value]
     A -->|Time/partition range scan, huge write volume| E[Wide-Column]
     A -->|Multi-hop traversal| F[Graph]
+    A -->|Numeric metric append + downsample/retain| G[Time-Series]
 ```
 
 ---
@@ -258,6 +288,7 @@ Document (MongoDB)      → product catalog (variable attributes per category)
 Key-Value (Redis)       → cart sessions, rate limiting, feature flags
 Wide-Column (Cassandra) → clickstream / view events at massive write volume
 Graph (Neo4j)           → "customers who bought X also bought Y" recommendations
+Time-Series (InfluxDB)  → infra metrics / request latency for the platform's own observability
 Warehouse (Snowflake)   → nightly ETL from all of the above for BI/reporting
 ```
 
@@ -267,12 +298,12 @@ The cost of polyglot persistence is operational: more systems to run, monitor, b
 
 ## Trade-offs
 
-| Dimension | Relational | Document | Key-Value | Wide-Column | Graph |
-|-----------|-----------|----------|-----------|-------------|-------|
-| Best at | Multi-entity consistency | Aggregate read/write | Point lookup latency | Write throughput + range scan | Relationship traversal |
-| Worst at | Horizontal write scale | Cross-collection joins | Any query beyond key | Ad-hoc queries | Simple point lookups |
-| Operational maturity | Very high | High | High | High | Lower, smaller ecosystem |
-| Example engines | Postgres, MySQL | MongoDB, Firestore | Redis, DynamoDB (KV) | Cassandra, Bigtable | Neo4j, Neptune |
+| Dimension | Relational | Document | Key-Value | Wide-Column | Graph | Time-Series |
+|-----------|-----------|----------|-----------|-------------|-------|-------------|
+| Best at | Multi-entity consistency | Aggregate read/write | Point lookup latency | Write throughput + range scan | Relationship traversal | Metric ingest + time-window aggregate |
+| Worst at | Horizontal write scale | Cross-collection joins | Any query beyond key | Ad-hoc queries | Simple point lookups | Anything non-numeric or non-time-indexed |
+| Operational maturity | Very high | High | High | High | Lower, smaller ecosystem | High for the leaders (Prometheus, Influx) |
+| Example engines | Postgres, MySQL | MongoDB, Firestore | Redis, DynamoDB (KV) | Cassandra, Bigtable | Neo4j, Neptune | InfluxDB, TimescaleDB, Prometheus |
 
 ---
 
@@ -301,14 +332,16 @@ The cost of polyglot persistence is operational: more systems to run, monitor, b
 2. A ride-sharing app needs: driver locations (updated every few seconds), trip history (needs joins with payments and users), and "drivers near this rider" queries. Sketch which store handles each and why a single database wouldn't fit all three.
 3. Your team stores user profiles in MongoDB and just added a requirement: "generate a report of all users who made a purchase in the last 30 days, joined with their support ticket history (in a separate relational database)." What's the right place to do this join, and why not in the application layer at request time?
 4. A wide-column table is designed as `partition_key = event_type`, `clustering_key = timestamp`. After six months, the `login` event type partition is 500x larger than any other and is timing out. What's the actual design mistake, and how would you fix the partition key?
+5. Your infra metrics currently live in a hand-rolled Cassandra table (`partition_key = host_id`, `clustering_key = timestamp`). It works, but every dashboard query re-implements downsampling in application code, and a recent incident happened because nobody noticed retention had silently grown to 3 years of raw data. What does moving to a dedicated time-series store actually buy you here, given that the storage shape barely changes?
 
 ---
 
 ## Key Takeaways
 
 !!! success "Remember"
-    1. "SQL vs NoSQL" is really five data models — relational, document, key-value, wide-column, graph — each built for a different access pattern, not a single scale-vs-flexibility axis
-    2. Pick based on read/write pattern first: point lookup, aggregate fetch, range scan, ad-hoc join, or multi-hop traversal
+    1. "SQL vs NoSQL" is really six data models — relational, document, key-value, wide-column, graph, time-series — each built for a different access pattern, not a single scale-vs-flexibility axis
+    2. Pick based on read/write pattern first: point lookup, aggregate fetch, range scan, ad-hoc join, multi-hop traversal, or timestamped-metric append
     3. The real trade-off axes are schema flexibility, join support, horizontal write scale, consistency guarantees, and query flexibility — rank your workload on each before picking a store
-    4. Polyglot persistence — several database types in one system, each doing what it's best at — is the normal end state at scale, not over-engineering
-    5. Don't migrate the whole system for one workload's bottleneck; diagnose the specific access pattern that's failing and move only that
+    4. Most non-relational families trade ACID for BASE (basically available, soft state, eventually consistent) in exchange for horizontal scale — know which axis you're giving up before you pick one
+    5. Polyglot persistence — several database types in one system, each doing what it's best at — is the normal end state at scale, not over-engineering
+    6. Don't migrate the whole system for one workload's bottleneck; diagnose the specific access pattern that's failing and move only that
