@@ -210,6 +210,27 @@ nav:
       - WhatsApp / Messaging: system-design-exercises/whatsapp.md
       - Notification System: system-design-exercises/notification-system.md
       - Social Feed (Twitter/X): system-design-exercises/social-feed.md
+      - Pastebin: system-design-exercises/pastebin.md
+      - Instagram: system-design-exercises/instagram.md
+      - YouTube / Netflix: system-design-exercises/video-streaming.md
+      - Uber / Ride-Hailing: system-design-exercises/ride-hailing.md
+      - Google Drive / File Sync: system-design-exercises/file-storage-sync.md
+      - Collaborative Editor (Google Docs): system-design-exercises/collaborative-editor.md
+      - Distributed Message Queue: system-design-exercises/distributed-message-queue.md
+      - Maps / Navigation: system-design-exercises/maps-navigation.md
+      - Food Delivery: system-design-exercises/food-delivery.md
+      - E-Commerce Platform: system-design-exercises/ecommerce-platform.md
+      - Ticket Booking: system-design-exercises/ticket-booking.md
+      - Hotel & Flight Booking: system-design-exercises/hotel-flight-booking.md
+      - Online Auction: system-design-exercises/online-auction.md
+      - Search Engine: system-design-exercises/search-engine.md
+      - Recommendation System: system-design-exercises/recommendation-system.md
+      - Ad Serving: system-design-exercises/ad-serving.md
+      - Metrics & Monitoring: system-design-exercises/metrics-monitoring.md
+      - Log Aggregation: system-design-exercises/log-aggregation.md
+      - Distributed Job Scheduler: system-design-exercises/distributed-job-scheduler.md
+      - Code Deployment / Release Orchestration: system-design-exercises/deployment-orchestration.md
+      - Video Calling: system-design-exercises/video-calling.md
     - LLD Problems:
       - lld-exercises/index.md
       - Parking Lot: lld-exercises/parking-lot.md

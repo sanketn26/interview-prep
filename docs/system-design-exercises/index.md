@@ -23,11 +23,30 @@ Work each exercise with the solution covered. V1 is always the simplest useful s
 | [Web crawler](web-crawler.md) | Senior / Staff | Complete |
 | [Notification system](notification-system.md) | Senior | Complete |
 | [Social feed (Twitter/X)](social-feed.md) | Staff | Complete |
+| [Pastebin](pastebin.md) | Foundation | Complete |
+| [Instagram](instagram.md) | Staff | Complete |
+| [YouTube / Netflix](video-streaming.md) | Staff | Complete |
+| [Uber / Ride-Hailing](ride-hailing.md) | Staff | Complete |
+| [Google Drive / File Sync](file-storage-sync.md) | Senior / Staff | Complete |
+| [Collaborative Editor (Google Docs)](collaborative-editor.md) | Staff | Complete |
+| [Distributed Message Queue](distributed-message-queue.md) | Staff | Complete |
+| [Maps / Navigation](maps-navigation.md) | Staff | Complete |
+| [Food Delivery](food-delivery.md) | Staff | Complete |
+| [E-Commerce Platform](ecommerce-platform.md) | Senior / Staff | Complete |
+| [Ticket Booking](ticket-booking.md) | Senior / Staff | Complete |
+| [Hotel & Flight Booking](hotel-flight-booking.md) | Senior / Staff | Complete |
+| [Online Auction](online-auction.md) | Senior / Staff | Complete |
+| [Search Engine](search-engine.md) | Staff | Complete |
+| [Recommendation System](recommendation-system.md) | Staff | Complete |
+| [Ad Serving](ad-serving.md) | Staff | Complete |
+| [Metrics & Monitoring](metrics-monitoring.md) | Senior / Staff | Complete |
+| [Log Aggregation](log-aggregation.md) | Senior / Staff | Complete |
+| [Distributed Job Scheduler](distributed-job-scheduler.md) | Staff | Complete |
+| [Code Deployment / Release Orchestration](deployment-orchestration.md) | Staff | Complete |
+| [Video Calling](video-calling.md) | Staff | Complete |
 
 ## Planned
 
-Instagram, YouTube/Netflix, Uber, maps, food delivery, commerce, bookings, auctions, Drive, search, recommendations, ad serving, metrics, log aggregation, job scheduler, distributed message queue, collab editor, code deployment, video call, ride tracking, distributed orders, Pastebin, ticket booking, hotel booking, flight booking, online auction.
-
-These will be written to the same bar as URL shortener. They are **not** complete.
+None — the original planned list is fully shipped.
 
 Use the [capacity calculator](../foundations/requirements-estimation.md) and [design framework](../foundations/framework.md) on every exercise.
