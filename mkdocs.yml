@@ -234,8 +234,20 @@ nav:
     - LLD Problems:
       - lld-exercises/index.md
       - Parking Lot: lld-exercises/parking-lot.md
+      - Tic Tac Toe: lld-exercises/tic-tac-toe.md
+      - Library Management: lld-exercises/library-management.md
+      - Splitwise: lld-exercises/splitwise.md
       - Elevator System: lld-exercises/elevator-system.md
+      - ATM: lld-exercises/atm.md
+      - Vending Machine: lld-exercises/vending-machine.md
+      - Chess: lld-exercises/chess.md
+      - Car Rental: lld-exercises/car-rental.md
       - LRU Cache: lld-exercises/lru-cache.md
+      - Rate Limiter (LLD): lld-exercises/rate-limiter.md
+      - Logger: lld-exercises/logger.md
+      - Notification System (LLD): lld-exercises/notification-system.md
+      - Pub/Sub: lld-exercises/pub-sub.md
+      - Task Scheduler: lld-exercises/task-scheduler.md
     - DSA:
       - dsa/index.md
       - Foundations: dsa/foundations.md

@@ -18,9 +18,9 @@ Entity modeling, basic composition, simple state — no concurrency pressure yet
 | Problem | Status | Core skill |
 |---------|--------|------------|
 | [Parking Lot](parking-lot.md) | Complete | Composition, Strategy (pricing), spot allocation |
-| Tic Tac Toe | Planned | Simple state machine, win-condition checking |
-| Library Management | Planned | Multi-entity relationships (Book, Member, Loan), due-date rules |
-| Splitwise | Planned | Graph simplification (debt netting), Strategy (split types) |
+| [Tic Tac Toe](tic-tac-toe.md) | Complete | Simple state machine, win-condition checking |
+| [Library Management](library-management.md) | Complete | Multi-entity relationships (Book, Member, Loan), due-date rules |
+| [Splitwise](splitwise.md) | Complete | Graph simplification (debt netting), Strategy (split types) |
 
 ## Intermediate
 
@@ -29,10 +29,10 @@ State machines, multi-entity coordination, strategy selection under real constra
 | Problem | Status | Core skill |
 |---------|--------|------------|
 | [Elevator System](elevator-system.md) | Complete | State machine, Strategy (scheduling algorithm), request coordination |
-| ATM | Planned | State machine (card inserted → PIN → transaction), State pattern |
-| Vending Machine | Planned | State pattern, inventory + payment coordination |
-| Chess | Planned | Polymorphism (piece movement rules), move validation, Command pattern (undo) |
-| Car Rental | Planned | Inventory + reservation overlap, pricing strategy |
+| [ATM](atm.md) | Complete | State machine (card inserted → PIN → transaction), State pattern |
+| [Vending Machine](vending-machine.md) | Complete | State pattern, inventory + payment coordination |
+| [Chess](chess.md) | Complete | Polymorphism (piece movement rules), move validation, Command pattern (undo) |
+| [Car Rental](car-rental.md) | Complete | Inventory + reservation overlap, pricing strategy |
 
 ## Advanced
 
@@ -41,13 +41,13 @@ Data-structure design under real constraints, concurrency, extensibility at scal
 | Problem | Status | Core skill |
 |---------|--------|------------|
 | [LRU Cache](lru-cache.md) | Complete | Data structure design (hash map + doubly linked list), O(1) constraint, thread safety |
-| Rate Limiter (LLD) | Planned | Algorithm choice (token bucket vs. sliding window) at the class level — pairs with [Rate Limiting](../reliability/rate-limiting.md) for the distributed-systems version |
-| Logger | Planned | Singleton (carefully — see the trap below), Strategy (sinks), async writes |
-| Notification System (LLD) | Planned | Observer, Strategy (channels) — pairs with [Notification System](../system-design-exercises/notification-system.md) for the distributed version |
-| Pub/Sub | Planned | Observer at scale, thread-safe subscriber management |
-| Task Scheduler | Planned | Priority queue, Strategy (scheduling policy), concurrency (worker pool) |
+| [Rate Limiter (LLD)](rate-limiter.md) | Complete | Algorithm choice (token bucket vs. sliding window) at the class level — pairs with [Rate Limiting](../reliability/rate-limiting.md) for the distributed-systems version |
+| [Logger](logger.md) | Complete | Singleton (carefully — see the trap below), Strategy (sinks), async writes |
+| [Notification System (LLD)](notification-system.md) | Complete | Observer, Strategy (channels) — pairs with [Notification System](../system-design-exercises/notification-system.md) for the distributed version |
+| [Pub/Sub](pub-sub.md) | Complete | Observer at scale, thread-safe subscriber management |
+| [Task Scheduler](task-scheduler.md) | Complete | Priority queue, Strategy (scheduling policy), concurrency (worker pool) |
 
-These will be written to the same bar as Parking Lot, Elevator System, and LRU Cache — they are **not** complete.
+All fifteen exercises are written to the same bar: 9-step structure, worked solution, edge cases, concurrency, and three-tier interview questions.
 
 !!! warning "The Singleton trap"
     Logger is listed here because it's the canonical Singleton example — and also the canonical example of Singleton done badly: a global mutable object that's hard to test (can't inject a fake), hides a dependency (any class can silently call `Logger.instance()`), and gets shared state bugs the moment logging becomes concurrent. When you reach it, the interesting design question isn't "implement a Singleton," it's "what does dependency-injecting a `Logger` instance buy you over a global, and is there ever a case a true singleton is actually correct" (there is — genuinely global config, unique resource handles — but state it as a deliberate trade-off, not a default).
