@@ -44,10 +44,11 @@ flowchart LR
 - [x] Cache stampede + full cache-strategy catalog (cache-aside, write-through/behind, eviction)
 - [x] API Design (REST, gRPC, GraphQL, idempotency)
 - [x] System Design Framework + capacity calculator
+- [x] Low-Level Design fundamentals (OOP, SOLID, design patterns, concurrency) + 15 worked exercises, Parking Lot through Task Scheduler
 
 ### Exit Criteria
 
-> Can you design a URL shortener, rate limiter, or notification system with clear trade-offs?
+> Can you design a URL shortener, rate limiter, or notification system with clear trade-offs — and, at the class level, a Parking Lot or Rate Limiter with clean OOP and correct concurrency?
 
 ---
 
@@ -99,6 +100,7 @@ flowchart LR
     - Design complete systems with clear trade-offs
     - Identify bottlenecks and scaling strategies
     - Reason about failure modes
+    - LLD: model a Parking Lot, ATM, or LRU Cache with correct OOP and thread safety
     - DSA: medium/hard LeetCode patterns fluently
     - Behavioural: STAR stories with measurable impact
 
@@ -107,6 +109,7 @@ flowchart LR
     - Evaluate multiple architectures with constraints
     - Production debugging mindset
     - Organizational influence and cross-team design
+    - LLD: justify pattern choices under follow-up pressure (why Strategy not Factory, why per-spot not global locking)
     - DSA: pattern recognition + optimal complexity analysis
 
 === "Principal / Distinguished"
@@ -119,6 +122,10 @@ flowchart LR
 
 ## Weekly Study Plan
 
+Previously a 20-week outline that only covered a slice of Phase 1 — it never reached Phase 2, Phase 3, or LLD. This version spans all three phases end to end, at a pace consistent with each phase's stated duration above.
+
+**Phase 1 — Foundations (weeks 1–12, ~3 months)**
+
 | Week | Focus | Output |
 |------|-------|--------|
 | 1–2 | System Design Framework + Capacity Estimation | Design 2 simple systems |
@@ -127,8 +134,27 @@ flowchart LR
 | 7–8 | Kafka + Messaging Patterns | Design an event pipeline |
 | 9–10 | Caching + Reliability patterns | Handle cache stampede scenarios |
 | 11–12 | Design 3 exercises (URL Shortener, Rate Limiter, WhatsApp) | End-to-end designs |
-| 13–16 | DSA Patterns (sliding window, DP, graphs) | Solve 30+ problems |
-| 17–20 | Behavioural + System Design interview practice | Mock interviews |
+
+**Phase 2 — Architecture Patterns (weeks 13–24, ~3 months)**
+
+| Week | Focus | Output |
+|------|-------|--------|
+| 13–14 | Event-Driven Architecture + Event Sourcing/CQRS | Design an event-sourced order pipeline |
+| 15–16 | Saga Pattern + Circuit Breakers/failure-mode library | Handle a cascading-failure scenario |
+| 17–18 | API Gateway, Service Mesh, Observability | Instrument a design with SLIs/SLOs |
+| 19–20 | LLD fundamentals (OOP, SOLID, patterns, concurrency) | Read all 4 concept pages before touching an exercise |
+| 21–22 | LLD Beginner + Intermediate (Parking Lot → Car Rental) | Solve 9 exercises unaided, then compare |
+| 23–24 | LLD Advanced (LRU Cache → Task Scheduler) | Solve remaining 6 exercises unaided, then compare |
+
+**Phase 3 — Real-World Distributed Systems (weeks 25–36+, 3+ months)**
+
+| Week | Focus | Output |
+|------|-------|--------|
+| 25–26 | Raft consensus + leader election | Trace a leader-election failure scenario |
+| 27–28 | Tail latency + production debugging (p99, Kafka lag) | Debug a synthetic high-latency incident |
+| 29–32 | DSA Patterns (sliding window, DP, graphs, backtracking, tries) | Solve 40+ problems across patterns |
+| 33–34 | Behavioural interview practice | 5+ mock interviews with STAR stories |
+| 35–36+ | Full mock loop: system design + LLD + DSA + behavioural | Simulate the actual interview day |
 
 ---
 

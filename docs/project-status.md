@@ -58,7 +58,7 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | AI-Native Model Serving (batching, KV cache, GPU autoscaling, quantization) | Complete | `ai-native/model-serving.md` — no simulation |
 | Microservices communication (8 patterns) | Complete | `architecture-patterns/microservices-communication.md` — no simulation |
 | Low-Level Design pillar (OOP, SOLID, patterns, concurrency) | Complete | `low-level-design/` — 4 pages, no simulation |
-| LLD problems: Parking Lot, Elevator System, LRU Cache | Complete | `lld-exercises/` — 9-step approach, class diagrams, code, concurrency section per problem |
+| LLD problems: all 15 (Parking Lot → Task Scheduler) | Complete | `lld-exercises/` — 9-step approach, class diagrams, code, concurrency section per problem |
 | Stateless vs stateful applications | Complete | `foundations/stateless-vs-stateful.md` — no simulation |
 | Single points of failure | Complete | `reliability/single-points-of-failure.md` — no simulation |
 | DSA: foundations, two pointers, binary search, pattern recognition | Complete | Written to sliding-window.md bar |
