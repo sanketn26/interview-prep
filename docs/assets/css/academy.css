@@ -132,6 +132,18 @@
   color: #1e293b;
 }
 
+.md-typeset .course-button--coffee {
+  border-color: #ffdd00;
+  background: #ffdd00;
+  color: #0b1220;
+  box-shadow: 0 8px 24px rgba(255, 221, 0, 0.28);
+}
+
+.md-typeset .course-button--coffee:hover {
+  background: #ffe94d;
+  border-color: #ffe94d;
+}
+
 .course-hero__note {
   margin: 1rem 0 0;
   color: #64748b;

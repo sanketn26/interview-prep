@@ -14,8 +14,9 @@ hide:
     <div class="course-actions">
       <a class="course-button course-button--primary" href="roadmap/">Start the roadmap <span aria-hidden="true">→</span></a>
       <a class="course-button course-button--secondary" href="how-to-use/">How to study</a>
+      <a class="course-button course-button--coffee" href="https://buymeacoffee.com/sanketn">☕ Support this academy</a>
     </div>
-    <p class="course-hero__note">Not beginner-friendly — assumes 2+ years shipping production code · <a href="https://buymeacoffee.com/sanketn">☕ Support this academy</a></p>
+    <p class="course-hero__note">Not beginner-friendly — assumes 2+ years shipping production code</p>
   </div>
   <div class="course-terminal" aria-label="Academy roadmap">
     <div class="course-terminal__bar"><i></i><i></i><i></i><span>interview-prep / roadmap</span></div>
