@@ -12,8 +12,8 @@ hide:
     <h1>Reason about systems<br><span>at Staff-engineer level.</span></h1>
     <p class="course-hero__lead">A complete interactive learning environment for Senior/Staff/Lead engineering interviews. This academy teaches you to <strong>derive</strong> architectures from requirements, constraints, and failure modes — not memorize them.</p>
     <div class="course-actions">
-      <a class="course-button course-button--primary" href="roadmap.md">Start the roadmap <span aria-hidden="true">→</span></a>
-      <a class="course-button course-button--secondary" href="how-to-use.md">How to study</a>
+      <a class="course-button course-button--primary" href="roadmap/">Start the roadmap <span aria-hidden="true">→</span></a>
+      <a class="course-button course-button--secondary" href="how-to-use/">How to study</a>
     </div>
     <p class="course-hero__note">Not beginner-friendly — assumes 2+ years shipping production code</p>
   </div>
