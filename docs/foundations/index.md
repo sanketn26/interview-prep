@@ -156,6 +156,8 @@ Steps 1–4 are what separates senior from mid-level. Most candidates skip strai
 | [API Design](api-design.md) | **Complete** — REST verb contracts, idempotency keys, GraphQL trade-offs, API Gateway pattern |
 | [System design framework](framework.md) | First release — 19-step method |
 | [Engineering mathematics](math.md) | Complete |
+| [Architecture Decision Records](adrs.md) | Complete — format, when to write one, superseding vs. deleting |
+| [Architecture Reviews](architecture-reviews.md) | Complete — the four-lens (scalability/reliability/security/cost) review framework |
 
 Read them in that order. Requirements-estimation gives you the arithmetic and an interactive calculator, stateless-vs-stateful gives you the vocabulary the rest of the curriculum assumes when it talks about session affinity and horizontal scaling, API Design gives you the contract layer (REST verbs, idempotency, GraphQL, gateways) that every retry/resilience pattern elsewhere in this academy silently depends on, the framework gives you the checklist, and math gives you the queueing theory behind *why* systems fall over at 80% utilization rather than 100%.
 

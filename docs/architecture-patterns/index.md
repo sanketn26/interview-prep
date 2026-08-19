@@ -155,6 +155,8 @@ The credible interview position: **start with a modular monolith** — clear int
 | [Stream Processing](stream-processing.md) | **Complete** — Flink/Kafka Streams/Spark Structured Streaming, event time vs. processing time, watermarks, checkpointing, exactly-once |
 | [Serverless vs. Containers](serverless-vs-containers.md) | **Complete** — monolith vs. microservices vs. serverless spectrum, cold starts, cost model crossover |
 | [CRDTs](crdts.md) | **Complete** — state-based vs. operation-based, G-Counter/OR-Set/RGA, convergence guarantees and where they break |
+| [Multi-Tenancy Design](multi-tenancy.md) | **Complete** — silo/pool/bridge isolation, tenant_id enforcement, noisy-neighbor mitigation |
+| [Batch/ETL & Lambda vs. Kappa](batch-etl-lambda-kappa.md) | **Complete** — DAG orchestration, backfills, Lambda's dual-implementation drift risk, Kappa's replay model |
 
 [Sagas](sagas.md) covers orchestration vs choreography with a simulator where shipping fails after the card is charged and you watch compensations run. Prerequisites: [distributed systems](../distributed-systems/index.md) for why the ambiguity exists, and [messaging](../messaging/index.md) for the delivery semantics sagas depend on.
 
@@ -171,6 +173,10 @@ The credible interview position: **start with a modular monolith** — clear int
 [Serverless vs. Containers](serverless-vs-containers.md) frames monolith, microservices, and serverless as one spectrum of operational control vs. responsibility rather than three unrelated choices. Covers cold starts, statelessness, the pay-per-invocation vs. pay-per-reservation cost crossover, and when each point on the spectrum wins — with a three-way trade-off table.
 
 [CRDTs](crdts.md) goes deeper than the [DDIA Concepts](../databases/ddia-concepts.md) mention: state-based vs. operation-based CRDTs, concrete types (G-Counter, PN-Counter, G-Set, 2P-Set, OR-Set, LWW-Register, RGA), convergence guarantees, and where they genuinely can't help (global invariants like non-negative balances).
+
+[Multi-Tenancy Design](multi-tenancy.md) covers the silo/pool/bridge isolation spectrum for B2B SaaS, how `tenant_id` enforcement actually gets structurally guaranteed (row-level security, not just application discipline), and the noisy-neighbor problem as distinct from data isolation.
+
+[Batch/ETL & Lambda vs. Kappa](batch-etl-lambda-kappa.md) covers DAG-orchestrated batch pipelines as a deliberate choice (not a legacy fallback), and the two competing answers for combining batch and streaming: Lambda's dual-implementation drift risk vs. Kappa's single-pipeline replay model.
 
 ---
 

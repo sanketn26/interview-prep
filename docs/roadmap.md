@@ -80,13 +80,13 @@ flowchart LR
 ### Topics — content availability
 
 - [x] Raft consensus & leader election (simulator)
-- [ ] Multi-Region Architecture & Disaster Recovery
+- [x] Multi-Region Architecture & Disaster Recovery — including hybrid cloud↔datacenter failover
 - [x] Tail latency (simulator + debugging playbook)
 - [x] Production debugging (high p99, Kafka lag)
-- [ ] Cost Engineering & FinOps
-- [ ] AI-Native System Design
-- [ ] Architecture Reviews (scalability, reliability, security, cost)
-- [ ] Architecture Decision Records (ADRs)
+- [x] Cost Engineering & FinOps
+- [ ] AI-Native System Design — model serving shipped; RAG/vector DBs/agents deliberately out of scope, see `ai-native/index.md`
+- [x] Architecture Reviews (scalability, reliability, security, cost)
+- [x] Architecture Decision Records (ADRs)
 
 ### Exit Criteria
 

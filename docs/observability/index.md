@@ -368,6 +368,7 @@ Note that **latency alerts must use percentiles, not averages** — for the [tai
 |------|--------|
 | [Debugging playbook](debugging-playbook.md) | First release — high p99 + Kafka lag |
 | [Production Reliability Practices](production-reliability-practices.md) | **Complete** — chaos engineering, capacity/load testing, blameless postmortems |
+| [Testing Strategy for Distributed Systems](testing-strategy.md) | **Complete** — contract testing, the pyramid redrawn for services, feature flags as a testing tool |
 
 The [debugging playbook](debugging-playbook.md) works two real incidents end to end — a high-p99 investigation and Kafka consumer lag — showing the hypothesis-and-eliminate loop rather than a list of tools. Related: [tail latency](../performance/tail-latency.md) for what p99 actually means, and the [failure library](../reliability/failure-library.md) for recognizing patterns quickly.
 

@@ -116,6 +116,13 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | DSA: String Matching (KMP, Rabin-Karp) | Interactive | `dsa/string-matching.md` — KMP pointer-movement visualizer |
 | DSA: Advanced Hashing Techniques | Interactive | `dsa/hashing-techniques.md` — Bloom filter bit-array fill/query visualizer; also covers counting Bloom filters, cuckoo hashing, HyperLogLog |
 | DSA: Advanced String Matching | Interactive | `dsa/advanced-string-matching.md` — Aho-Corasick trie + failure-link + multi-pattern scan visualizer; also covers Z-algorithm, suffix arrays, Boyer-Moore, Manacher's |
+| Multi-Region Architecture & Disaster Recovery | Complete | `distributed-systems/multi-region-dr.md` — RTO/RPO, the four DR tiers, hybrid cloud↔datacenter failover, failback |
+| Architecture Decision Records | Complete | `foundations/adrs.md` — format, when to write one, superseding vs. deleting |
+| Architecture Reviews | Complete | `foundations/architecture-reviews.md` — four-lens (scalability/reliability/security/cost) review framework |
+| Data Privacy & Compliance Architecture | Complete | `security/data-privacy-compliance.md` — PII classification, data residency, right-to-erasure across replicas/backups/event-sourced logs, key management |
+| Multi-Tenancy Design | Complete | `architecture-patterns/multi-tenancy.md` — silo/pool/bridge isolation, structural tenant_id enforcement, noisy-neighbor mitigation |
+| Testing Strategy for Distributed Systems | Complete | `observability/testing-strategy.md` — contract testing, the pyramid redrawn for services, feature flags as a testing tool |
+| Batch/ETL & Lambda vs. Kappa Architecture | Complete | `architecture-patterns/batch-etl-lambda-kappa.md` — DAG orchestration, backfills, Lambda's dual-implementation drift risk, Kappa's replay model |
 
 ---
 
@@ -161,7 +168,7 @@ Do **not** mass-generate these as stubs.
 - Event Sourcing & CQRS — shipped (`architecture-patterns/event-sourcing-cqrs.md`); Event-Driven Architecture also now shipped (`architecture-patterns/event-driven-architecture.md`); Streams/Flink now shipped (`architecture-patterns/stream-processing.md`)
 - Distributed fundamentals — `distributed-systems/fundamentals.md` now covers Lamport/vector clocks, leader election, split-brain, distributed locks, leases, gossip protocols, Paxos vs Raft, and service discovery as first-class sections
 - Monolith vs Microservices vs Serverless — Microservices vs Monolith now shipped (`architecture-patterns/microservices-vs-monolith.md`); Serverless comparison now shipped (`architecture-patterns/serverless-vs-containers.md`)
-- Cloud vendor catalog — shipped (`cloud/iam-managed-services.md`, vendor-mapped IAM/managed-DB/event-bus content); FinOps shipped (`cloud/finops.md`); AI-native serving shipped (`ai-native/model-serving.md` — first real content page, rest of `ai-native/` is still planned-only)
+- Cloud vendor catalog — shipped (`cloud/iam-managed-services.md`, vendor-mapped IAM/managed-DB/event-bus content); FinOps shipped (`cloud/finops.md`); AI-native serving shipped (`ai-native/model-serving.md` — first real content page). The rest of `ai-native/` (RAG, vector DBs, embeddings, agents, evals) is **deliberately out of scope for this site** — that content lives in a separate repo, see `ai-native/index.md`
 - Capstone project; interview-mode tabs (Learn/Practice/Hint/Interview/Solution/Staff) as a reusable UX pattern; Go example parity for retry/queue/thread-pool/producer-consumer/distributed-lock/WebSocket/gRPC/REST
 - Deeper distributed-systems topics — vector clocks, gossip protocols, Paxos vs Raft, distributed locks, leases, and service discovery all now shipped in `distributed-systems/fundamentals.md`; CRDTs now also have a dedicated page (`architecture-patterns/crdts.md`), cross-linked from `databases/ddia-concepts.md`
 - DSA visualizers (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp, Bloom filters, Aho-Corasick) — shipped, see `dsa/heaps.md`, `dsa/graph-algorithms.md`, `dsa/union-find.md`, `dsa/backtracking.md`, `dsa/sorting.md`, `dsa/tries.md`, `dsa/greedy.md`, `dsa/string-matching.md`, `dsa/hashing-techniques.md`, `dsa/advanced-string-matching.md`

@@ -32,6 +32,7 @@ This section teaches the tools to answer them.
 | [Threat Modeling](threat-modeling.md) | **Complete** — trust boundaries, STRIDE, attack trees, risk scoring and acceptance |
 | [OAuth2 & OIDC Deep Dive](oauth2-oidc.md) | **Complete** — Authorization Code + PKCE flow internals, token validation, refresh rotation, vulnerabilities |
 | [Session Management Deep Dive](session-management.md) | **Complete** — server-side sessions vs JWT, cookie security, fixation/hijacking, revocation problem |
+| [Data Privacy & Compliance](data-privacy-compliance.md) | **Complete** — PII classification, data residency, right-to-erasure across replicas/backups/warehouses, encryption key management |
 
 [Authentication & Authorization Fundamentals](authentication-authorization.md) covers how users prove identity (TLS, passwords, OAuth2), how data is protected (encryption, secrets management), and how permissions work (RBAC, least privilege). Includes a payment system case study where PCI compliance drives design decisions.
 
@@ -42,6 +43,8 @@ This section teaches the tools to answer them.
 [OAuth2 & OIDC Deep Dive](oauth2-oidc.md) goes past the intro-level flow covered in Auth Fundamentals: the Authorization Code + PKCE sequence in full, why Implicit and Resource Owner Password grants are deprecated, JWT structure and the five checks real validation requires, refresh token rotation and revocation, and the vulnerability classes (open redirect, CSRF via `state`, code interception, `alg:none`, confused deputy) that show up when any of it is implemented sloppily.
 
 [Session Management Deep Dive](session-management.md) covers how identity persists across stateless HTTP requests: server-side sessions vs stateless JWTs, the cookie attributes that actually matter (Secure, HttpOnly, SameSite), session fixation and hijacking defenses, scaling strategies (sticky sessions, centralized Redis, stateless JWT), and the JWT revocation problem that never fully goes away.
+
+[Data Privacy & Compliance](data-privacy-compliance.md) covers data privacy as an architectural constraint rather than a legal checkbox: PII classification, data residency's collision with multi-region DR, right-to-erasure as a distributed-systems problem spanning replicas/caches/backups/event logs, and why encryption at rest only means something if key management is separate from the data it protects.
 
 ---
 

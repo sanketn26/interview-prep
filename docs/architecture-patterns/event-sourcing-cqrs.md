@@ -653,6 +653,62 @@ The difference: when you refactor the database schema, you don't emit new events
 
 ---
 
+## Event Replay vs. Backfilling
+
+Both operations reprocess history through your consumers, but they answer different questions — conflating them is how a "populate the new feature" job turns into a "re-charge every customer" incident.
+
+| Aspect | Replay | Backfill |
+|---|---|---|
+| Meaning | Re-process events the system already saw | Populate a new field/model using events that predate its existence |
+| Purpose | Recover from a bug or rebuild a projection | Support a newly introduced feature or historical calculation |
+| Triggered by | A processing bug (correction) | A new requirement (net-new capability) |
+| Result | Corrected/rebuilt state in an *existing* shape | A *new* shape, populated for the first time |
+
+**Example:** you ship a `CustomerLifetimeValue` field today, but the events needed to compute it (`OrderPlaced`, `PaymentProcessed`) go back two years. Walking the historical event log to populate `CustomerLifetimeValue` for existing customers is a **backfill** — you're not correcting anything, you're using history to fill something that never existed. Re-running the pricing calculator over the last month of orders because it shipped with a bug is a **replay** — you're correcting a wrong result, not creating a new one.
+
+In both cases, the mechanism is identical (read old events, run them through logic, write a result) — which is exactly why it's worth naming the distinction: it tells you *what* you're allowed to touch. A replay's job is to converge on the state you should have already had; a backfill's job is to create state that never existed. Confusing the two is how you end up mutating an existing read model with logic built for a fresh one, or vice versa.
+
+### Don't Replay Into the Production Path Blindly
+
+The instinct is to point the fixed logic at the same consumer group that serves production. Don't — for two reasons: it disturbs live traffic (the consumer stops making forward progress on new events while it walks history), and any code path with an external side effect (charging a card, sending an email, calling a webhook) re-fires for every historical event, because the event log doesn't know which of those calls already happened in the real world.
+
+```mermaid
+flowchart TB
+    Topic["Kafka Topic: OrderPlaced, PaymentProcessed, ..."]
+
+    subgraph PG["Production Consumer Group"]
+        PC["Consumer<br/>tracks live offset"]
+    end
+    subgraph RG["Replay Consumer Group (separate group id)"]
+        RC["Consumer<br/>reads from offset 0 or a chosen point"]
+    end
+
+    Topic --> PC --> PDB[("Production DB /<br/>live read model")]
+    Topic --> RC --> RDB[("New projection /<br/>replay target")]
+
+    style PG fill:#1565c0,color:#fff
+    style RG fill:#ff9800,color:#fff
+    style PDB fill:#388e3c,color:#fff
+    style RDB fill:#d32f2f,color:#fff
+```
+
+Two consumer groups reading the *same* topic independently is normal Kafka — each group tracks its own offsets, so the replay consumer can start from offset 0 (or any earlier point) without touching where the production consumer currently is. Point the replay consumer at a **new projection or a controlled processing path**, validate it, then cut reads over — don't mutate the live read model in place while it's still serving traffic. See [Kafka's mental model](../messaging/kafka.md#mental-model) for how group-level offset tracking works.
+
+### Replay Risk Checklist
+
+Before running any replay or backfill job, check whether the consumer's side effects are safe to re-fire:
+
+- **Duplicate side effects** — emails, SMS, push notifications sent again
+- **External API calls** — a payment charge or refund API called a second time
+- **Notifications** — Slack/webhook triggers firing for events that already resolved
+- **Processing load** — replaying millions of events can saturate downstream systems sized for steady-state traffic, not a burst
+- **Out-of-order assumptions** — code that assumes "this is the first time I've seen this event" breaks on replay
+- **Schema drift** — old events may not match the current event schema (see [Schema Evolution Trap](#the-schema-evolution-trap) above)
+
+The fix for the first three is the same one covered in [delivery semantics](../messaging/patterns.md#delivery-semantics): a dedup table keyed on event ID, checked before any external call, so replaying an event the consumer already applied is a no-op rather than a repeat. A replay pipeline that can't tell "rebuildable projection state" apart from "irreversible side effect" is the actual failure mode here — not the replay itself.
+
+---
+
 ## Real Production Case: E-Commerce Order System
 
 **Requirements:**

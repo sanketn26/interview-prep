@@ -141,6 +141,9 @@ after N attempts: move to Dead Letter Queue (DLQ), ack the original
 
 Without a DLQ, a poison message either (a) blocks an ordered partition forever, or (b) gets endlessly redelivered, burning CPU and possibly re-triggering side effects each attempt if the handler isn't idempotent.
 
+!!! note "DLQ vs. backpressure — different problem, easy to conflate"
+    A DLQ quarantines a message that fails *regardless of load* — a malformed payload, a bug in the handler. It's not a volume-control mechanism. If a message is only failing because a downstream call is timing out under load, routing it to a DLQ hides a [backpressure](../reliability/backpressure.md) problem behind what looks like a poison-message problem — it'll "fail" every time until the load subsides, and a human debugging the DLQ will find nothing wrong with the message itself.
+
 ### Ordering guarantees — and when you can't have them
 
 Strict global ordering and horizontal scale are in tension. A single ordered log can only be consumed by one worker without breaking order — that worker is your throughput ceiling.

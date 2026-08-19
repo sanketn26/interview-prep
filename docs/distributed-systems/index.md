@@ -157,7 +157,9 @@ CAP theorem ──────→ Consistency models ──────→ Repli
 | [Consistency models](consistency-models.md) | Complete |
 | [Replication](replication.md) | Complete |
 | [Fundamentals](fundamentals.md) | **Complete** — Lamport/vector clocks, leader election, split-brain, distributed locks, leases, gossip protocols, Paxos vs Raft, service discovery |
+| [File Storage vs. Block Storage](file-and-block-storage.md) | Complete — block devices, POSIX/VFS, why NFS is slow, local-ownership file systems |
 | [Raft](raft.md) | First release + simulator |
+| [Multi-Region & Disaster Recovery](multi-region-dr.md) | Complete — RTO/RPO, the four DR tiers, cloud-to-DC hybrid failover, failback |
 
 ---
 

@@ -89,6 +89,7 @@ They are frequently confused. They solve different problems and are not intercha
 | **Rate limiter** | *You*, from callers | "Is this client allowed to send this much?" |
 | **Circuit breaker** | *Your dependency*, from you | "Is it pointless to even try right now?" |
 | **Bulkhead** | *Other features*, from one sick one | "Can this failure consume the whole pool?" |
+| **Backpressure** | *A slower consumer*, from a faster producer | "The buffer between them is full — drop, or block?" |
 
 **A rate limiter is inbound** — it rejects excess traffic at your door, protecting you from a noisy neighbor or an accidental load test.
 
@@ -125,9 +126,10 @@ An underrated detail: if your API has a 10 s timeout and calls a service with a 
 | [Single points of failure](single-points-of-failure.md) | Complete |
 | [Rate limiting](rate-limiting.md) | Complete + simulator |
 | [Circuit breakers](circuit-breakers.md) | First release + retry-storm sim |
+| [Backpressure](backpressure.md) | Complete — lossy vs. lossless backpressure, and where DLQs fit |
 | [Failure library](failure-library.md) | Complete |
 
-[Single points of failure](single-points-of-failure.md) covers how to audit a real dependency graph (not just the architecture diagram) for the one box whose failure takes everything down, and the five levers — redundancy, load balancing, failover, replication, monitoring — that remove it. [Rate limiting](rate-limiting.md) covers token bucket, leaky bucket and sliding windows with a simulator for burst behavior. [Circuit breakers](circuit-breakers.md) has the state machine plus a retry-storm simulator that shows 1,000 rps becoming 4,000 rps in real time. [Failure library](failure-library.md) catalogs cascading failures, resource exhaustion, split brain and thundering herd as recognizable patterns.
+[Single points of failure](single-points-of-failure.md) covers how to audit a real dependency graph (not just the architecture diagram) for the one box whose failure takes everything down, and the five levers — redundancy, load balancing, failover, replication, monitoring — that remove it. [Rate limiting](rate-limiting.md) covers token bucket, leaky bucket and sliding windows with a simulator for burst behavior. [Circuit breakers](circuit-breakers.md) has the state machine plus a retry-storm simulator that shows 1,000 rps becoming 4,000 rps in real time. [Backpressure](backpressure.md) covers what happens once a producer outruns a consumer — drop data (lossy) or slow the producer down (lossless) — and how that's distinct from rate limiting and dead-letter queues. [Failure library](failure-library.md) catalogs cascading failures, resource exhaustion, split brain and thundering herd as recognizable patterns.
 
 Working implementations live in [`examples/python/retry.py`](https://github.com/sanketn26/interview-prep/blob/main/examples/python/retry.py), [`circuit_breaker.py`](https://github.com/sanketn26/interview-prep/blob/main/examples/python/circuit_breaker.py), and [`rate_limiter.py`](https://github.com/sanketn26/interview-prep/blob/main/examples/python/rate_limiter.py).
 

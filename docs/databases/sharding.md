@@ -28,6 +28,9 @@ Single DB (vertical limit):         Sharded (horizontal):
 └─────────────────┘                 └──────┘ └──────┘ └──────┘
 ```
 
+!!! note "Analogy"
+    A single database is one giant library room — every book on one set of shelves, one librarian fetching everything. Sharding is splitting that collection across multiple rooms by some rule (author's last name, subject, accession number). Each room now has its own librarian and its own shelves, so lookups within a room get faster and rooms can be added independently — but a search that spans "everything starting with A through Z" now means checking every room. That's the shard-router hop and the cross-shard-query cost below, in one sentence.
+
 ---
 
 ## Sharding Strategies

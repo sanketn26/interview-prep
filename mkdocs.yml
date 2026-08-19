@@ -109,13 +109,17 @@ nav:
       - API Design: foundations/api-design.md
       - System Design Framework: foundations/framework.md
       - Engineering Mathematics: foundations/math.md
+      - Architecture Decision Records: foundations/adrs.md
+      - Architecture Reviews: foundations/architecture-reviews.md
     - Distributed Systems:
       - distributed-systems/index.md
       - Fundamentals: distributed-systems/fundamentals.md
+      - File Storage vs. Block Storage: distributed-systems/file-and-block-storage.md
       - CAP Theorem: distributed-systems/cap-theorem.md
       - Consistency Models: distributed-systems/consistency-models.md
       - Replication: distributed-systems/replication.md
       - Consensus & Raft: distributed-systems/raft.md
+      - Multi-Region & Disaster Recovery: distributed-systems/multi-region-dr.md
     - Databases:
       - databases/index.md
       - DDIA Concepts: databases/ddia-concepts.md
@@ -151,6 +155,8 @@ nav:
       - Stream Processing: architecture-patterns/stream-processing.md
       - Serverless vs Containers: architecture-patterns/serverless-vs-containers.md
       - CRDTs: architecture-patterns/crdts.md
+      - Multi-Tenancy Design: architecture-patterns/multi-tenancy.md
+      - Batch/ETL & Lambda vs Kappa: architecture-patterns/batch-etl-lambda-kappa.md
     - Networking:
       - networking/index.md
       - HTTP & TCP Deep Dive: networking/http-tcp.md
@@ -164,11 +170,13 @@ nav:
       - Single Points of Failure: reliability/single-points-of-failure.md
       - Circuit Breakers: reliability/circuit-breakers.md
       - Rate Limiting: reliability/rate-limiting.md
+      - Backpressure: reliability/backpressure.md
       - Failure Library: reliability/failure-library.md
     - Observability:
       - observability/index.md
       - Debugging Playbook: observability/debugging-playbook.md
       - Production Reliability Practices: observability/production-reliability-practices.md
+      - Testing Strategy for Distributed Systems: observability/testing-strategy.md
     - Security:
       - security/index.md
       - Authentication & Authorization: security/authentication-authorization.md
@@ -176,6 +184,7 @@ nav:
       - Threat Modeling: security/threat-modeling.md
       - OAuth2 & OIDC Deep Dive: security/oauth2-oidc.md
       - Session Management Deep Dive: security/session-management.md
+      - Data Privacy & Compliance: security/data-privacy-compliance.md
     - Cloud & Kubernetes:
       - cloud/index.md
       - Cloud Provider Comparison: cloud/providers.md

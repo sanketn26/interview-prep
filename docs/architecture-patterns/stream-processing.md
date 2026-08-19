@@ -163,7 +163,7 @@ A join or dedup operator that keys by `session_id` and never expires state will 
 
 ### 3. Backpressure
 
-A downstream operator (often the sink) can't keep up — a slow Postgres upsert, a rate-limited external API call. Flink's back-pressure mechanism propagates upstream automatically (bounded buffers between operators fill up, and upstream operators throttle to match), so the whole job slows to the speed of its slowest stage. This is correct behavior — it prevents unbounded memory growth — but it means **watermark advancement, checkpoint completion, and output all stall together**, and it's easy to misdiagnose as "the source is slow" when the source is actually fine and just can't push data through.
+A downstream operator (often the sink) can't keep up — a slow Postgres upsert, a rate-limited external API call. Flink's back-pressure mechanism propagates upstream automatically (bounded buffers between operators fill up, and upstream operators throttle to match), so the whole job slows to the speed of its slowest stage. This is correct behavior — it prevents unbounded memory growth — but it means **watermark advancement, checkpoint completion, and output all stall together**, and it's easy to misdiagnose as "the source is slow" when the source is actually fine and just can't push data through. This is [lossless backpressure](../reliability/backpressure.md#lossless-backpressure-slow-the-producer-down) at the framework level — no records are dropped, the slowdown just propagates operator-to-operator instead.
 
 **Fix:** identify the bottleneck operator via backpressure metrics (not just consumer lag, which is a symptom). Scale that operator's parallelism, or batch/async the slow I/O call.
 
@@ -275,4 +275,4 @@ curl http://jobmanager:8081/jobs/<job-id>/vertices/<vertex-id>/backpressure
 
 ---
 
-**Previous:** [Event Sourcing & CQRS](event-sourcing-cqrs.md)
+**Previous:** [Event Sourcing & CQRS](event-sourcing-cqrs.md) | **Next:** [Batch/ETL & Lambda vs. Kappa](batch-etl-lambda-kappa.md)
