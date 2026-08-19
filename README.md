@@ -6,6 +6,7 @@ This is not a pile of interview notes. It is an interactive textbook + design la
 
 [![Deploy to GitHub Pages](https://github.com/sanketn26/interview-prep/actions/workflows/deploy.yml/badge.svg)](https://github.com/sanketn26/interview-prep/actions/workflows/deploy.yml)
 [![Validate PR](https://github.com/sanketn26/interview-prep/actions/workflows/validate.yml/badge.svg)](https://github.com/sanketn26/interview-prep/actions/workflows/validate.yml)
+[![Buy Me A Coffee](https://img.shields.io/badge/☕-Buy%20me%20a%20coffee-FFDD00?style=flat-square)](https://buymeacoffee.com/sanketn)
 
 **[Open the Academy →](https://sanketn26.github.io/interview-prep/)**
 
