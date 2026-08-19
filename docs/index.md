@@ -6,7 +6,36 @@ hide:
   - toc
 ---
 
-# Senior Engineer Academy
+<div class="course-hero">
+  <div class="course-hero__content">
+    <span class="course-eyebrow">System Design · DSA · Behavioural</span>
+    <h1>Reason about systems<br><span>at Staff-engineer level.</span></h1>
+    <p class="course-hero__lead">A complete interactive learning environment for Senior/Staff/Lead engineering interviews. This academy teaches you to <strong>derive</strong> architectures from requirements, constraints, and failure modes — not memorize them.</p>
+    <div class="course-actions">
+      <a class="course-button course-button--primary" href="roadmap.md">Start the roadmap <span aria-hidden="true">→</span></a>
+      <a class="course-button course-button--secondary" href="how-to-use.md">How to study</a>
+    </div>
+    <p class="course-hero__note">Not beginner-friendly — assumes 2+ years shipping production code</p>
+  </div>
+  <div class="course-terminal" aria-label="Academy roadmap">
+    <div class="course-terminal__bar"><i></i><i></i><i></i><span>interview-prep / roadmap</span></div>
+    <div class="course-terminal__body">
+      <p><span class="terminal-muted">01</span> System design fundamentals + simulations</p>
+      <p><span class="terminal-muted">02</span> DSA patterns, not random LeetCode</p>
+      <p><span class="terminal-muted">03</span> Behavioural — STAR+Reflection, Staff-level</p>
+      <div class="terminal-status"><span></span> Your roadmap is ready</div>
+    </div>
+  </div>
+</div>
+
+<div class="course-proof" aria-label="Academy overview">
+  <div><strong>3</strong><span>Learning phases</span></div>
+  <div><strong>15</strong><span>Interactive simulations</span></div>
+  <div><strong>40+</strong><span>System design exercises</span></div>
+  <div><strong>Local</strong><span>Private progress tracking</span></div>
+</div>
+
+## Get started
 
 <div class="grid cards" markdown>
 
