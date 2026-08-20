@@ -258,7 +258,7 @@ class UserWriteModel:
             raise EmailTaken()
         
         # Write only what changed
-        event = UserEmailUpdated(user_id, new_email=new_email, ...)
+        event = UserEmailUpdated(user_id=user_id, new_email=new_email)
         self.events.append(event)
 ```
 

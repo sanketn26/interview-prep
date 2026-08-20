@@ -242,17 +242,24 @@ flowchart TB
 You can read from replicas to reduce load on primary:
 
 ```javascript
+// mongosh cursor method is .readPref(), not .readPreference()
+
 // Read from primary (default, most consistent)
-db.orders.find({}).readPreference("primary");
+db.orders.find({}).readPref("primary");
 
 // Read from any replica (faster, possibly stale)
-db.orders.find({}).readPreference("secondary");
+db.orders.find({}).readPref("secondary");
 
 // Read from nearest (by latency)
-db.orders.find({}).readPreference("nearest");
+db.orders.find({}).readPref("nearest");
 ```
 
-**Tradeoff**: Reading from secondary may see uncommitted data (if replication lag > query latency).
+**Tradeoff, and two distinct risks that are easy to conflate**: replication lag and rollback risk are different problems with different causes.
+
+- **Replication lag** (the secondary hasn't yet applied an oplog entry the primary already committed) means a secondary read can return **stale** data — an older, but still genuinely committed, value. This is what `readPref("secondary")` trades away.
+- **Rollback risk** — a secondary read returning data that gets *retroactively undone* (a value that was written to a former primary but never actually reached durable majority consensus before a failover) — is governed by **write concern** and **read concern**, not by which member you read from. Writing with `writeConcern: "majority"` and reading with `readConcern: "majority"` is what protects against ever observing data that a subsequent election could roll back; reading from a secondary with weaker read concern can expose you to it regardless of how far behind that secondary actually is.
+
+Don't describe "stale reads" and "rollback-exposed reads" as the same risk — lag causes the first, insufficient write/read concern causes the second, and fixing one doesn't fix the other.
 
 ### Replication Lag and Oplog
 
@@ -311,25 +318,22 @@ The shard key determines which shard a document lives on:
 // Shard by user_id
 db.users.createIndex({ _id: "hashed" });
 db.adminCommand({ shardCollection: "myapp.users", key: { _id: "hashed" } });
-
-// Now:
-db.users.insertOne({ _id: 1, name: "Alice" });
-  → hash(_id: 1) % 3 = 2 → Shard-2
-
-db.users.insertOne({ _id: 5000000, name: "Bob" });
-  → hash(_id: 5000000) % 3 = 1 → Shard-1
 ```
 
-**Critical**: Shard key choice is permanent. Choosing poorly is very expensive:
+MongoDB does **not** place documents with `hash(key) % shard_count` the way generic modulo-hash sharding works. Instead, the hashed key space is divided into contiguous **chunks** (ranges of the hash value, default ~128MB each), and each chunk is assigned to a shard. A document's shard is "which chunk does this document's hash fall into, and which shard currently owns that chunk" — not a direct modulo of the shard count. This matters because it's exactly what makes rebalancing possible: the balancer moves whole chunks between shards as data grows or shards are added/removed, without needing every document's placement to be recomputed the way a naive `% shard_count` scheme would if `shard_count` changed.
+
+**Choosing poorly is expensive** — moving a lot of data across shards to fix a bad distribution takes real time and I/O, so pick the shard key with real production values, not example data:
 
 ```javascript
 // Bad: shard by status (only "active" or "inactive")
-db.users.shardCollection(..., key: { status: 1 });
-// All active users go to one shard (hotspot)
+sh.shardCollection("myapp.users", { status: 1 });
+// All active users' chunks concentrate on one shard (hotspot)
 
 // Good: shard by email hash (distributes evenly)
-db.users.shardCollection(..., key: { email: "hashed" });
+sh.shardCollection("myapp.users", { email: "hashed" });
 ```
+
+**The shard key itself is not permanently fixed, either** — since MongoDB 5.0, `reshardCollection` can change a collection's shard key in place (MongoDB copies and re-chunks the data under the hood, and it's a real operation with real cost and duration for large collections, but it's a supported live migration, not "pick correctly the first time or start over"). Before 5.0, changing a shard key genuinely did require dropping and recreating the collection — treat this history as the reason poor shard-key choices are still expensive to fix, not as "impossible."
 
 ### Hot Shards
 
@@ -351,8 +355,20 @@ db.user_updates.insertOne({
   update: { likes: 1 }
 });
 
-// Writes distribute across 10 shards (1 per value of shard_id)
-// Reads must query all 10 shards with shard_id in [0..9]
+// 10 distinct suffix values does NOT mean 1 suffix value = 1 physical
+// shard. MongoDB still assigns the (user_id, shard_id) key range to
+// CHUNKS, and chunks are what get distributed across the actual shard
+// nodes — the 10 suffix values spread this celebrity's writes across
+// (up to) 10 different chunks, which the balancer can then place on
+// different physical shards over time, but there's no guaranteed 1:1
+// mapping from suffix value to shard. With more physical shards than
+// 10, some shards may end up with none of this key's chunks; with
+// fewer than 10 shards, multiple suffix values necessarily share a
+// shard. The suffix's real job is turning one massive, unsplittable
+// chunk range (a single celebrity's key) into multiple independently
+// placeable chunks — the balancer, not the suffix count, decides the
+// actual shard distribution.
+// Reads must query all 10 shard_id values in [0..9] to reassemble the full picture
 ```
 
 ---
@@ -395,7 +411,7 @@ db.addresses.insertOne({
 
 ### Write Throughput (WiredTiger Engine)
 
-MongoDB uses **WiredTiger** (LSM-tree based) for persistence. Write optimization:
+MongoDB uses **WiredTiger** for persistence. Its default and primary on-disk structure is a **B+tree** (copy-on-write, with checkpoints) — WiredTiger also ships an optional LSM-tree access method, but MongoDB does not use it by default, and describing WiredTiger itself as "LSM-based" overstates a configuration option as the norm. Write optimization:
 
 ```
 Writes:
@@ -479,7 +495,7 @@ changeStream.on("change", (change) => {
 | "When should we use MongoDB vs Postgres?" | "MongoDB for: flexible schema, embedded documents, fast writes. Postgres for: complex queries, joins, strict consistency. Real answer: PostgreSQL first, MongoDB only when you have a strong reason." |
 | "How do we avoid hot shards?" | "Monitor shard distribution. If 1 shard gets > 30% of traffic, use a compound shard key with a random suffix and split the hot key across multiple shards. Read queries scatter; writes distribute." |
 | "Can we do transactions?" | "Yes, multi-document transactions within a replica set (4.0+). But cross-shard transactions are slower (4.2+). Often: embed related data to avoid transactions." |
-| "Our sharding is unbalanced." | "Rebalancing is expensive. Options: 1) live with imbalance (if < 10% skew), 2) accept downtime and reshard, 3) pre-shard with different key. Shard key choice is permanent; choose carefully." |
+| "Our sharding is unbalanced." | "Rebalancing is expensive but not impossible. Options: 1) live with imbalance (if < 10% skew), 2) let the balancer migrate chunks over time (moves data gradually, throttled to limit production impact), 3) since MongoDB 5.0, use `reshardCollection` to change the shard key in place — a real, costly, but supported operation, not a rebuild-from-scratch. Choose the shard key carefully upfront regardless, since fixing it later is still an expensive migration." |
 | "What's the replication lag?" | "Asynchronous, typically < 100ms. Check oplog lag with: rs.printSlaveReplicationInfo(). If > 1s, secondary is falling behind; check network/disk." |
 
 ---
@@ -489,8 +505,8 @@ changeStream.on("change", (change) => {
 - **Document model matches application objects**: embed related data instead of normalizing.
 - **Schema validation is not optional**: add JSON schema validators to catch bugs early.
 - **Transactions work within replica sets**: cross-shard transactions are slow; denormalize when possible.
-- **Shard key is permanent**: choose hashing for even distribution; avoid single-value keys.
+- **Shard key is expensive to change, not permanent**: hashed sharding uses chunk ranges assigned to shards (not a raw `hash % shard_count`), and `reshardCollection` (5.0+) can migrate a collection to a new shard key — but it's a real, costly operation, so choose carefully upfront regardless.
 - **Replication is asynchronous**: design for eventual consistency; use read preference carefully.
 - **Embedded arrays grow unbounded**: cap at 1000 items; split if needed.
-- **WiredTiger is LSM-based**: write-optimized; SSD is mandatory for sustained throughput.
+- **WiredTiger is B+tree-based by default**: an optional LSM access method exists but isn't the default; write-optimized via a write cache + journal; SSD is mandatory for sustained throughput.
 

@@ -34,8 +34,8 @@ Time-Series  → "How has this metric moved, and what's the trend/aggregate over
 
 The model you pick shapes how painful every future query, migration, and scale-out will be. Picking wrong doesn't fail immediately — it fails two years later when a "just add a join" ticket turns into a rewrite.
 
-!!! info "Most of these are BASE, not ACID"
-    Every non-relational family in this list is typically **BASE** rather than fully ACID: **B**asically **A**vailable (the system responds, even if a partition is degraded), **S**oft state (data can change without a write, e.g. TTL expiry or convergence), **E**ventually consistent (replicas converge given enough time, not instantly). This isn't a defect — it's the explicit trade for horizontal scale and availability under partition (see [CAP theorem](../distributed-systems/cap-theorem.md)). Relational databases default to the opposite trade: full ACID, at the cost of harder horizontal write scaling. Graph databases are the one family in this list that's typically still ACID — the win there is traversal speed, not a relaxed consistency model.
+!!! info "BASE vs ACID is a per-product choice, not a per-family one"
+    It's tempting to say "relational is ACID, everything else is BASE" — but that's a claim about specific *products*, not about the data *model* itself, and several products break the pattern. **MongoDB** supports multi-document ACID transactions (since 4.0, single replica set; 4.2+, cross-shard). **Google Firestore/Spanner** offer strongly consistent, serializable transactions by design, not eventual consistency. **DynamoDB** offers `TransactWriteItems` for cross-item ACID operations alongside its default eventually-consistent reads. **TimescaleDB** — see the Time-Series section below — is literally PostgreSQL, and fully ACID. What's actually true is narrower: **wide-column stores at Cassandra/Bigtable/HBase's original design point, and key-value stores optimized for horizontal scale over strict consistency, tend toward BASE** — basically available, soft state, eventually consistent — as an explicit trade for horizontal scale and availability under partition (see [CAP theorem](../distributed-systems/cap-theorem.md)). Document, graph, and time-series products vary widely by vendor: know the specific product's actual guarantee before claiming "NoSQL means eventual consistency" in an interview — that phrase is a red flag for an interviewer who knows Spanner or MongoDB transactions exist.
 
 ---
 
@@ -115,7 +115,7 @@ Partition: device_id=42
 
 - **Schema:** a metric name + tags/labels + timestamp + value; the shape is fixed but the *label set* per metric is not
 - **Joins:** not supported in the relational sense — you correlate series by shared tags, not foreign keys
-- **Transactions:** none in the traditional sense — points are append-only and immutable once written; "correctness" here means never losing or misordering a point within a series, not multi-row atomicity
+- **Transactions:** varies by product, not a family-wide property — purpose-built time-series engines (InfluxDB, OpenTSDB, Prometheus) treat points as append-only and immutable once written, where "correctness" means never losing or misordering a point within a series rather than multi-row atomicity. **TimescaleDB is the explicit exception**: it's a PostgreSQL extension, not a separate engine, so it inherits full ACID transactions, joins, and the entire relational feature set — you get time-series-optimized storage (hypertables, automatic partitioning by time) with none of the transactional trade-offs the rest of this family makes. That's the concrete reason "time-series = no transactions" isn't a safe generalization to make in an interview.
 - **Example use case:** IoT sensor telemetry or infrastructure metrics — `cpu_usage{host="web-1", region="us-east"}` written every 10 seconds — and a dashboard query like "p99 latency for this service, 5-minute buckets, last 24 hours."
 
 ```

@@ -173,8 +173,11 @@ The **Z-array** for a string `s` is defined as: `Z[i]` = the length of the longe
 s = "aabxaabxcaabxaabxay"
      0123456789...
 
-Z[4] = 4  → "aabx" starting at index 4 matches the prefix "aabx" (4 chars)
-Z[9] = 4  → same, at index 9
+Z[4] = 4  → "aabx" starting at index 4 matches the prefix "aabx" (4 chars);
+            the 5th character breaks the match ('c' at index 8 vs 'a' at index 4)
+Z[9] = 8  → the substring starting at index 9 is "aabxaabxay", and it matches
+            the prefix "aabxaabxc..." for 8 characters ("aabxaabx") before
+            diverging ('a' at index 17 vs 'c' at index 8)
 ```
 
 **Using it for pattern matching:** concatenate `pattern + separator + text` (separator is a character that appears in neither), compute the Z-array of the combined string. Any position in the text-portion where `Z[i] == len(pattern)` is a full match — the substring starting there matches the whole pattern.

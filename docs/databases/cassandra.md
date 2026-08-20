@@ -91,7 +91,12 @@ flowchart TB
     style N2 fill:#1b5e20,color:#fff
 ```
 
-`user_123` hashes into Node-2's range, so Node-2 is the coordinator/primary for that key; walking clockwise around the ring places replica 1 on Node-3 and replica 2 on Node-1 — the same "next N-1 nodes clockwise" rule consistent hashing uses everywhere.
+**Cassandra is leaderless — there is no "primary" node for a key.** Two separate roles are easy to conflate here:
+
+- The **coordinator** is whichever node the *client happens to connect to* for this particular request — any node in the cluster can act as coordinator for any key, purely based on which node the client's driver picked. It has nothing to do with where the data lives.
+- The **replicas** for a key are determined by the replication strategy (e.g. `SimpleStrategy` or `NetworkTopologyStrategy`) walking clockwise from the key's hash position on the ring — `user_123` hashes into Node-2's range, so Node-2 owns the "first" replica by ring position, and replicas 2 and 3 land on Node-3 and Node-1 by the same clockwise rule consistent hashing uses everywhere.
+
+If the client happens to connect to Node-2 for this request, Node-2 is acting as *both* coordinator and a replica — but that's incidental, not structural. If the client instead connects to Node-1 (which isn't even a replica-by-ring-position beyond being replica 2 here, or could be a totally unrelated node in a larger cluster), Node-1 becomes the coordinator: it forwards the write to all three replicas, collects acknowledgments per the consistency level, and returns to the client — without ever being "the primary." This leaderless coordinator/replica split is precisely what gives Cassandra no single point of failure for writes to any given key.
 
 ---
 
@@ -199,13 +204,20 @@ CREATE TABLE sensor_readings (
   PRIMARY KEY ((sensor_id), reading_time)
 );
 
-INSERT INTO sensor_readings VALUES (123, now(), 72.5, 45);
-INSERT INTO sensor_readings VALUES (123, now(), 72.3, 45);
-INSERT INTO sensor_readings VALUES (123, now(), 72.1, 45);
+-- sensor_id must be an actual UUID literal, not a bare integer;
+-- now() specifically produces a timeuuid, not a timestamp — for a
+-- `timestamp` column, use toTimestamp(now()) or pass an explicit
+-- ISO-8601 value.
+INSERT INTO sensor_readings (sensor_id, reading_time, temperature, humidity)
+  VALUES (123e4567-e89b-12d3-a456-426614174000, toTimestamp(now()), 72.5, 45);
+INSERT INTO sensor_readings (sensor_id, reading_time, temperature, humidity)
+  VALUES (123e4567-e89b-12d3-a456-426614174000, toTimestamp(now()), 72.3, 45);
+INSERT INTO sensor_readings (sensor_id, reading_time, temperature, humidity)
+  VALUES (123e4567-e89b-12d3-a456-426614174000, toTimestamp(now()), 72.1, 45);
 ...
--- Millions of readings for sensor_id=123, each indexed by timestamp
+-- Millions of readings for this sensor, each indexed by timestamp
 
-SELECT * FROM sensor_readings WHERE sensor_id = '123' AND reading_time > '2024-01-01' LIMIT 1000;
+SELECT * FROM sensor_readings WHERE sensor_id = 123e4567-e89b-12d3-a456-426614174000 AND reading_time > '2024-01-01' LIMIT 1000;
 -- Fast: queries one partition, scans by time range
 ```
 
@@ -409,7 +421,7 @@ nodetool flush
 |---|---|
 | "How do we ensure data doesn't get lost during a node failure?" | "Replication factor = 3 (3 copies across nodes). Write consistency = QUORUM means 2 nodes ACK before returning. If 1 node dies, majority survives with all data. On recovery, hinted handoff replays missing writes." |
 | "Why is latency P99 higher than P50?" | "Cassandra queries replica nodes; response time is max(replicas). If one replica is slow, the whole query is slow. This is why CL=ALL is bad for tail latency — one slow node blocks everyone." |
-| "How do we handle hot partitions?" | "Cassandra doesn't have a great solution (unlike MongoDB). Options: 1) read from replicas only (distribute load), 2) cache hot data in Redis, 3) increase replication factor (distribute writers)." |
+| "How do we handle hot partitions?" | "Cassandra doesn't have a great solution (unlike MongoDB). Options: 1) redesign the partition key to spread the hot value across multiple physical partitions — e.g. add a bucket/shard suffix to the partition key so what was one giant partition becomes N smaller ones, then fan out reads across the buckets, 2) cache hot data in Redis to absorb read load. Note: increasing replication factor does NOT help here — Cassandra sends every write to all RF replicas regardless of consistency level, so a higher RF means *more* total write work for a hot partition, not less; RF is about durability and read availability, not write load distribution." |
 | "Should we use CL=ONE or CL=QUORUM?" | "QUORUM by default (balance). ONE for analytics/caching (speed). ALL almost never (tail latency). Measure your P99; if it's < acceptable, use ONE." |
 | "How often should we repair?" | "Daily to weekly (nodetool repair). Cassandra's eventual consistency means undetected divergence can happen. Repair finds and fixes divergence. Missing repairs → data inconsistency over time." |
 

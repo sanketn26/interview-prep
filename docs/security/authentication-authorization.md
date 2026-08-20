@@ -237,10 +237,10 @@ try:
     # Token is valid and not expired
 except jwt.ExpiredSignatureError:
     # Token expired
-    # Send 401 Unauthorized; client must re-authenticate
+    return Response(status=401)  # client must re-authenticate
 except jwt.InvalidSignatureError:
     # Token was tampered with
-    # Reject it
+    return Response(status=401)  # reject it
 ```
 
 **The tradeoff:** 

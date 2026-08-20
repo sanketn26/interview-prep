@@ -59,6 +59,13 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 | **Eventual consistency** | Given no new writes, all replicas will *eventually* converge to the same value — no bound on how long "eventually" takes. | [CAP Theorem](../distributed-systems/cap-theorem.md), [Consistency Models](../distributed-systems/consistency-models.md) |
 | **Exactly-once semantics** | Each message is processed effectively once — no loss, no duplicates. Hard to achieve end-to-end; usually built from at-least-once + idempotency. | [Kafka Deep Dive](../messaging/kafka.md) |
 
+### G
+
+| Term | Definition | See also |
+|------|------------|----------|
+| **gRPC** | A strongly-typed RPC framework using Protocol Buffers over HTTP/2 — compact binary payloads, low latency, the default for internal service-to-service calls. | [API Architectural Styles](../architecture-patterns/api-architectural-styles.md), [Microservices Communication](../architecture-patterns/microservices-communication.md) |
+| **GraphQL** | A query-based API style with a single endpoint, where the client specifies exactly the fields it wants — fixes over/under-fetching at the cost of N+1 resolver risk and harder per-URL caching. | [API Design](../foundations/api-design.md), [API Architectural Styles](../architecture-patterns/api-architectural-styles.md) |
+
 ### F
 
 | Term | Definition | See also |
@@ -128,6 +135,7 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 | **Sharding** | Horizontal partitioning of data across multiple independent database instances, keyed by a shard key, to scale writes beyond a single node. | [Database Sharding](../databases/sharding.md) |
 | **Sliding window (rate limiting)** | A rate-limiting approach that avoids fixed-window boundary bursts by weighting the current and previous windows (approximate) or tracking exact timestamps (log). | [Rate Limiting](../reliability/rate-limiting.md) |
 | **SLA / SLO / SLI** | Service Level Agreement (the contract/consequence), Objective (the internal target, e.g. 99.9% availability), Indicator (the measured metric that tracks the objective). | [Calculators](calculators.md) |
+| **SOAP** | A protocol-level API style using strict XML envelopes and a machine-readable contract (WSDL) — heavier than REST, but built-in support for transactional messaging and formal security tokens. Rarely chosen new; usually inherited from an enterprise partner. | [API Architectural Styles](../architecture-patterns/api-architectural-styles.md) |
 | **Split brain** | Two nodes simultaneously believe they are the leader/primary and both accept writes, producing two diverging histories. | [Consensus & Raft](../distributed-systems/raft.md) |
 | **Stale-while-revalidate** | A caching strategy that serves expired (stale) data immediately while refreshing it in the background, keeping latency low at the cost of temporary staleness. | [Cache Stampede](../performance/cache-stampede.md) |
 | **Strong consistency** | Every read reflects the most recent completed write — see Linearizability for the strictest form. | [Consistency Models](../distributed-systems/consistency-models.md) |
@@ -137,9 +145,11 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 | Term | Definition | See also |
 |------|------------|----------|
 | **Tail latency** | The latency at high percentiles (p99, p999) rather than the median — usually dominated by queueing, GC pauses, and slow dependencies. | [Tail Latency](../performance/tail-latency.md) |
+| **TCC (Try-Confirm/Cancel)** | An application-level alternative to 2PC: a Try phase reserves resources tentatively (no DB locks held), Confirm makes it permanent if every participant's Try succeeded, Cancel releases reservations otherwise. | [Distributed Transactions](../architecture-patterns/distributed-transactions.md) |
 | **Term (Raft)** | A monotonically increasing logical clock in Raft; at most one leader exists per term. | [Consensus & Raft](../distributed-systems/raft.md) |
 | **Thundering herd** | Many clients/processes waking up or retrying at the same instant and overwhelming a shared resource — the general form of a cache stampede. | [Cache Stampede](../performance/cache-stampede.md) |
 | **Token bucket** | A rate-limiting algorithm where tokens refill at a fixed rate up to a capacity; each request consumes a token, allowing controlled bursts. | [Rate Limiting](../reliability/rate-limiting.md) |
+| **Two-phase commit (2PC)** | An atomic-commit protocol: a coordinator collects a prepare-phase vote from every participant, then tells all to commit only if every vote was yes — blocks all participants indefinitely if the coordinator crashes between phases. | [Distributed Transactions](../architecture-patterns/distributed-transactions.md) |
 
 ### V
 
@@ -151,6 +161,8 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 
 | Term | Definition | See also |
 |------|------------|----------|
+| **Webhook** | A server-initiated HTTP POST to a client-registered URL when an event occurs — inverted control flow from normal request/response, and at-least-once delivery in practice (duplicates, ordering, and spoofing all need handling). | [API Architectural Styles](../architecture-patterns/api-architectural-styles.md) |
+| **Write-around cache** | Writes go straight to the DB, bypassing the cache entirely — the key is only cached later if and when it's next read. Good for write-once/rarely-re-read data (bulk imports, logs). | [Cache Strategies](../performance/cache-strategies.md) |
 | **Write-behind (write-back) cache** | The cache is updated immediately and the DB write is deferred/batched asynchronously — fast writes, risk of data loss if the cache fails before flushing. | [Cache Strategies](../performance/cache-strategies.md) |
 | **Write-through cache** | Every write goes to the cache and the DB synchronously before acknowledging — consistent but adds write latency. | [Cache Strategies](../performance/cache-strategies.md) |
 

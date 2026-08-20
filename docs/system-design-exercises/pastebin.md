@@ -299,8 +299,8 @@ S3 storage (3.65 TB/year, growing):        ~$85/month (Standard) or less w/ life
 S3 requests (10M reads + 1M writes/day):    ~$150/month
 Postgres (metadata only, small rows):       ~$200/month primary + 1 replica
 Redis (metadata + capped content cache):    ~$150/month
-CDN (10M requests/month):                   ~$50/month
-Total:                                      ~$635/month
+CDN (10M reads/day × 30 ≈ 300M requests/month): ~$1,500/month (at $0.005/1K requests, blended)
+Total:                                      ~$2,085/month
 ```
 
 !!! tip "Interview Insight 🎯"

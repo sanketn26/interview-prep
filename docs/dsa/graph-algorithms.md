@@ -108,7 +108,16 @@ def dijkstra(graph: dict[int, list[tuple[int, int]]], start: int) -> dict[int, i
 
     return dist
     # Time: O((V + E) log V) — each edge may push once, heap ops are O(log V)
-    # Space: O(V)
+    # Space: O(V + E) — this is the LAZY-DELETION variant (no decrease-key
+    # support, stale heap entries just get skipped via the `visited` check
+    # above), so the heap can hold up to one entry per edge relaxation,
+    # not just one per vertex. dist/visited are O(V); heap is O(E) in the
+    # worst case (a dense graph where most nodes get relaxed repeatedly
+    # before settling) — the combined bound is commonly simplified to
+    # O(E) since E >= V-1 for a connected graph. A decrease-key-based
+    # implementation (using an indexed/updatable heap) would cap the
+    # heap at O(V) entries instead, at the cost of a more complex heap
+    # structure than Python's stdlib heapq provides out of the box.
 ```
 
 !!! warning "Negative weights break Dijkstra"
@@ -429,7 +438,7 @@ def min_cost_connect_points(points: list[list[int]]) -> int:
 
 | Algorithm | Time | Space | Notes |
 |-----------|------|-------|-------|
-| Dijkstra (heap) | O((V+E) log V) | O(V) | Non-negative weights only |
+| Dijkstra (lazy-deletion heap) | O((V+E) log V) | O(V+E) | Non-negative weights only; heap holds stale entries (commonly simplified to O(E)) |
 | Bellman-Ford | O(VE) | O(V) | Handles negative weights, detects negative cycles |
 | Prim's MST (heap) | O(E log V) | O(V+E) | Good for dense graphs (matrix variant O(V²)) |
 | Kruskal's MST | O(E log E) | O(V) | Good for sparse graphs; dominated by the sort |

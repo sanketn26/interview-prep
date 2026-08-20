@@ -29,9 +29,9 @@ disks differ after a partition?    → which log is law?
 This is **consensus**: one history, despite crashes and delayed packets. Raft is the algorithm you can actually implement and explain.
 
 !!! tip "Mental Model"
-    Raft is a **replicated state machine**. The leader sequences client writes into a log. Followers copy the log. A majority (`⌊n/2⌋+1`) must persist an entry before it is **committed**. After commit, every future leader already has that entry — so the value cannot disappear.
+    Raft is a **replicated state machine**. The leader sequences client writes into a log. Followers copy the log. A majority (`⌊n/2⌋+1`) persisting an entry is necessary for it to be **committed** — but not sufficient on its own: the leader may only *count* that majority and declare commit for entries it appended **during its own current term** (see Mechanics below for why). After commit, every future leader already has that entry — so the value cannot disappear.
 
-    `leader = sequencer` · `term = epoch` · `majority = commit` · `timeout = election`
+    `leader = sequencer` · `term = epoch` · `majority-of-current-term-entries = commit` · `timeout = election`
 
 ---
 
@@ -60,7 +60,7 @@ Raft has three roles and a monotonically increasing **term**:
 | **Candidate** | Increments term, votes for self, `RequestVote`s others. Majority → leader. Else → follower |
 | **Leader** | Heartbeats (`AppendEntries`), accepts client writes, replicates log, advances **commit index** |
 
-Safety, in one line: **a leader for term T commits only with a majority that voted in term T, and voters refuse anyone with a shorter / older log.**
+Safety, in one line: **a leader for term T may only declare commit for log entries it itself appended in term T, once a majority has persisted them — and voters refuse to elect any candidate with a shorter / older log than their own.** Two different majorities are in play and it's easy to conflate them: the majority that *voted for* the leader in the election is not the same thing as the majority that must *replicate an entry* before that entry commits — a node can vote for a leader and still be behind on log replication, or a leader can win election with votes from nodes that then get partitioned away before ever replicating anything.
 
 Quorum for 3 nodes = 2. For 5 = 3. Even clusters waste a node (4 nodes still die if 2 are gone).
 
@@ -122,7 +122,9 @@ A partitioned leader of 1 cannot commit (no majority). It still *thinks* it is l
 
 ### Membership (brief)
 
-Adding a node with a blank log is dangerous (it can win and wipe). Raft uses joint consensus. In interviews: "I will not live-add voters without a two-phase membership change."
+A node with a blank log **cannot** win an election on its own — the voting rule above (candidate's log must be at least as up-to-date as the voter's) means a follower holding committed entries will simply refuse to vote for a candidate whose log is behind, blank or not. That's not the danger membership changes actually guard against.
+
+The real hazard is different: naively swapping the cluster's *configuration* (which nodes count toward quorum) in one atomic step, while the cluster is live, can momentarily let **two disjoint majorities exist simultaneously** — under the old config and the new config — each capable of electing its own leader without ever hearing from the other, producing two leaders in the same term. Raft's **joint consensus** avoids this by transitioning through an intermediate configuration that requires a majority of *both* the old and new node sets simultaneously, closing the window where the two configs could disagree. In interviews: "I will not swap cluster membership in one atomic step — joint consensus (or single-node-at-a-time changes, which sidestep the problem entirely) is what prevents two disjoint quorums forming during the transition."
 
 ---
 
@@ -227,7 +229,7 @@ Watch: `term`, `leader changes / min`, `commit index`, `propose latency`, `fsync
 | Latency | Majority RTT + fsync | Local fsync | Local |
 | Throughput | Leader-bound | Primary-bound, higher | Highest |
 | Availability | Down if no majority | Up if primary up | Up during partition |
-| Consistency | Linearizable if you read from leader | Lose ACKed writes on failover | Eventual |
+| Consistency | Linearizable only with ReadIndex/lease-confirmed leadership — reading from "the leader" without that check can still return stale data | Lose ACKed writes on failover | Eventual |
 | Durability | Majority disk | One disk | Best-effort |
 | Complexity | High (correctness) | Low | High (merge) |
 | Cost | 3–5 small nodes | 2 nodes | Many cheap nodes |
@@ -259,7 +261,7 @@ Watch: `term`, `leader changes / min`, `commit index`, `propose latency`, `fsync
 1. Why does a 4-node Raft still only tolerate **one** failure? Draw the majority.
 2. The leader replicates entry `(index=10, term=3)` to one follower and dies before the other. Can the new leader drop index 10? Does the client have an ACK?
 3. You need 1M writes/s of click events. Why is "put it in Raft" the wrong sentence? What *does* belong in Raft in that system?
-4. Design a linearizable read. Why is "read any follower" wrong? What is a read index / lease?
+4. Design a linearizable read. Why is "read any follower" wrong? Why isn't "read from whoever currently thinks it's the leader" enough either — what could go wrong if a leader was just partitioned away and deposed, but hasn't found out yet? What is a read index / lease, and how does it close that gap?
 
 ---
 

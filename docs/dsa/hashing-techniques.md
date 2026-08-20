@@ -288,7 +288,7 @@ A single leading-zero-count estimate is extremely noisy (one lucky hash swings t
 
 ### Why ~log(log(n)) Space
 
-Storing the actual distinct items to count them exactly needs O(n) space. HyperLogLog instead stores, per bucket, only a small counter representing "the longest leading-zero run seen" — and since hash outputs are typically 32 or 64 bits, that counter only needs `log2(64) = 6 bits` to represent any possible value. With `m` buckets each needing a handful of bits, total space is **O(m)**, independent of `n` — and because the *value stored* in each bucket only needs to represent up to `log2(n)` (the max possible leading-zero count for n hashes), some formulations describe the per-counter cost as O(log log n). In practice: counting **billions of distinct items accurately with roughly 1.5 KB of memory** is the actual headline number (Redis's `PFCOUNT`/`PFADD` uses exactly this).
+Storing the actual distinct items to count them exactly needs O(n) space. HyperLogLog instead stores, per bucket, only a small counter representing "the longest leading-zero run seen" — and since hash outputs are typically 32 or 64 bits, that counter only needs `log2(64) = 6 bits` to represent any possible value. With `m` buckets each needing a handful of bits, total space is **O(m)**, independent of `n` — and because the *value stored* in each bucket only needs to represent up to `log2(n)` (the max possible leading-zero count for n hashes), some formulations describe the per-counter cost as O(log log n). In practice: with `m = 16,384` buckets × 6 bits each, that's `16,384 × 6 / 8 = 12,288 bytes ≈ 12 KB` — counting **billions of distinct items accurately with roughly 12 KB of memory** is the actual headline number, and it matches what Redis documents for its `PFCOUNT`/`PFADD` implementation.
 
 ### Standard Error Characteristics
 
@@ -298,7 +298,7 @@ HyperLogLog's standard error is approximately:
 error ≈ 1.04 / √m
 ```
 
-where `m` is the number of buckets. More buckets → lower error, at a direct memory cost — this is a pure, tunable trade-off, unlike a Bloom filter where `n` (expected items) also factors into the sizing decision. With `m = 16,384` buckets (a common default), the standard error is about **0.8%**, regardless of whether you're counting a thousand items or a billion — that scale-independence is HyperLogLog's defining property.
+where `m` is the number of buckets. More buckets → lower error, at a direct memory cost — this is a pure, tunable trade-off, unlike a Bloom filter where `n` (expected items) also factors into the sizing decision. With `m = 16,384` buckets (a common default), the standard error is about **0.8%** — but that scale-independence only holds in HyperLogLog's **mid-to-large range**, and only for an implementation that includes the algorithm's small-range and large-range correction terms. The raw harmonic-mean estimator (the `alpha * m * m / sum(...)` formula alone, as coded below) is systematically biased at low cardinality — badly enough that it estimates roughly **11,800 items for a completely empty sketch** (`n=0`) if used uncorrected, because the harmonic mean of all-zero registers doesn't naturally tend toward zero. The original HyperLogLog paper's fix is a **small-range correction**: when the raw estimate falls below `2.5m`, fall back to linear counting (`m * ln(m / V)`, where `V` is the count of buckets still at zero) instead of the harmonic-mean formula. Without that correction, the 0.8%-at-16K-buckets claim does not hold uniformly "at 1,000 items and at a billion" — it holds once cardinality is comfortably past the small-range regime, which is exactly what the correction exists to handle.
 
 ```python
 # Conceptual sketch — production use should reach for redis, datasketches, etc.
@@ -331,6 +331,14 @@ class HyperLogLog:
     def estimate(self) -> float:
         alpha = 0.7213 / (1 + 1.079 / self.m)  # bias-correction constant
         raw = alpha * self.m * self.m / sum(2.0 ** -b for b in self.buckets)
+
+        # Small-range correction — without this, an empty or near-empty
+        # sketch wildly overestimates (an all-zero sketch estimates
+        # ~11,800 with the raw formula alone, when it should be ~0).
+        if raw <= 2.5 * self.m:
+            zero_buckets = self.buckets.count(0)
+            if zero_buckets > 0:
+                return self.m * __import__("math").log(self.m / zero_buckets)
         return raw
         # Time: O(m) for the estimate; O(1) per add()
         # Space: O(m) — independent of the number of distinct items added

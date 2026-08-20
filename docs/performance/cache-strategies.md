@@ -1,6 +1,6 @@
 ---
 title: Cache Strategies
-description: Cache-aside, read-through, write-through, write-behind, and refresh-ahead — eviction policies and invalidation strategies.
+description: Cache-aside, read-through, write-through, write-behind, write-around, and refresh-ahead — eviction policies and invalidation strategies.
 ---
 
 # Cache Strategies
@@ -19,6 +19,7 @@ description: Cache-aside, read-through, write-through, write-behind, and refresh
 cache-aside: app checks cache, misses, reads DB, writes cache        → stale-tolerant reads
 write-through: app writes DB and cache together, synchronously       → consistent but slower writes
 write-behind: app writes cache, cache writes DB later, async         → fast writes, can lose data
+write-around: app writes DB only, cache untouched until next read    → avoids caching data that's never re-read
 read-through: cache itself knows how to load from DB on miss         → app never talks to DB directly
 refresh-ahead: cache proactively refreshes before expiry              → avoids the stampede at expiry
 ```
@@ -59,6 +60,10 @@ Write path (WHEN does the DB get the write, relative to the cache?)
   App ──> Cache ──> DB (sync,         App ──> Cache (ack immediately)
           same request)                    Cache ──> DB (async, batched, later)
 
+  Write-around:
+  App ──> DB only (cache untouched)
+  Next read of that key is a normal cache-aside miss — loads from DB then.
+
   Refresh-ahead:
   Cache proactively re-fetches hot keys BEFORE their TTL expires,
   so a real request never has to pay the miss cost.
@@ -87,10 +92,16 @@ flowchart TD
         D1[App] -->|write, ack fast| DC[Cache]
         DC -.->|write, async/batched| DD[(DB)]
     end
+    subgraph "Write-Around"
+        E1[App] -->|write, bypasses cache| ED[(DB)]
+        E1 -.->|next read: normal miss| EC[Cache]
+        EC -.->|populate on miss| ED
+    end
     style AC fill:#1565c0,color:#fff
     style BC fill:#6a1b9a,color:#fff
     style CC fill:#2e7d32,color:#fff
     style DC fill:#e65100,color:#fff
+    style EC fill:#5d4037,color:#fff
 ```
 
 ---
@@ -133,16 +144,19 @@ App ──read──> Cache
 
 ### Write-through
 
-Every write goes to the cache AND the DB synchronously, as one logical operation, before the write is acknowledged to the caller.
+Every write goes to the cache AND the DB, synchronously, in the same request, before the write is acknowledged to the caller — but this is **not** a single atomic operation. The DB and the cache are two independent systems; nothing can wrap both in one transaction the way `BEGIN...COMMIT` covers multiple tables in the same database. "Write-through" means *ordered and synchronous*, not atomic — the two writes can still diverge if the second one fails or if a reader lands between them.
 
 ```python
 def update_product(product_id, fields):
-    with transaction_boundary():
-        db.update("products", product_id, fields)
-        cache.set(f"product:{product_id}", fields)  # same request, before returning
+    db.update("products", product_id, fields)      # 1. DB write must land first
+    cache.set(f"product:{product_id}", fields)      # 2. cache write — can independently fail
 ```
 
-**Consistency/durability:** cache and DB are always consistent immediately after a write — no stale-read window. Durability is DB-grade (nothing is acknowledged until the DB has it). Cost: every write pays cache-write latency on top of DB-write latency, and you're maintaining cache entries for data that might never be read again.
+**Ordering matters and is not optional:** DB first, cache second. If `cache.set` fails after the DB commit, the cache still holds **whatever it held before this write** — either an older, now-stale value, or nothing (a genuine miss) if the key wasn't cached yet. A stale existing entry is a **cache hit that returns wrong data**, not a miss — that's the dangerous case, because nothing triggers a re-read until the entry's TTL expires or a later write invalidates it explicitly. If you instead wrote the cache first and the DB write then failed, the cache would show a value the DB never actually has — an even worse, silent failure, because the DB write failing usually surfaces as an error to the caller while the cache silently disagrees with a "rolled back" write. This is why write-through always orders DB-before-cache: the failure mode of "cache write fails" must be strictly less bad than the failure mode of "DB write fails," and treating a failed `cache.set` as "delete the key" (forcing the next read to repopulate from the now-correct DB) rather than "leave the old value in place" closes most of that gap.
+
+There is also a real race with **no failure involved at all**: two concurrent writers updating the same key. Writer A does its DB update, then before A's `cache.set` runs, Writer B does its own DB update and its `cache.set` — now A's delayed `cache.set` executes last and overwrites the cache with A's older value, even though the DB correctly holds B's newer one. The cache and DB now permanently disagree until the next write to that key. Fixes: make the cache write conditional on the writer's version being the current one (a compare-and-swap keyed on the same version used for [versioned keys](#versioned-keys), so a late writer's stale `cache.set` is rejected), or skip caching the new value on write entirely and let the next reader repopulate it (i.e., invalidate instead of update-in-place — the same fix [Cache Invalidation](#cache-invalidation) recommends for cache-aside, for the same underlying reason).
+
+**Consistency/durability:** correct **once both writes succeed**, with the ordering above bounding how bad it gets if the cache write fails — not an unconditional "always consistent" guarantee. Durability is DB-grade (nothing is acknowledged until the DB has it). Cost: every write pays cache-write latency on top of DB-write latency, and you're maintaining cache entries for data that might never be read again.
 
 ### Write-behind (write-back)
 
@@ -155,6 +169,20 @@ App ──write──> Cache (ack)
 ```
 
 **Consistency/durability:** fastest writes by far, but a window exists where the "committed" write lives only in cache — a cache crash before flush loses data that the caller was told succeeded. Only acceptable when either the data is reconstructible (metrics, counters that can be re-derived) or you've added durability underneath the cache (e.g., write-ahead log the cache itself persists before ack). Never use it for money movement or anything the business calls "durable" without an explicit durability layer.
+
+### Write-around
+
+Writes go straight to the DB; the cache is left alone entirely — not updated, not invalidated. The written key only enters the cache later, the normal way, if and when it's next read (a cache-aside-style miss).
+
+```python
+def update_product_bulk_import(product_id, fields):
+    db.update("products", product_id, fields)
+    # no cache.set(), no cache.delete() — cache is untouched
+```
+
+**Consistency/durability:** DB-grade durability (same as write-through — the DB has it before ack), but the cache can serve a **stale value indefinitely** for any key that was cached before the write and isn't explicitly invalidated. This is the trade-off write-around makes on purpose: it assumes the write path and the hot-read path are mostly disjoint keys, so paying to keep the cache in sync on every write is wasted work. If the same key *is* both written and hot-read, write-around alone reintroduces the exact staleness problem cache-aside's invalidation-on-write step exists to prevent — pair it with a short TTL or explicit invalidation for any key that isn't genuinely write-once-read-rarely.
+
+**Best for:** bulk imports, write-heavy logs, or data written once and rarely re-read (audit trails, historical records) — anywhere caching the just-written value would only evict something actually hot to make room for data nobody's about to ask for again.
 
 ### Refresh-ahead
 
@@ -172,8 +200,9 @@ hot keys, because it renews itself before expiry.
 |---|---|---|---|---|---|
 | Cache-aside | App | N/A (read pattern) | Eventual | N/A | General-purpose, cache can be down without breaking writes |
 | Read-through | Cache itself | N/A (read pattern) | Eventual | N/A | Many services sharing one cache layer |
-| Write-through | N/A (write pattern) | Synchronously, same request | Immediate | None — DB has it before ack | Data that must be correct on next read |
+| Write-through | N/A (write pattern) | Synchronously, same request | Immediate if both writes succeed — not atomic, DB-then-cache ordering bounds the failure case | None — DB has it before ack | Data that must be correct on next read |
 | Write-behind | N/A (write pattern) | Asynchronously, later/batched | Immediate in cache, eventual in DB | Data loss if cache dies before flush | High write volume, reconstructible or non-critical data |
+| Write-around | N/A (write pattern) | Synchronously, cache untouched | Cache can be stale for pre-existing entries | None — DB has it before ack | Bulk writes / write-once data rarely re-read |
 | Refresh-ahead | Cache (proactively) | N/A (read pattern) | Eventual, but never "cold" for hot keys | N/A | Hot keys where stampede-at-expiry is the risk |
 
 ---
@@ -261,7 +290,15 @@ Under a price-update storm (flash sale, 5,000 writes/s for 30s):
     capacity math from Requirements & Estimation matters here too
 ```
 
-Switching the hottest 1% of SKUs (flash-sale items) to refresh-ahead: those keys get refreshed proactively at 90% of TTL based on access frequency, so the invalidation storm above doesn't create a synchronized miss — see [Cache Stampede](cache-stampede.md) for the mechanics of why synchronized misses are the dangerous case, not misses in general.
+**Refresh-ahead does not fix the storm above** — it's easy to reach for it here, but it solves a different problem. Refresh-ahead triggers on *TTL proximity* (a key nearing its natural expiry gets renewed early); it has no hook into the write path. When a write explicitly deletes a key mid-TTL — exactly what's happening in the flash-sale storm — that deletion has nothing to do with where the key was in its TTL countdown, so a scheduled pre-expiry refresh is irrelevant: the key is already gone, and the next 5,000 reads for it still race the DB as a synchronized miss.
+
+What actually fixes a write-triggered stampede on hot keys:
+
+- **Request coalescing / single-flight** — the first reader after invalidation acquires a lock (or registers as the "leader" for that key) and fetches from the DB; every other concurrent reader for the same key waits on that one in-flight fetch instead of independently hitting the DB. See [Cache Stampede](cache-stampede.md) for the mutex-based mechanics.
+- **Stale-while-revalidate** — serve the just-invalidated (or about-to-expire) value for a short grace window while one background fetch refreshes it, so concurrent readers never see a hole in the cache at all.
+- **Refresh from the write path itself** — instead of deleting the key on write, have the writer immediately repopulate it with the new value (update-in-place rather than invalidate-then-lazy-reload) for keys hot enough that a guaranteed-empty window is unacceptable; the versioned-keys approach above achieves the same effect without the stale-write race.
+
+Refresh-ahead's actual job is the *organic* stampede — many independent keys all written once, long ago, and now aging out of TTL at roughly the same wall-clock time (e.g., a batch of prices all cached at the start of a sale). That's a different trigger than "a write just invalidated this specific key," and needs a different fix.
 
 ---
 
@@ -272,6 +309,7 @@ Switching the hottest 1% of SKUs (flash-sale items) to refresh-ahead: those keys
 | Stale price shown after update | Cache-aside race: reader repopulates with old value after invalidation | Versioned keys, or shorter TTL as a backstop |
 | Batch job tanks cache hit rate for the whole service | LRU eviction from a one-pass scan | LRU-K or 2Q; or route batch reads around the shared cache entirely |
 | Orders "succeeded" but vanished after a crash | Write-behind used for durable data with no durability layer under the cache | Write-through (or write-behind with a persisted write-log before ack) for anything durability-critical |
+| User sees their own just-written update as reverted | Write-around left a stale pre-existing cache entry in place after the write | Pair write-around with explicit invalidation (or short TTL) for any key that's also hot-read, not just write-once data |
 | Cache and DB permanently disagree | Update cache directly instead of invalidating, and the update itself was based on stale data | Prefer delete-and-reload over update-in-place for cache-aside |
 | Everything on the shelf goes stale at once | All entries written at login time with the same TTL, e.g. session cache | TTL jitter — see [Cache Stampede](cache-stampede.md) |
 | Write-through writes slow down every request | Cache write on the synchronous path, cache having a bad day | Circuit-break the cache write, don't fail the whole request if only the cache leg is slow |
@@ -311,15 +349,15 @@ Symptom: cache hit rate dropped from 90% to 40%
 
 ## Trade-offs
 
-| Dimension | Cache-aside | Write-through | Write-behind | Refresh-ahead |
-|---|---|---|---|---|
-| Read latency (hit) | Fast | Fast | Fast | Fast, and hot keys rarely miss |
-| Read latency (miss) | DB round trip | N/A (writes are what's synchronous) | N/A | Rare for hot keys by design |
-| Write latency | DB only | DB + cache, synchronous | Cache only, DB is async | N/A (read-side pattern) |
-| Consistency | Eventual, race-prone | Immediate | Immediate in cache, lagging in DB | Eventual |
-| Durability | DB-grade | DB-grade | Cache-grade until flush — risk | DB-grade |
-| Complexity | Low | Medium | High (needs a durability story) | Medium-high (needs access tracking) |
-| Best for | General reads | Data that must be correct on next read | High write volume, reconstructible data | Hot keys prone to stampede |
+| Dimension | Cache-aside | Write-through | Write-behind | Write-around | Refresh-ahead |
+|---|---|---|---|---|---|
+| Read latency (hit) | Fast | Fast | Fast | Fast (for cached keys) | Fast, and hot keys rarely miss |
+| Read latency (miss) | DB round trip | N/A (writes are what's synchronous) | N/A | DB round trip, incl. any just-written key | Rare for hot keys by design |
+| Write latency | DB only | DB + cache, synchronous | Cache only, DB is async | DB only | N/A (read-side pattern) |
+| Consistency | Eventual, race-prone | Immediate | Immediate in cache, lagging in DB | Stale cache possible for pre-existing entries | Eventual |
+| Durability | DB-grade | DB-grade | Cache-grade until flush — risk | DB-grade | DB-grade |
+| Complexity | Low | Medium | High (needs a durability story) | Low | Medium-high (needs access tracking) |
+| Best for | General reads | Data that must be correct on next read | High write volume, reconstructible data | Write-once / rarely re-read data (bulk import, logs) | Hot keys prone to stampede |
 
 ---
 
@@ -329,6 +367,11 @@ Symptom: cache hit rate dropped from 90% to 40%
     **Q: What's the difference between cache-aside and write-through caching?**
 
     "Cache-aside is about the read path: the application checks the cache, and on a miss, reads the database and populates the cache itself — writes typically just invalidate the cache entry rather than update it. Write-through is about the write path: every write goes to the cache and the database together, synchronously, so the cache is never stale on the next read. Cache-aside optimizes for simplicity and lets the cache be optional; write-through optimizes for read consistency at the cost of slower, coupled writes."
+
+=== "Basic"
+    **Q: When would you use write-around instead of cache-aside?**
+
+    "Write-around is for data that's written but rarely re-read soon after — a bulk import, an audit log, historical records. The write goes straight to the DB and the cache is left alone; the key only gets cached later if something actually reads it, the normal cache-aside-miss way. The risk is if that key *was* already cached from before — write-around doesn't touch or invalidate it, so a hot key that also gets written needs explicit invalidation or a short TTL on top, otherwise readers keep seeing the pre-write value indefinitely."
 
 === "Senior"
     **Q: Why does LRU eviction sometimes perform badly, and how would you fix it?**
@@ -354,8 +397,8 @@ Symptom: cache hit rate dropped from 90% to 40%
 ## Key Takeaways
 
 !!! success "Remember"
-    1. Five strategies, two independent axes: who loads on a miss (app vs cache), and when the DB gets a write (sync, async, or not at all in the read-only patterns).
-    2. Write-through trades write latency for immediate consistency; write-behind trades durability for write speed — never use write-behind for data the business calls durable without adding a durability layer underneath it.
+    1. Six strategies, two independent axes: who loads on a miss (app vs cache), and when the DB gets a write (sync, async, bypassed entirely, or not at all in the read-only patterns).
+    2. Write-through trades write latency for consistency *if both writes succeed* — it's ordered and synchronous, not atomic; the DB write must land before the cache write so a failed cache write degrades to a stale-but-self-healing cache miss, not a cache silently ahead of the DB. Write-behind trades durability for write speed — never use write-behind for data the business calls durable without adding a durability layer underneath it.
     3. LRU thrashes under scan patterns because it can't distinguish "recently touched once" from "actually popular" — LRU-K and 2Q fix this by requiring a second access before promotion.
     4. Cache invalidation has a real race even when you "do it right": delete-then-read-repopulates-stale. Versioned keys close that race; TTL is a cheap backstop.
     5. Refresh-ahead is the proactive answer to the stampede problem — see [Cache Stampede](cache-stampede.md) for the reactive answers (mutex, jitter, stale-while-revalidate) when you can't predict which keys will be hot.

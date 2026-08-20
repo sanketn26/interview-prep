@@ -212,13 +212,19 @@ Distributed Redis across multiple nodes (no central master):
 
 ```
 Nodes: 6 (usually 3 masters + 3 replicas)
-Sharding: consistent hashing
+Sharding: NOT consistent hashing — Redis Cluster explicitly does not
+          use it. Instead, the entire key space is divided into
+          16,384 fixed hash slots, and each slot is assigned to a
+          master node. A key's slot is CRC16(key) mod 16384 — a
+          direct modulo, not a hash ring.
 
 Key: "user:1"
-hash("user:1") → slot 5461
+CRC16("user:1") mod 16384 → slot 5461
 Slot 5461 → Master-1 (primary)
             Replica-1-1, Replica-1-2 (backups)
 ```
+
+Why this matters beyond terminology: consistent hashing's whole point is that adding/removing a node only remaps `~1/N` of keys. Redis Cluster gets a similar practical outcome differently — resharding means explicitly *migrating whole slots* between masters (an administrative operation, `CLUSTER SETSLOT` + key migration), not an automatic hash-ring rebalance. The fixed 16,384-slot space is what makes that migration a bounded, plannable operation instead of an unpredictable reshuffle.
 
 ```mermaid
 flowchart TB
@@ -336,7 +342,7 @@ Client write: UPDATE user:1 SET balance = 100
   → Return to client
 ```
 
-**Guarantee**: Redis always matches Postgres. **Cost**: Must update both (slower, more code).
+**Not an unconditional guarantee** — "write to both, in this order" reduces the divergence window, it doesn't eliminate it. Real ways the two can still disagree: the process crashes between the Postgres write and the Redis write (Postgres has the new value, Redis still has the old one, indefinitely, until the key naturally expires or is next written); the Redis write itself times out or errors after Postgres already committed; two concurrent writers interleave their Postgres-then-Redis pairs out of order, so the *older* write's Redis update lands last and overwrites the newer value. **Cost**: must update both (slower, more code) — and even paying that cost, you still need explicit handling (retry the Redis write, or fall back to deleting the key so the next read repopulates from Postgres) for the failure case, not an assumption that "wrote both" means "in sync."
 
 ### Cache Stampede
 

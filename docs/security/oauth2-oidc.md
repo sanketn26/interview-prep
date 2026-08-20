@@ -38,7 +38,7 @@ OIDC:          App gets an access_token AND an id_token (a JWT).
                client_id, expiring at 15:02:03."
 ```
 
-Every "Sign in with Google/GitHub/Microsoft" button you've used is OIDC, not bare OAuth2 — even though everyone calls it "OAuth login."
+Most "Sign in with X" buttons you've used are OIDC, not bare OAuth2 — even though everyone calls it "OAuth login." **GitHub is a notable, concrete exception**: its standard user-facing "Sign in with GitHub" OAuth flow does **not** issue an `id_token` at all — GitHub explicitly documents that its OAuth Apps and GitHub Apps flows don't currently support OIDC for user authentication. An app integrating "Sign in with GitHub" is doing bare OAuth2 and inferring identity by calling GitHub's `/user` REST API with the access token, exactly the pre-OIDC pattern described above — not receiving a signed identity assertion. (GitHub *does* support OIDC elsewhere — GitHub Actions issues OIDC tokens for workload identity, so a CI job can authenticate to AWS/GCP without a stored secret — but that's a completely different flow from "a user signing into your app," and doesn't change the fact that GitHub's user-login OAuth flow itself is not OIDC.) The lesson: verify a specific provider actually issues an `id_token` before assuming "Sign in with X" implies OIDC — Google and Microsoft do; GitHub's user-login flow doesn't.
 
 ---
 
@@ -102,8 +102,17 @@ Device Code                 ✓ Use this for input-constrained devices:
 
 Implicit                    ✗ Deprecated. Returned the access_token
                                directly in the URL fragment, no code
-                               exchange. Token ends up in browser
-                               history, referrer headers, server logs.
+                               exchange. The fragment itself is never
+                               sent to a server in an HTTP request (it's
+                               stripped client-side before any request
+                               is made) — so it does NOT reach server
+                               logs or Referer headers through that
+                               mechanism. The real exposure: it persists
+                               in browser history, is readable by any
+                               JavaScript running on the page (including
+                               injected/malicious scripts — XSS), and
+                               any browser extension or embedded webview
+                               with page access can read it too.
                                PKCE + Auth Code replaces it entirely,
                                even for SPAs.
 
@@ -299,7 +308,7 @@ refresh_token from Keychain, uses it once to mint an access_token.
     user_id=..., possible compromise"
 ```
 
-10-minute access token TTL bounds the blast radius of a stolen access token to 10 minutes of API abuse. Reuse detection bounds the blast radius of a stolen refresh token to one API call before detection, not 14 days.
+10-minute access token TTL bounds the blast radius of a stolen access token to 10 minutes of API abuse. Reuse detection bounds the blast radius of a stolen *refresh* token to **one refresh-token exchange** before the family is revoked — not 14 days of refreshes. It does **not**, by itself, shrink the blast radius of the access token the attacker already minted with that one exchange: that access token is a self-contained, signed credential, valid until its own TTL expires (up to 10 minutes here) regardless of what happens to the refresh token afterward — family revocation stops *future* refreshes, it doesn't retroactively invalidate a token already issued. So the actual bound on a stolen refresh token is "one refresh exchange, plus whatever that exchange's access token can do for up to its own TTL" — which is exactly why keeping the access token TTL short (10 minutes here) matters even with refresh-token rotation and reuse detection in place: rotation limits *how many times* the attacker can refresh, the short access-token TTL limits *how long* each stolen access token remains dangerous.
 
 ---
 
@@ -440,7 +449,7 @@ Decision tree: "users randomly getting logged out"
 
     **Q: Why rotate refresh tokens instead of just using a long-lived one?**
 
-    "A static long-lived refresh token that gets stolen is valid until its full TTL — days or weeks of API access for an attacker, silently. Rotation makes each refresh token single-use: every refresh call invalidates the old one and issues a new one. That gives you reuse detection for free — if an already-rotated-out token gets presented again, both the legitimate client and an attacker had a copy, which is a strong signal of compromise. The server can then revoke the entire token family and force re-authentication, bounding the blast radius to one API call instead of the full TTL."
+    "A static long-lived refresh token that gets stolen is valid until its full TTL — days or weeks of API access for an attacker, silently. Rotation makes each refresh token single-use: every refresh call invalidates the old one and issues a new one. That gives you reuse detection for free — if an already-rotated-out token gets presented again, both the legitimate client and an attacker had a copy, which is a strong signal of compromise. The server can then revoke the entire token family and force re-authentication, bounding the attacker to **one refresh-token exchange** instead of unlimited refreshes over the full TTL. It's worth being precise about what that bound does and doesn't cover, though: the access token minted from that one exchange is a self-contained, signed credential — it stays valid for its own TTL (say, 10 minutes) regardless of the refresh token being revoked afterward, since revoking the refresh-token family stops *future* refreshes, it doesn't retroactively invalidate an access token already issued. So the real damage bound is 'one refresh exchange, plus whatever that exchange's access token can do for up to its own TTL' — which is exactly why a short access-token TTL still matters even with rotation and reuse detection in place; rotation limits how many times the attacker can refresh, the short access-token TTL limits how long each stolen access token stays dangerous."
 
 === "Staff"
     **Q: Design token validation for a platform with one Authorization Server issuing tokens for 30 independent microservices, several of which handle sensitive data (payments, admin actions).**

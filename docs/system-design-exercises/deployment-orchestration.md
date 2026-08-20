@@ -88,8 +88,12 @@ Health-check signal volume during a rollout:
   — this rides on the existing metrics backend; the orchestrator is a heavy *query* client, not a metrics store
 
 State writes:
-  Per-host status transition: 10,000 hosts × ~215 deploys/day / (20 hosts avg per deploy) ≈ 215 rollouts/day
-  ~10,000 total per-host state writes/day at typical batch sizes — trivial for an OLTP store
+  Per-host status transition: ~215 deploys/day × ~20 hosts avg per deploy ≈ 4,300 per-host
+  state writes/day from rollout progression alone. Each host typically transitions through
+  several states per rollout (pending → deploying → health-checking → healthy, or a rollback
+  path) — call it ~4 transitions/host/deploy ≈ 17,000 total state-transition writes/day.
+  Trivial volume for an OLTP store either way; the earlier metric-query volume (~18,000/hour,
+  so ~430,000/day) is the actual read-heavy component of this system, not the state writes.
 ```
 
 !!! abstract "Mental Model"

@@ -79,7 +79,7 @@ Bandwidth:
 ```
 
 !!! tip "Interview Insight 🎯"
-    Note the 100:1 read/write ratio. This tells you: optimize aggressively for reads, even at the cost of write complexity. Caching is the key lever.
+    Note the ~1,000:1 read/write ratio (1B reads/day vs. 1M writes/day). This tells you: optimize aggressively for reads, even at the cost of write complexity. Caching is the key lever.
 
 ---
 
@@ -133,8 +133,12 @@ How do we generate `abc123`?
             num //= 62
         return ''.join(reversed(result)).zfill(7)
 
-    # DB auto-increment: ID=1 → "0000001", ID=3521614606208 → "aaaaaaa"
-    # 62^7 = 3.5 trillion unique codes
+    # DB auto-increment: ID=1 → "0000001", ID=577313869870 → "aaaaaaa"
+    # (577,313,869,870 is "aaaaaaa"'s actual base62 value — 7 a's, where
+    # 'a' is digit 10 in this charset)
+    # 62^7 = 3.5 trillion unique 7-character codes (IDs 0 through 62^7 - 1);
+    # the ID 3,521,614,606,208 (=62^7 itself) is the first ID that
+    # DOESN'T fit in 7 digits — it needs an 8th character
     ```
     **Pros:** No collisions, predictable length
     **Cons:** Sequential IDs are guessable — users can enumerate URLs (`aaaaaab` after `aaaaaaa`)
@@ -313,12 +317,15 @@ Redis (3-shard cluster, 30 GB cache):   ~$500/month
 PostgreSQL (Multi-AZ, r5.xlarge):       ~$400/month
 2 read replicas:                         ~$400/month
 Application servers (10 pods):           ~$200/month
-CDN (1B requests/month):                 ~$100/month
+CDN (~30B requests/month, at 1B/day):    ~$100/month
 Total:                                   ~$1,600/month
 
 Cost per redirect:
-  $1,600 / 30M seconds/month / 11,500 rps ≈ $0.0000046 per redirect
-  At 1B redirects/month: $1,600 → ~$0.0016 per 1,000 redirects
+  1B redirects/day × ~30 days/month ≈ 30B redirects/month
+  $1,600 / 30,000,000,000 redirects ≈ $0.0000000533 per redirect
+  → ~$0.00005 per 1,000 redirects (a month has ~2.6M seconds, not 30M —
+    the per-second math already lives in the Capacity Estimation
+    section above: 1B/day ÷ 86,400s ≈ 11,500 rps average)
 ```
 
 ---
@@ -329,14 +336,14 @@ Cost per redirect:
     Use DynamoDB or Redis as primary store instead of PostgreSQL. Short code → long URL is a pure key-value lookup. DynamoDB handles billions of items with sub-10ms latency. Trade-off: harder ad-hoc queries, no SQL analytics.
 
 === "Serverless"
-    Lambda + API Gateway + DynamoDB. Zero ops overhead, cost-per-request. At 1B requests/month: Lambda costs ~$200/month vs $1,600 for dedicated infra. Trade-off: cold start latency (not acceptable for redirects without provisioned concurrency), vendor lock-in.
+    Lambda + API Gateway + DynamoDB. Zero ops overhead, cost-per-request. At this system's actual volume — 1B redirects/day ≈ 30B requests/month, not 1B/month — per-request serverless pricing no longer wins the way it does at low volume; Lambda's request + compute charges at 30B/month plausibly exceed the ~$1,600/month dedicated-infra baseline from the Cost Analysis above, which is exactly the crossover point serverless-vs-dedicated discussions hinge on (see [Serverless vs. Containers](../architecture-patterns/serverless-vs-containers.md) for the general cost-crossover shape). Trade-off: cold start latency (not acceptable for redirects without provisioned concurrency), vendor lock-in.
 
 ---
 
 ## 17. Staff Engineer Extensions
 
 === "100× Traffic"
-    At 1.15M reads/second: CDN handles ~95% (popular URLs cached at edge), remaining 5% hits our cache, 0.5% hits DB. CDN is the key lever — invest in cache-control headers and CDN configuration. DB sharding if write volume grows proportionally.
+    At 11.5M reads/second (100× the 115,000 peak RPS baseline): CDN handles ~95% (popular URLs cached at edge), remaining 5% hits our cache, 0.5% hits DB. CDN is the key lever — invest in cache-control headers and CDN configuration. DB sharding if write volume grows proportionally.
 
 === "Multi-Region"
     Deploy to 3 regions (US, EU, APAC). Redirect reads are served locally (each region has its own cache + DB read replica). URL creation writes to global primary. Cross-region replication lag: 10–50ms — acceptable for eventual consistency on redirects.

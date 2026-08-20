@@ -129,18 +129,18 @@ The writable layer survives `docker stop` / `docker start` — the same containe
 
 | Mechanism | Backed by | Use case |
 |-----------|-----------|----------|
-| **Volume** | Docker-managed area on host (or a plugin: EFS, NFS) | Databases, anything that should survive `docker rm` or a redeploy |
-| **Bind mount** | An arbitrary host path | Local dev — live-reload source into the container |
+| **Volume** | Docker-managed area on host (or a plugin: EFS, NFS) | Databases, anything that should survive `docker rm` or a redeploy — the recommended default for anything Docker itself should manage the lifecycle of |
+| **Bind mount** | An arbitrary host path | Local dev — live-reload source into the container. Also survives `docker rm` and a redeploy, since the data lives at a host path that exists independently of any container — the difference from a volume is *who manages the path* (you, vs. Docker), not whether the data persists |
 | **tmpfs** | Host RAM, never written to disk | Secrets you don't want touching disk at all |
 
 !!! warning "Misconception that causes real outages"
-    A container getting OOM-killed and restarted by itself does **not** lose data on the writable layer — the container is still the same container, just stopped and started again. The data loss shows up one step later, at the *next deploy*: the OOM incident prompts a redeploy to "fix" it, that redeploy replaces the container, and only then does anyone discover the database's data was never on a volume. Conversely, `docker system prune -a --volumes` deletes volumes too; run it on a node with an unmounted production DB volume and you have a very bad afternoon. Read the flags.
+    A container getting OOM-killed and restarted by itself does **not** lose data on the writable layer — the container is still the same container, just stopped and started again. The data loss shows up one step later, at the *next deploy*: the OOM incident prompts a redeploy to "fix" it, that redeploy replaces the container, and only then does anyone discover the database's data was never on a volume *or* a bind mount — it was sitting on the writable layer the whole time. Conversely, `docker system prune --volumes` specifically targets **unused anonymous volumes** — the unnamed volumes Docker auto-creates for a container's `VOLUME` declarations when you don't explicitly name/mount one — not volumes generally, and not every named volume just because it isn't currently attached. It does not touch a volume mounted by an existing container, even a stopped one. The real danger case is still real, just narrower than "any unused volume": an anonymous volume that *looks* disposable because its container was already removed (a redeploy that created a fresh container without reattaching the old anonymous volume) — prune will happily delete that orphaned-but-still-wanted data. Named volumes you explicitly created for a database are not swept up by this command the same way — but don't rely on that distinction from memory during an incident; read the flags, and know which containers currently reference which volumes (named or anonymous) before running prune on a node with production data.
 
 ---
 
 ## Security Baseline
 
-- **Run as non-root** (`USER` in the Dockerfile) — a container escape as root is a host-root escape.
+- **Run as non-root** (`USER` in the Dockerfile) — by default (no user namespace remapping), a container escape as root **is** a host-root escape, because container root and host root are the same UID 0. This is specifically what **user namespace remapping** (`userns-remap`, or Docker/Podman's rootless mode) closes: it maps container UID 0 to an unprivileged UID on the host, so a container-root escape lands as an unprivileged host user instead of host root. That mapping is opt-in and not Docker's default configuration — don't assume it's in place; verify it explicitly, and treat "run as non-root inside the container" as the baseline mitigation you control regardless of whether namespace remapping is also configured.
 - **Minimal base images** (distroless / alpine / scratch) — fewer packages, fewer CVEs, smaller attack surface.
 - **Scan before you ship**, not after (Trivy, Grype, or your registry's built-in scanner) — a CI gate, not a dashboard nobody reads.
 - **Never bake secrets into layers.** `ENV API_KEY=...` or a `COPY .env` is in the image history forever, even if a later layer deletes the file — `docker history` and `docker save | tar -xO` both recover it. Inject secrets at runtime (mounted file, env var from a secret manager) instead.
@@ -186,7 +186,7 @@ The writable layer survives `docker stop` / `docker start` — the same containe
     2. Layer order determines cache efficiency — put what changes least at the top of the `Dockerfile`
     3. Multi-stage builds ship the artifact, not the toolchain that built it
     4. Containers reach each other by **service name** via embedded DNS, not by IP
-    5. Data outlives a container only if it's on a **volume**, not the writable layer
+    5. Data outlives a container only if it's on a **volume or a bind mount**, not the writable layer — the writable layer dies with the container, both of the others live independently of it
     6. Never bake secrets into a layer — `docker history` remembers everything
     7. Pin to a digest in production; `:latest` is not a version
 

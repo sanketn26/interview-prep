@@ -24,7 +24,7 @@ The result: a database that handles OLTP (transactional), OLAP (analytical), and
 
 ## Part 1: MVCC — How PostgreSQL Handles Concurrent Writes
 
-PostgreSQL's secret weapon is **Multi-Version Concurrency Control (MVCC)**. Instead of locking rows when writers conflict, it creates new versions of data.
+PostgreSQL's secret weapon is **Multi-Version Concurrency Control (MVCC)**. Instead of making readers and writers block each other, each write creates a new version of the row and readers see the version that was current when their snapshot was taken. Writers that genuinely conflict — two transactions updating the *same* row — still take row-level locks and one blocks (or aborts) the other; MVCC's win is specifically that readers never wait on writers and writers never wait on readers.
 
 ### The Problem MVCC Solves
 
@@ -56,7 +56,7 @@ Reader-C: SELECT * FROM user WHERE id = 1;
   Returns: balance = 100
 ```
 
-**Key insight**: Each transaction sees a snapshot of the database at the moment it started. Writes don't block readers.
+**Key insight**: a query sees a snapshot of the database taken at a fixed point, and writes don't block readers against that snapshot. The exact point differs by isolation level: under **Repeatable Read** and **Serializable**, one snapshot is taken at the start of the *transaction* and reused for every statement in it. Under the default **Read Committed**, each individual *statement* gets its own fresh snapshot — so two `SELECT`s in the same Read Committed transaction can see different data if another transaction committed in between. The examples below assume Repeatable Read or stricter, where "the transaction's snapshot" is a stable, single thing to reason about.
 
 ```mermaid
 sequenceDiagram
@@ -103,20 +103,28 @@ VACUUM is the maintenance operation that reclaims space:
 
 ```
 Before VACUUM:
-  users table: 1 GB
+  users table: 1 GB on disk
     100M rows, but 50M are marked deleted (xmax is set)
-    
-VACUUM:
+
+Plain VACUUM:
   Scans the table (1 GB)
-  Removes rows with xmax < (oldest active transaction)
-  Reuses space on disk
-  
-After VACUUM:
-  users table: 0.5 GB
+  Marks dead rows' space as reusable — free list entries within existing pages
+  Does NOT shrink the file or return space to the OS
   Cleanup is I/O intensive (scans entire table sequentially)
+
+After plain VACUUM:
+  users table: still 1 GB on disk
+  New INSERTs/UPDATEs can now reuse that space instead of extending the file further
+
+VACUUM FULL:
+  Rewrites the entire table into a new, compact file, then swaps it in
+  Actually shrinks the file and returns space to the OS
+  Takes an ACCESS EXCLUSIVE lock for the duration — blocks all reads and writes
+  Rarely run in production without a maintenance window; pg_repack exists
+  specifically to do this without the exclusive lock
 ```
 
-**Production impact**: Without VACUUM, disk usage grows unbounded. With aggressive DML, VACUUM can't keep up. Solution: **tune autovacuum**.
+**Production impact**: Without any VACUUM, dead-row space is never reused and the table keeps growing on every write. Plain VACUUM keeps disk usage from growing *unbounded*, but it will not shrink a table that's already bloated — that requires VACUUM FULL (or pg_repack) and a deliberate decision to pay the lock cost. With aggressive DML, autovacuum can also fall behind the rate dead rows accumulate. Solution: **tune autovacuum**.
 
 ```sql
 -- On a high-churn table
@@ -257,7 +265,7 @@ SELECT balance FROM accounts WHERE id = 1;
 
 A's view is frozen at the transaction start. B's update doesn't affect A's reads.
 
-**But phantoms are possible**:
+**Unlike the SQL standard's definition of Repeatable Read, PostgreSQL's implementation also blocks phantom reads** — a row inserted or deleted by another transaction after A's snapshot was taken never becomes visible to A, for the rest of A's transaction:
 
 ```sql
 SELECT COUNT(*) FROM orders WHERE status = 'pending';
@@ -267,18 +275,22 @@ SELECT COUNT(*) FROM orders WHERE status = 'pending';
                                     COMMIT;
 
 SELECT COUNT(*) FROM orders WHERE status = 'pending';
-→ 6 orders (phantom insert)
+→ 5 orders (still — the new row isn't part of A's snapshot; no phantom)
 ```
+
+This is a genuinely stronger guarantee than the SQL standard requires at this level, and a common interview trap: PostgreSQL's Repeatable Read prevents dirty reads, non-repeatable reads, *and* phantom reads — what it does **not** prevent is write skew (two transactions each reading a consistent snapshot, then both writing based on assumptions that were true in their snapshot but are jointly false once both commit). That's exactly the gap Serializable closes.
 
 ### Serializable
 
 ```sql
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN;
--- All transactions are serialized (one at a time)
+-- Transactions still run CONCURRENTLY — Postgres does not actually
+-- execute them one at a time. Serializable only guarantees the RESULT
+-- is equivalent to some serial (one-at-a-time) ordering.
 ```
 
-Slowest, most correct. Use for critical financial operations.
+PostgreSQL implements this with **Serializable Snapshot Isolation (SSI)**: transactions run concurrently on Repeatable-Read-style snapshots, while the engine tracks read/write dependencies between concurrent transactions looking for a pattern that could only happen if their execution order isn't equivalent to any serial order. When it finds one, it aborts one of the transactions with a serialization failure (`ERROR: could not serialize access due to read/write dependencies`) — the application is expected to retry. This is why Serializable is the level that specifically closes the write-skew gap Repeatable Read leaves open, at the cost of needing retry logic for aborted transactions, not at the cost of literally running everything sequentially. Use for critical financial operations where write skew is unacceptable and you can afford to retry on conflict.
 
 ---
 
@@ -316,7 +328,9 @@ flowchart TB
 ```sql
 -- On primary:
 ALTER SYSTEM SET synchronous_standby_names = 'standby1,standby2';
-SELECT pg_ctl_reload_conf();
+SELECT pg_reload_conf();  -- the SQL function is pg_reload_conf(), no _ctl_
+-- (equivalently, from the shell: pg_ctl reload — that's a separate,
+-- OS-level command, not a SQL function, and the two are easy to conflate)
 
 -- Now:
 -- Every COMMIT waits for at least one standby to ACK

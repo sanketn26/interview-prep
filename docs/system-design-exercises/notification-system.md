@@ -79,8 +79,9 @@ Storage (delivery log):
 
 Provider cost drivers:
   Push (APNs/FCM): free
-  Email (SES): ~$0.10 per 1,000 emails → 125M emails/day-equivalent... (Sc: 50M×0.4 email-eligible) ≈ $2/day
-  SMS (Twilio): ~$0.0075/message — SMS is 10–50× the cost of email/push, so it must be reserved for high-priority/opt-in use
+  Email (SES): ~$0.10 per 1,000 emails. 50M/day × 40% email-eligible = 20M emails/day
+    → 20M / 1,000 × $0.10 = $2,000/day ≈ $60,000/month
+  SMS (Twilio): ~$0.0075/message — roughly 75× the marginal cost of a single email ($0.0001) and effectively unbounded relative to push (free), so it must be reserved for high-priority/opt-in use
 ```
 
 !!! tip "Interview Insight 🎯"
@@ -270,9 +271,24 @@ Key changes from V1: channels are fully decoupled queues, preference lookups are
 
 ## 12. Delivery Tracking and Idempotency
 
-Every send is keyed by an **idempotency key** — typically `hash(notification_id + channel + recipient_id)`. Before a worker calls a provider, it performs a conditional write (`INSERT ... ON CONFLICT DO NOTHING`, or a Redis `SETNX`) against the delivery log using that key. If the row already exists with status `sent` or `delivered`, the worker skips the send — this is what makes an at-least-once queue behave as an effectively-once delivery system. This is the same idempotent-consumer pattern described in [Message Queue Patterns](../messaging/patterns.md); the notification system is a textbook application of it because provider retries, worker crashes, and queue redelivery all independently create duplicate-send risk.
+Every send is keyed by an **idempotency key** — typically `hash(notification_id + channel + recipient_id)`. Before a worker calls a provider, it performs a conditional write (`INSERT ... ON CONFLICT DO NOTHING`, or a Redis `SETNX`) against the delivery log using that key. If the row already exists with status `sent` or `delivered`, the worker skips the send.
 
-Delivery status flows through discrete states: `queued → sent → delivered → opened` (or `failed → dead_lettered`). Push and email providers offer delivery/open webhooks (APNs delivery receipts, SES bounce/complaint notifications, email open pixels) that asynchronously update the delivery log after the initial send.
+**This narrows duplicate-send risk substantially, but it does not close the window on its own — there's a specific crash scenario it can't catch.** The conditional write happens *before* the provider call: worker marks the key as claimed, calls the provider, provider accepts and sends the push, and *then* the worker crashes before writing `sent` back to the delivery log. On redelivery, a new worker sees no `sent`/`delivered` row for that key (the crash happened before that write landed), concludes the send never happened, and sends again — a real duplicate, despite the conditional write being followed correctly. The conditional write protects against *concurrent* workers racing on the same key; it does not protect against *sequential* crash-after-send-before-ack, because the record of "provider already has this" only exists in the provider's system, not yet in ours.
+
+Two ways to actually close this gap:
+
+- **Provider-side idempotency keys**, where the provider supports them (Stripe-style `Idempotency-Key` header equivalents exist for some push/SMS providers) — the retry from our worker after a crash reuses the same key, and the provider itself recognizes "already sent this" and returns the prior result instead of sending twice. This is the only mechanism that closes the gap completely, because it makes the provider call itself idempotent, not just our bookkeeping around it.
+- **Reconciliation against provider-side delivery status** — periodically query (or consume delivery webhooks from) the provider for what it actually sent, and cross-check against our delivery log; a send with no corresponding provider confirmation after some window gets retried, and a provider confirmation with no matching "we intended to send this" gets flagged for investigation.
+
+Without one of these, "effectively-once" is the goal the idempotency key is *working toward*, not a guarantee it delivers by itself — say so explicitly in an interview, because claiming the conditional write alone achieves effectively-once is exactly the gap a good interviewer will probe. This is the same idempotent-consumer pattern described in [Message Queue Patterns](../messaging/patterns.md); the notification system is a textbook application of it because provider retries, worker crashes, and queue redelivery all independently create duplicate-send risk — and also a textbook example of why idempotent-consumer alone isn't sufficient when the side effect (the provider send) happens outside the system doing the deduplication.
+
+Delivery status flows through discrete states: `queued → sent → delivered → opened` (or `failed → dead_lettered`) — but how much of that pipeline a given provider can actually confirm varies significantly, and it's worth being precise rather than assuming uniform delivery/open tracking across channels:
+
+- **APNs (Apple):** the HTTP/2 response to a send request only confirms *acceptance* by Apple's servers (a 200, or a specific error like `BadDeviceToken`) — it is not a confirmation the device received or displayed the notification. APNs does not provide a general-purpose production webhook that reports device-level delivery or opens; Apple exposes only limited, developer-facing delivery-log tooling, not a per-notification production feedback channel comparable to what email providers offer. Getting real delivered/opened signal for push requires **application-level instrumentation** — the app itself pinging back on receipt (background push) or on open (foreground event) — or using FCM's cross-platform analytics/export pipeline where applicable, not an APNs-native webhook.
+- **SES (email):** does provide genuine delivery/bounce/complaint feedback via configured event notifications — this is a real, documented webhook mechanism, closer to what the `sent → delivered` transition implies.
+- **Open tracking (email):** via a tracking pixel, is a client-rendering signal (did the email client fetch the pixel image), not a delivery confirmation — it has its own well-known blind spots (image-blocking clients, privacy-preserving mail proxies that pre-fetch images regardless of whether a human opened the email).
+
+So `sent → delivered → opened` is the state model to design toward, but only email (via SES) gets you close to it out of the box; push delivery/open confirmation is something you build via app-side instrumentation, not something APNs hands you.
 
 ---
 
@@ -307,7 +323,7 @@ Separate physical queues per tier (not just a priority field on one queue) matte
 
 - **Eventual consistency is the default:** delivery status, unread counts, and digest windows all tolerate seconds of lag
 - **Read-your-writes for in-app inbox:** when a user marks a notification read, that state must be immediately visible on their next inbox fetch — route the read-state write and the immediately-following read to the same primary/session
-- **At-least-once infrastructure, effectively-once delivery:** achieved via the idempotency key pattern (Section 12), not via distributed transactions — do not attempt exactly-once semantics across queue and provider API, it doesn't exist
+- **At-least-once infrastructure, effectively-once delivery as the goal:** the idempotency key pattern (Section 12) narrows duplicate-send risk substantially and handles concurrent-worker races cleanly, but as Section 12 covers in detail, it does **not** close the crash-after-provider-accept gap by itself — that specific window needs provider-side idempotency keys or reconciliation against provider delivery status to actually reach effectively-once. Do not attempt exactly-once semantics across queue and provider API via distributed transactions — it doesn't exist; the realistic target is at-least-once infrastructure plus one of those two mechanisms, not the idempotency key alone.
 - **Preference changes should apply immediately:** a user disabling marketing push mid-campaign should not receive further sends — preference cache invalidation on write, not just TTL expiry
 
 ---
@@ -337,18 +353,23 @@ Alerts:
 ## 17. Cost Analysis
 
 ```
-Push (APNs/FCM):                          $0 (free)
-Email (SES, ~40M/day):                     ~$120/month
-SMS (Twilio, ~2M/day, transactional only): ~$450/month
-Queue infra (Kafka/SQS, multi-topic):      ~$600/month
-Worker fleet (autoscaled pods):            ~$800/month
-Preference cache (Redis):                  ~$200/month
-Delivery log storage (wide-column, 90d):   ~$300/month
-Total:                                     ~$2,470/month
+Push (APNs/FCM):                              $0 (free)
+Email (SES, ~20M/day, matches §5 estimate):    ~$60,000/month  (20M/day ÷ 1,000 × $0.10 × 30)
+SMS (Twilio, ~2M/day, transactional only):     ~$450,000/month  (2M/day × $0.0075 × 30)
+Queue infra (Kafka/SQS, multi-topic):          ~$600/month
+Worker fleet (autoscaled pods):                ~$800/month
+Preference cache (Redis):                      ~$200/month
+Delivery log storage (wide-column, 90d):       ~$300/month
+Total:                                         ~$512,000/month
 
 Cost per notification:
-  ~$2,470 / (50M/day × 30 days) ≈ $0.0000016 per notification
-  SMS alone is ~300× the marginal cost of push — this is why SMS is gated to transactional/opt-in use
+  ~$512,000 / (50M/day × 30 days) ≈ $0.00034 per notification
+  SMS is the dominant cost by a wide margin, not queue/compute infra — the per-message provider
+  fee, not the infrastructure, is what should drive gating SMS to transactional/opt-in use. Per
+  unit, SMS ($0.0075) is ~75x the marginal cost of a single email ($0.0001, i.e. $0.10 per 1,000)
+  and, since push is free, has no finite ratio against push at all — the honest framing is "push
+  costs nothing but is rate-limited by the OS/carrier, email costs a small fraction of a cent,
+  SMS costs meaningfully more than either," not a single multiplier across all three.
 ```
 
 ---

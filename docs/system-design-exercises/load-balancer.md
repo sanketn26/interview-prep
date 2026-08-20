@@ -407,7 +407,9 @@ GSLB / DNS (Route 53 style, health-checked routing):         ~$50/month
 Total:                                                        ~$1,260/month
 
 Cost per million requests:
-  $1,260 / (100K rps x 2.6M sec/month) ≈ $0.0000048 per request
+  Monthly request volume: 100K rps x 2.6M sec/month = 260 billion requests/month
+  $1,260 / 260,000,000,000 requests ≈ $0.0000000048 per request (4.8 x 10^-9)
+  ≈ $0.0048 per million requests
   Dominant cost is the L7 CPU tier (TLS termination) — using a managed
   cloud LB (ALB/NLB) trades this line item for a per-request/per-LCU fee,
   often cheaper below ~50K sustained rps, more expensive above it.

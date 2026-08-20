@@ -88,9 +88,10 @@ Frontier size:
 
 Bloom filter for seen-URL dedup:
   50B+ URLs to test membership against
-  Target false-positive rate: 0.1%
-  Bits needed ≈ n × ln(1/p) / (ln2)^2 ≈ 50B × 9.97 / 0.48 ≈ ~1 TB of bits (~125 GB)
-  Compare to a hash-set of full URLs at ~50B × 80 bytes = 4 TB — Bloom filter is ~30× smaller
+  Target false-positive rate: 0.1% (p = 0.001)
+  ln(1/p) = ln(1000) ≈ 6.91
+  Bits needed ≈ n × ln(1/p) / (ln2)^2 ≈ 50B × 6.91 / 0.48 ≈ ~719B bits ≈ ~90 GB
+  Compare to a hash-set of full URLs at ~50B × 80 bytes = 4 TB — Bloom filter is ~45× smaller
 ```
 
 !!! tip "Interview Insight 🎯"
@@ -184,7 +185,7 @@ graph LR
 
 Before enqueueing a discovered URL, the crawler must check "have I already seen this URL?" — otherwise the frontier grows unboundedly with re-discovered links (nearly every page links back to its own site's homepage, for instance).
 
-At 50B+ URLs, an exact set (hash table of full URL strings) costs ~4 TB. A **Bloom filter** trades a small, tunable false-positive rate for a ~30x space reduction (see Section 5 math: ~125 GB for the same 50B URLs at 0.1% FP rate).
+At 50B+ URLs, an exact set (hash table of full URL strings) costs ~4 TB. A **Bloom filter** trades a small, tunable false-positive rate for a ~45x space reduction (see Section 5 math: ~90 GB for the same 50B URLs at 0.1% FP rate).
 
 ```python
 class URLSeenFilter:
@@ -200,7 +201,7 @@ class URLSeenFilter:
             self.bit_array[h(url, seed=i)] = 1
 ```
 
-**The trade-off to name explicitly in an interview:** a Bloom filter has false positives (says "seen" when it wasn't) but never false negatives (never says "not seen" for something actually seen). A false positive means we *skip* crawling a URL we've never actually fetched — a permanently lost page, not a crash or a duplicate fetch. At 0.1% FP rate on 50B URLs, that's up to ~50M URLs silently never crawled — usually an acceptable trade for the 30× space savings, but worth stating as a conscious choice, and worth periodically reconciling against a smaller exact store for high-priority seed domains where every page matters.
+**The trade-off to name explicitly in an interview:** a Bloom filter has false positives (says "seen" when it wasn't) but never false negatives (never says "not seen" for something actually seen). A false positive means we *skip* crawling a URL we've never actually fetched — a permanently lost page, not a crash or a duplicate fetch. At 0.1% FP rate on 50B URLs, that's up to ~50M URLs silently never crawled — usually an acceptable trade for the ~45× space savings, but worth stating as a conscious choice, and worth periodically reconciling against a smaller exact store for high-priority seed domains where every page matters.
 
 The filter itself must be sharded the same way the frontier is (by domain hash) so each partition owns its own filter shard and duplicate checks stay local, not a call to a centralized filter service for every one of billions of discovered links.
 
@@ -421,7 +422,7 @@ Cost per page crawled:
 
 ## 20. Interview Follow-ups
 
-1. **"Why not just use a hash set instead of a Bloom filter for seen-URL tracking?"** — At 50B+ URLs, an exact hash set costs ~30× more memory/storage (Section 5/8 math); the Bloom filter's false-positive trade-off (occasionally skipping a never-fetched URL) is acceptable at web-crawl scale, whereas the storage cost of an exact set is not.
+1. **"Why not just use a hash set instead of a Bloom filter for seen-URL tracking?"** — At 50B+ URLs, an exact hash set costs ~45× more memory/storage (Section 5/8 math); the Bloom filter's false-positive trade-off (occasionally skipping a never-fetched URL) is acceptable at web-crawl scale, whereas the storage cost of an exact set is not.
 2. **"How do you avoid crawling the same page twice if it's reachable via two different URLs (with/without trailing slash, different query param order)?"** — URL normalization/canonicalization (lowercase host, strip default ports, sort query params, resolve `.`/`..` in paths, strip session-ID-like params via known patterns) before the seen-check and before enqueueing — dedup only works if equivalent URLs hash identically.
 3. **"How would you prioritize re-crawling a news site over a static personal blog?"** — Maintain a per-domain/per-page change-frequency estimate from crawl history; feed that into the front-queue priority score alongside PageRank/importance signals, so high-change-rate + high-importance pages get shorter re-crawl intervals.
 4. **"What stops a malicious site from feeding the crawler an infinite redirect loop?"** — Cap redirect-follow depth (e.g., 5 hops) per fetch attempt and treat exceeding it as a fetch failure, not an infinite retry.

@@ -377,19 +377,27 @@ Alerts:
 
 ```
 Storage nodes (45 nodes, NVMe SSD, ~2TB usable each, 32GB RAM): ~$13,500/month
-Cross-AZ replication network traffic (quorum writes, ~4.8 GB/s sustained): ~$3,000/month
+Cross-AZ replication network traffic (quorum writes, ~4.8 GB/s sustained):
+  4.8 GB/s × 2.6M sec/month ≈ 12.48M GB/month
+  AWS bills BOTH sides of an inter-AZ transfer at ~$0.01/GB each (~$0.02/GB total)
+  12.48M GB × $0.02/GB ≈ ~$250,000/month — this dwarfs every other line item here
 Anti-entropy background traffic (rate-limited, off-peak):                  ~$500/month
 Gossip/membership overhead (lightweight, small messages):                  negligible
-Total:                                                                      ~$17,000/month
+Total:                                                                      ~$264,000/month
+
+This is the concrete reason cross-AZ replication cost, not storage or compute, dominates a
+quorum-replicated system's bill at sustained high write throughput — and why same-AZ replica
+placement (accepting the availability trade-off) or compressing the replication stream are
+the actual cost levers here, not shrinking the storage tier.
 
 Cost per operation:
-  500K ops/sec × 2.6M seconds/month ≈ 1.3B ops/month
-  $17,000 / 1.3B ≈ $0.000013 per operation
+  500K ops/sec × 2.6M seconds/month ≈ 1.3 trillion ops/month
+  $264,000 / 1,300,000,000,000 ≈ $0.0000002 per operation (2 x 10^-7)
 
-Compare to the Distributed Cache exercise's ~$0.0000008/op — the ~16× higher per-op cost here
-is the direct, quantifiable price of durability: synchronous cross-AZ replication, SSD-backed
-persistent storage instead of pure RAM, and anti-entropy traffic, none of which a best-effort
-cache needs to pay for.
+This per-op cost is dominated by durability, not raw throughput: synchronous cross-AZ
+replication, SSD-backed persistent storage instead of pure RAM, and anti-entropy traffic
+are all costs a best-effort, RAM-only cache doesn't have to pay — see the Distributed Cache
+exercise for the same workload without the durability requirement.
 ```
 
 ---

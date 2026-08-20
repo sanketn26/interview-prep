@@ -112,16 +112,19 @@ This is the **leftmost prefix rule**: a composite index is only usable for queri
 
 ## Covering Indexes
 
-A **covering index** includes every column a query needs — filter columns and selected columns — so the database never has to touch the underlying table (the "heap") at all.
+A **covering index** includes every column a query needs — filter columns and selected columns — so the database *usually* doesn't have to touch the underlying table (the "heap") to answer the query.
 
 ```sql
 CREATE INDEX idx_orders_covering ON orders (customer_id, status) INCLUDE (total, created_at);
 
 SELECT total, created_at FROM orders WHERE customer_id = 42 AND status = 'shipped';
--- Fully satisfied by the index leaf pages — no heap lookup ("index-only scan")
+-- Index-only scan when possible — usually satisfied by the index leaf
+-- pages alone, no heap lookup
 ```
 
-Without the `INCLUDE`, the database finds matching rows in the index, then does a second read per row into the heap to fetch `total` and `created_at` — one extra random I/O per matched row. For a query returning thousands of rows, that's thousands of extra seeks. A covering index eliminates that at the cost of a larger index (it duplicates more column data).
+Without the `INCLUDE`, the database finds matching rows in the index, then does a second read per row into the heap to fetch `total` and `created_at` — one extra random I/O per matched row. For a query returning thousands of rows, that's thousands of extra seeks. A covering index eliminates most of that at the cost of a larger index (it duplicates more column data).
+
+**"Never touches the heap" is not quite true in PostgreSQL, and the exception matters in practice.** An index-only scan can still visit the heap on a per-row basis to check MVCC visibility — whether that row version is actually visible to the current transaction's snapshot — when the **visibility map** doesn't already mark the row's page as "all rows here are visible to everyone" (an `all-visible` bit set per page, maintained by VACUUM). On a table with recent writes that VACUUM hasn't caught up on yet, a meaningful fraction of an index-only scan's rows can still trigger heap fetches, silently degrading it back toward a regular index scan's I/O cost. This is the concrete reason `autovacuum` tuning matters even for tables you've specifically built covering indexes for — a covering index only delivers on its promise once the visibility map is current, which is a VACUUM outcome, not something the index definition alone guarantees. `EXPLAIN (ANALYZE, BUFFERS)` showing `Heap Fetches: 0` is how you verify it's actually happening in practice, rather than assuming it from the query plan saying "Index Only Scan."
 
 ---
 

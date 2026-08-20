@@ -61,7 +61,9 @@ flowchart LR
 - [x] Event-Driven Architecture
 - [x] Event Sourcing & CQRS
 - [x] Saga Pattern (first-release orchestrator simulator)
-- [x] Cache stampede + cache-strategy catalog
+- [x] Distributed Transactions (2PC/3PC/TCC/XA) — `architecture-patterns/distributed-transactions.md`
+- [x] API Architectural Styles (REST/GraphQL/gRPC/SOAP/Webhooks) — `architecture-patterns/api-architectural-styles.md`
+- [x] Cache stampede + cache-strategy catalog (cache-aside/read-through/write-through/write-behind/write-around/refresh-ahead)
 - [x] Circuit breaker + retry storm + failure-mode library (cascading failures, resource exhaustion, split brain)
 - [x] API Gateway & Service Mesh — Modern Protocols & Service Mesh shipped; API Gateway pattern now covered in `foundations/api-design.md`, exercise-format deep dive in `system-design-exercises/api-gateway.md`
 - [x] Observability (metrics, tracing, SLI/SLO) — debugging playbook + production reliability practices (chaos engineering, load testing, postmortems) shipped

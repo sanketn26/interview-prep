@@ -145,10 +145,10 @@ Client then sits in TIME_WAIT (typically 60s, 2MSL)
 | TLS handshake | 1–5s | Same | Same |
 | Socket idle / keep-alive | 30–350s | LB kills; app retries | FD leak |
 | Request / read | 1–30s | Cut legitimate work | Cascade when a dependency hangs |
-| LB idle vs app idle | LB **shorter** than app | — | LB sends RST on a connection the app still thinks is live → random 502s |
+| LB idle vs app idle | LB idle **should be set shorter** than app idle | If LB idle is set **longer** than app idle: the app closes the connection first, but the LB still thinks it's live and forwards the next request onto it → RST from a dead socket → random 502s at the LB | If LB idle is set **too much shorter** than app idle (misconfigured too aggressively, not the general "shorter" rule): the LB kills connections mid-request while the app is still legitimately working → same random 502s, different cause |
 
 !!! warning "Production Trap"
-    Set **LB idle < app idle < client idle**, and send TCP keepalives. The classic 502 at 60s is nginx `proxy_read_timeout` vs an upstream that started a 90s report.
+    The rule is **LB idle < app idle < client idle**, with the LB timeout comfortably shorter — not razor-close — so the LB always closes idle connections before the app would, and send TCP keepalives to keep intermediate devices from silently dropping the connection state. Getting the *ordering* backwards (app idle shorter than LB idle) is the classic footgun: the app times out a connection the LB still considers open, the LB forwards a new request onto that now-dead socket, and you get a random RST-driven 502. The classic version of this in practice: nginx `proxy_read_timeout` set shorter than an upstream that legitimately takes 90s to generate a report — the ordering is backwards, LB should be the one closing first.
 
 ### Pooling
 
@@ -179,7 +179,7 @@ A pool is a set of **already ESTABLISHED (+ TLS)** sockets.
 
 Checkout API, 80ms RTT, 5k peak QPS, 2KB responses.
 
-- **No pooling:** 5k handshakes/s × (TCP+TLS ≈ 2 RTT) = 800 connection setups/s of extra work, plus TIME_WAIT. A single box's ephemeral ports (~28k) last seconds.
+- **No pooling:** 5k NEW connection setups/second (one per request, since nothing is pooled) — the setup *rate* is fixed by request rate, not RTT. What RTT changes is how many of those setups are simultaneously in-flight at any instant: by Little's Law, concurrency = rate × latency = 5,000/s × (TCP+TLS ≈ 2 RTT ≈ 160ms) ≈ 800 handshakes concurrently in progress at any given moment, each holding a socket in a non-established state. Add TIME_WAIT (2×MSL after close) piling up behind that, and a single box's ephemeral ports (~28k) get exhausted in seconds.
 - **Pooled HTTP/1.1, 200 conns to the DB:** one slow query HOL-blocks that connection; 199 others are fine. App thread pool may still stall if every thread waits on the pool.
 - **HTTP/2 to the mesh sidecar:** 1 connection, 200 streams. A TCP loss now delays *all* 200. Tail latency becomes a congestion story, not an app story.
 

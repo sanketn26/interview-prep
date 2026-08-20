@@ -149,8 +149,10 @@ nav:
       - architecture-patterns/index.md
       - Microservices vs Monolith: architecture-patterns/microservices-vs-monolith.md
       - Sagas: architecture-patterns/sagas.md
+      - Distributed Transactions (2PC/3PC/TCC): architecture-patterns/distributed-transactions.md
       - Event-Driven Architecture: architecture-patterns/event-driven-architecture.md
       - Microservices Communication: architecture-patterns/microservices-communication.md
+      - API Architectural Styles: architecture-patterns/api-architectural-styles.md
       - Event Sourcing & CQRS: architecture-patterns/event-sourcing-cqrs.md
       - Stream Processing: architecture-patterns/stream-processing.md
       - Serverless vs Containers: architecture-patterns/serverless-vs-containers.md

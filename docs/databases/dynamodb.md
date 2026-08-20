@@ -28,15 +28,28 @@ DynamoDB trades **operational complexity for simplicity**:
 
 ### Partition Key (Required)
 
-Every table has a **partition key** that determines which partition stores the item:
+Every table has a **partition key** that determines which partition stores the item. DynamoDB does **not** expose (or internally use) a fixed 4,096-slot array the way this is sometimes taught — the actual internal partitioning scheme isn't part of DynamoDB's public contract, and the number and boundaries of partitions grow and split dynamically as a table's data size and throughput grow. The model that *is* accurate and useful for reasoning about hot keys:
 
 ```
 Partition key: user_id
 
-user_id="alice" → hash("alice") % 4096 = partition 512
-user_id="bob"   → hash("bob") % 4096 = partition 1840
+AWS hashes the partition key to decide which physical partition an
+item lives on. The number of partitions is NOT fixed — DynamoDB adds
+partitions automatically as a table grows past capacity or storage
+thresholds for its current partition count, and splits an existing
+partition when it outgrows its own throughput ceiling.
 
-AWS stores replicas of partition 512 across 3 nodes (implicit replication factor = 3)
+What IS fixed, and load-bearing for capacity planning: each partition
+has a hard throughput ceiling (~3,000 RCU or 1,000 WCU, whichever is
+hit first) and a storage ceiling (~10GB). Once a table needs more
+capacity than one partition can serve, DynamoDB adds partitions and
+redistributes data across them — you don't control or see this
+directly, but the ceiling per partition is why a single hot key can
+throttle even when the table overall has huge configured capacity.
+
+AWS replicates each partition across multiple Availability Zones for
+durability — the replication factor itself isn't a number DynamoDB
+exposes as a tunable, unlike Cassandra's RF.
 ```
 
 ### Sort Key (Optional)
@@ -172,19 +185,30 @@ Cost: ~$0.25 per million RCU + ~$1.25 per million WCU
 1 million writes: $1.25
 
 If traffic spikes:
-  → Capacity auto-scales
-  → Cost increases, but no throttling
+  → Capacity auto-scales to absorb it, cost increases with usage
+  → BUT on-demand does NOT mean throttling is impossible:
+    - Per-partition throughput still has a hard ceiling (a single
+      partition tops out around 3,000 RCU / 1,000 WCU) — a hot key
+      can still get throttled even on-demand, same failure as
+      provisioned mode, see Part 5
+    - On-demand tables also cap how fast they scale: a table can
+      generally handle up to double its previous peak traffic
+      immediately, but a much larger, sudden spike can still outrun
+      that ramp-up window and throttle until capacity catches up
+    - Account-level and table-level service limits still apply
 ```
 
-**Good for**: unpredictable workloads, spiky traffic, or prototype phases.
+**Good for**: unpredictable workloads, spiky traffic, or prototype phases — but "no throttling" is not a guarantee on-demand gives you; it just removes the need to *provision* capacity in advance.
 
 ### Choosing Between Modes
 
 | Workload | Provisioned | On-Demand |
 |---|---|---|
-| Steady 10K RCU/sec | $470/month | $0.87/day if 10K RCU uniform |
+| Steady 10K RCU/sec | $470/month | ~$216/day (10K reads/sec × 86,400 sec/day = 864M reads/day ÷ 1M × $0.25 ≈ $216/day, ~$6,480/month) |
 | Spiky (0-100K RCU/sec) | Over-provision (pay for 100K) | Auto-scale (pay per request) |
 | Dev/prototype | On-demand (cheap) | On-demand (cheap) |
+
+This is the concrete reason on-demand's per-request pricing crosses over to being *more* expensive than provisioned once traffic is steady and predictable — on-demand's premium buys you not having to forecast capacity, and it's worth paying only while that uncertainty is real. At 10K RCU/sec sustained, provisioned is roughly 14x cheaper; on-demand only wins when traffic is genuinely spiky or unpredictable enough that over-provisioning for the peak would cost even more.
 
 ---
 
@@ -301,12 +325,26 @@ If elon's profile is read 10M times/sec:
   Only cache misses hit DynamoDB
 ```
 
-**Solution 3: Adaptive Sharding**
+**Solution 3: Adaptive Capacity (Not a Full Fix)**
 
 ```
-AWS DynamoDB now has adaptive capacity:
-  If one partition is hot, AWS automatically replicates it
-  (newer feature, not always available)
+AWS DynamoDB's adaptive capacity:
+  Reallocates a table's UNUSED provisioned throughput toward a hot
+  partition, up to that partition's own hard ceiling (~3,000 RCU /
+  1,000 WCU per partition).
+
+What it does NOT do:
+  - Does not replicate or split the hot partition itself
+  - Does not raise the per-partition throughput ceiling
+  - Cannot help once the hot partition is already saturating that
+    ceiling — a single truly hot key (like "elon") can still throttle
+    even with adaptive capacity fully engaged, because the ceiling is
+    per-partition, not per-table
+
+It buys you some headroom when a partition is hot but the table still
+has slack capacity elsewhere — it does not make a single key infinitely
+scalable. Solution 1 (spread the key itself across multiple physical
+partitions) is still the actual fix for a genuinely hot single key.
 ```
 
 ---

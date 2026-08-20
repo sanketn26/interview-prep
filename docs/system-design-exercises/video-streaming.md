@@ -349,9 +349,11 @@ Traces:
 ```
 Transcoding compute (dominant line item #1):
   500K uploads/day x 10 min avg x 5 renditions x ~0.5 CPU-min/min-of-source-per-rendition
-  ≈ 12.5M CPU-minutes/day ≈ ~8,700 CPU-hours/day
-  At ~$0.05/CPU-hour (spot/reserved compute): ~$435/day ≈ ~$13,000/month
-  (GPU-accelerated encoding lowers wall-clock time but shifts, not eliminates, this cost)
+  ≈ 12.5M CPU-minutes/day ≈ ~208,000 CPU-hours/day (12.5M / 60)
+  At ~$0.05/CPU-hour (spot/reserved compute): ~$10,400/day ≈ ~$312,000/month
+  (GPU-accelerated encoding lowers wall-clock time but shifts, not eliminates, this cost —
+  and at this scale, transcoding is a genuinely major cost line, not a rounding error next
+  to CDN egress below)
 
 CDN egress (dominant line item #2):
   3.6 PB/day delivered, blended CDN egress rate ~$0.02/GB at this volume: ~$72,000/day

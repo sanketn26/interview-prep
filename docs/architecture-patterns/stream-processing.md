@@ -102,16 +102,19 @@ If you window by processing time, a GC pause on the stream processor silently sh
 
 ### Watermarks: How Late Is Too Late?
 
-A watermark is a moving marker in event time that means "I believe I have seen all events with a timestamp earlier than this." It is a heuristic, not a guarantee — the engine estimates it, usually as `max event timestamp seen so far - allowed lateness (e.g. 30s)`.
+A watermark is a moving marker in event time that means "I believe I have seen all events with a timestamp earlier than this." It is a heuristic, not a guarantee — the engine estimates it, usually as `max event timestamp seen so far - bounded-out-of-orderness tolerance (e.g. 30s)`. **This bounded-out-of-orderness value and Flink's separate `allowedLateness()` setting are two different knobs, not the same thing** — conflating them is a common mistake, so it's worth being precise about which one does what:
 
 ```
 Events arriving at the operator (event_time, arrival_order):
   (09:00:01, 1st)  (09:00:03, 2nd)  (09:00:02, 3rd, late but within tolerance)
-  (09:00:35, 4th)  →  watermark advances to 09:00:05 (35s - 30s allowed lateness)
-  (09:00:04, 5th, arrives AFTER watermark passed 09:00:05) → too late, dropped or sent to a side output
+  (09:00:35, 4th)  →  watermark advances to 09:00:05 (35s - 30s out-of-orderness bound)
+  (09:00:04, 5th, arrives AFTER watermark passed 09:00:05) → too late for the FIRST
+                    firing; handled per allowedLateness below, not dropped outright
 ```
 
-When the watermark for a window passes the window's end, the engine fires the aggregate — it stops waiting and emits a result. Set allowed lateness too short: correct-looking but wrong results (the straggler never counted). Set it too long: correct results, but every window's output is delayed by that long, which defeats the purpose of streaming in the first place.
+**The out-of-orderness bound controls when a window *first* fires** — the watermark passing the window's end is what triggers the initial aggregate emission. This is the knob that trades latency for completeness: set it too short and the first (and possibly only) result undercounts real stragglers; set it too long and every window's *first* result is delayed by that much, which is the direct latency cost this page keeps coming back to.
+
+**`allowedLateness()` is a separate, additional setting layered on top — it does not delay the first firing at all.** It keeps a window's state alive for extra time *after* the watermark has already triggered that first firing, so that late events arriving within the allowed-lateness period can still update the result — the window re-fires with a corrected total each time a late event lands, instead of the first (possibly incomplete) result being final. Only after the allowed-lateness period elapses does the window actually get purged and any further-late events get dropped or routed to a side output. The two knobs answer different questions: out-of-orderness bound = "how long do I wait before I first commit to an answer," allowedLateness = "how long do I keep listening for corrections after I've already answered." A pipeline can set the out-of-orderness bound aggressively short (fast first result) *and* a generous allowedLateness (still absorbs real stragglers via a later update) — that combination is exactly how you get both low latency and eventual correctness, which isn't available if you treat the two settings as one knob.
 
 ### Windowing
 
@@ -240,7 +243,7 @@ curl http://jobmanager:8081/jobs/<job-id>/vertices/<vertex-id>/backpressure
 
     **Q: What is a watermark?**
 
-    "A heuristic marker saying 'I believe I've seen all events up to this event-time timestamp.' It lets the engine decide when to stop waiting for late data and fire a window's result. Set the allowed lateness too short and you drop real stragglers; too long and every result is delayed by that amount."
+    "A heuristic marker saying 'I believe I've seen all events up to this event-time timestamp.' It lets the engine decide when to stop waiting and fire a window's first result — computed as the max event timestamp seen minus a bounded-out-of-orderness tolerance. Set that tolerance too short and the first result undercounts real stragglers; too long and every window's first result is delayed by that amount. Separately, `allowedLateness` keeps the window open for corrections after that first firing, without delaying it — a short out-of-orderness bound for fast initial results plus a generous allowedLateness for late-arriving corrections gets you both low latency and eventual correctness."
 
 === "Senior"
     **Q: Your Flink job's consumer lag is climbing but CPU usage across the cluster is low. What do you check?**

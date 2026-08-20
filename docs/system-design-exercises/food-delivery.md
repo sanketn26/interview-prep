@@ -209,7 +209,7 @@ graph LR
 ```python
 def place_order(customer_id, restaurant_id, items, address, payment_token):
     payment = payment_service.authorize(customer_id, total(items), payment_token)
-    order = db.insert(status="placed", payment_id=payment.id, ...)
+    order = db.insert(status="placed", payment_id=payment.id, customer_id=customer_id, restaurant_id=restaurant_id)
 
     accept = call_restaurant_sync(restaurant_id, order.id, timeout_s=90)  # blocks the request
     if not accept.accepted:

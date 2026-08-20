@@ -158,28 +158,39 @@ Result: Traffic distributed round-robin across backends
 
 ### Kubernetes with ClusterIP Service + Direct Connection
 
+**A normal (non-headless) ClusterIP Service does not return pod IPs from DNS at all.** `payment.default.svc.cluster.local` resolves to exactly **one** stable virtual IP — the Service's own ClusterIP — every single query, not a rotating pod address:
+
 ```
-Service: payment
+Service: payment (ClusterIP 10.0.0.10)
   Endpoints: 10.0.1.5:50051 (pod-1)
             10.0.1.6:50051 (pod-2)
             10.0.1.7:50051 (pod-3)
 
-DNS resolution (payment:50051 → 10.0.1.5):
-  Every 30 seconds (default TTL)
-  Returns ONE A record (round-robin per query)
-  
-Query 1: payment → 10.0.1.5 → Client creates connection to 10.0.1.5
-Query 2: payment → 10.0.1.6 → (but connection to 10.0.1.5 already cached)
-Query 3: payment → 10.0.1.7 → (no new connection)
+DNS resolution (payment:50051 → ???):
+  Every query returns the SAME answer: 10.0.0.10 (the Service ClusterIP)
+  There is no "round-robin per query" at the DNS layer for ClusterIP —
+  pod selection happens LATER, at the packet/connection level, via
+  kube-proxy's iptables/IPVS rules (see below) — not via DNS.
 
-Result: 100% of traffic on 10.0.1.5 (the first resolved IP)
-        Hotspot on pod-1
+Query 1: payment → 10.0.0.10 → client connects to 10.0.0.10:50051
+Query 2: payment → 10.0.0.10 → same answer, always
+Query 3: payment → 10.0.0.10 → same answer, always
+
+The client's ONE TCP connection to 10.0.0.10 gets NAT'd by kube-proxy
+to exactly one pod IP at connection-setup time (the SYN packet) —
+and then every packet on that connection stays pinned to that pod
+for the connection's lifetime. That's where the hotspot actually
+comes from: not DNS variance, but a single long-lived gRPC connection
+getting NAT'd to one pod once and reused forever.
 ```
 
 **Why this happens:**
-- DNS client-side caching (JVM caches indefinitely by default)
-- gRPC connection reuse (creates one channel, reuses forever)
-- No explicit load balancing
+- ClusterIP DNS is deliberately stable — one name, one IP, so nothing needs to re-resolve on every pod add/remove
+- kube-proxy does the actual pod selection, per new *connection* (not per request) — see the iptables/IPVS sections below
+- gRPC's connection reuse means that one selection, made once at connect time, decides the backend for potentially millions of RPCs multiplexed on that one connection
+
+!!! warning "Headless Services are the exception"
+    A **headless Service** (`clusterIP: None`) is the one case where DNS *does* return individual pod IPs — one A record per ready pod, no ClusterIP or kube-proxy NAT in the path at all. That's the mechanism client-side gRPC load balancing (below) actually depends on: resolve the headless Service name to get the full pod list, then have the gRPC client itself round-robin across them. Confusing the two Service types is the single most common mistake in this area — "DNS round-robin" is real, but only for headless Services, never for ordinary ClusterIP ones.
 
 ### Kubernetes with Service Mesh (Envoy Sidecar)
 
@@ -290,53 +301,42 @@ Configuration:
 
 ## Part 3: Why Traffic Gets Skewed (The Hotspot Problem)
 
-### Scenario: gRPC with DNS + Connection Pooling
+### Scenario: gRPC Through a Normal ClusterIP Service
 
 ```
 Setup:
   3 backend pods
-  10 client pods
+  10 client pods, each talking to a plain ClusterIP Service "payment"
   Each client creates 1 gRPC channel (1 TCP connection)
-  
+
 Expected: 10 * N calls / 3 backends = 3.33N calls per backend
-Actual: 9 * N calls to backend-1, N/2 calls to backend-2, N/2 calls to backend-3
+Actual: could be anywhere from perfectly even to wildly skewed —
+        it depends entirely on kube-proxy's per-CONNECTION selection,
+        not on DNS (every client resolves the exact same ClusterIP).
 
 Why:
-1. DNS returns A records in round-robin (per-query):
-   Client-1 query: payment → 10.0.1.5 (backend-1) → connects
-   Client-2 query: payment → 10.0.1.6 (backend-2) → connects
-   Client-3 query: payment → 10.0.1.7 (backend-3) → connects
-   Client-4 query: payment → 10.0.1.5 (backend-1) → connects
-   ...
-   Client-9 query: payment → 10.0.1.5 (backend-1) → connects (3rd connection)
-   Client-10 query: payment → 10.0.1.6 (backend-2) → connects
+1. All 10 clients resolve "payment" to the SAME ClusterIP (10.0.0.10) —
+   there is no DNS-level variance to reason about here at all.
+2. Each client opens ONE TCP connection to 10.0.0.10. kube-proxy's
+   iptables rules pick a backend pod for that connection at SYN time,
+   using weighted random selection (see the iptables section below) —
+   this is where the actual randomness comes from.
+3. With only 10 connections spread randomly across 3 backends,
+   small-sample variance is entirely plausible without anything being
+   "wrong" — 10 independent coin-weighted picks across 3 buckets does
+   not reliably land near 3.33/3.33/3.33.
 
-2. Result: Backend-1 has connections from clients 1,4,7,10 (but 9 clients map to it)
-   Wait, let me recalculate...
-   
-Actually, DNS round-robin per query:
-   Query 1 → pod-1
-   Query 2 → pod-2
-   Query 3 → pod-3
-   Query 4 → pod-1
-   Query 5 → pod-2
-   ...
-   
-10 clients:
-   Clients 1,4,7,10 → pod-1 (4 clients)
-   Clients 2,5,8 → pod-2 (3 clients)
-   Clients 3,6,9 → pod-3 (3 clients)
+If each client sends 1000 calls on its one connection:
+   A plausible unlucky draw: pod-1 gets 4 connections, pod-2 gets 3,
+   pod-3 gets 3 → pod-1: 4000 calls, pod-2: 3000, pod-3: 3000
+   (1.33x imbalance — small-sample variance in kube-proxy's random
+   pick, not a DNS effect)
 
-If each client sends 1000 calls:
-   pod-1: 4000 calls
-   pod-2: 3000 calls
-   pod-3: 3000 calls
-   
-Unevenness: 4000/3000 = 1.33x imbalance (minor)
-
-But with more variance (if some clients send faster):
-   pod-1 might get 4000, pod-2 2500, pod-3 1500
-   Imbalance: 4000/1500 = 2.67x
+The lesson is the same either way: gRPC's one-connection-per-channel
+model means the unit of load-balancing granularity is "which pod did
+THIS connection land on," not "which pod did this request land on" —
+and with few, long-lived connections, random per-connection selection
+doesn't average out the way per-request selection would.
 ```
 
 ### Real Hotspot Scenario: Client + Backend Affinity
@@ -349,18 +349,23 @@ Setup:
 
 Timeline:
 1. Client pod starts
-2. DNS query for payment → resolves to pod-1 (random selection)
-3. Client creates single channel → connects to pod-1:50051
-4. Client sends 100k requests → all on connection to pod-1
+2. DNS query for payment → resolves to the ClusterIP (same answer every
+   time — no per-query variance; this is not where the randomness is)
+3. Client creates single channel → TCP connects to the ClusterIP;
+   kube-proxy's iptables rule picks ONE backend pod at SYN time
+   (random selection happens here, not at DNS)
+4. Client sends 100k requests → all multiplexed as HTTP/2 streams on
+   that one already-established connection → all land on that one pod
 
 Result:
-   pod-1: 100k requests (100%)
-   pod-2: 0 requests (0%)
-   pod-3: 0 requests (0%)
+   pod-1 (whichever pod kube-proxy happened to NAT the SYN to): 100k requests
+   pod-2: 0 requests
+   pod-3: 0 requests
 
 Why:
-   - gRPC connection pooling (single channel)
-   - DNS caching (channel reused)
+   - gRPC connection pooling (single channel, reused for every RPC)
+   - kube-proxy makes its pod selection ONCE, at connection setup, and
+     that choice is then fixed for the connection's entire lifetime
    - No failover (pod-1 responsive, so connection stays)
 ```
 
@@ -372,9 +377,13 @@ Setup:
   3 backends
   
 Scenario 1 (even clients):
-  Each client distributed to backends (DNS round-robin)
+  Each client's connection lands on a backend via kube-proxy's random
+  per-connection pick (not DNS — DNS gives every client the same
+  ClusterIP)
   Each client makes steady requests
-  → Even distribution (if load per client is balanced)
+  → Roughly even distribution IF the sample of connections is large
+    enough for kube-proxy's randomness to average out, and IF load
+    per client is balanced
 
 Scenario 2 (bursty traffic):
   Client A starts (connects to backend-1)
@@ -726,25 +735,36 @@ conn, _ := grpc.Dial(
 
 ```
 Setup:
-  AWS ALB with target group
+  AWS ALB with target group, HTTP/2 / gRPC listener configured
   Health checks per backend
-  
-ALB routing:
-  Client connection → ALB
-  ALB picks backend round-robin (per new connection)
-  Connection pinned to backend for lifetime
-  
-Result: Even distribution (if clients create connections uniformly)
+
+ALB routing — this is the one place in this page where the
+"connection-pinned" assumption does NOT automatically hold:
+  ALB terminates the client's HTTP/2 connection itself, then parses
+  individual gRPC calls (it understands HTTP/2 framing and can
+  distinguish separate streams within one connection) and can forward
+  each one to a different backend target — i.e. ALB can load-balance
+  PER REQUEST, not just per connection, when configured for gRPC.
+  This is a genuinely different capability from a plain L4 NLB or from
+  kube-proxy's iptables NAT, both of which only see opaque TCP streams
+  and must pin at the connection level because they have no visibility
+  into what's inside it.
+
+Result: Even distribution per-request IS achievable with ALB + gRPC
+        target group configuration — this is not automatically true
+        out of the box, but it's a real, supported ALB feature, unlike
+        NLB/kube-proxy where per-request balancing isn't possible at all.
         Automatic failover (unhealthy backend removed)
 ```
 
 **Pros:**
 - Transparent to application
 - Automatic failover
+- Genuinely per-request load balancing when configured for gRPC — not just per-connection
 
 **Cons:**
 - External LB cost
-- L7 awareness required (HTTP/2)
+- Requires explicit gRPC/HTTP/2 target group configuration to get per-request behavior — a misconfigured ALB (e.g. HTTP/1.1 target group in front of an HTTP/2 backend) falls back to connection-level behavior
 - Not available for on-prem
 
 ### Solution 4: Connection Pooling + Explicit Round-Robin
@@ -812,50 +832,88 @@ conn, _ := grpc.Dial(
 
 ### Tuning: Connection Pool Size
 
+**This is not the same calculation as HTTP/1.1 connection pooling.** For HTTP/1.1, one connection handles one request at a time, so "concurrent requests needed" and "connections needed" are the same number. gRPC over HTTP/2 multiplexes many concurrent RPCs as independent streams on a *single* connection — so the naive formula below massively overcounts how many actual TCP connections (and therefore how many *backend pods*) you need:
+
 ```
-Formula: pool_size = target_rps × per_request_latency × headroom
+Naive (wrong for gRPC) formula: pool_size = target_rps × per_request_latency × headroom
 
 Example:
   Target RPS: 10,000
-  Per-request latency: 50 ms (depends on backend)
-  Headroom: 2 (tolerance for latency variance)
-  
-  pool_size = 10,000 × 0.050 × 2 = 1,000 connections
+  Per-request latency: 50 ms
+  Headroom: 2
+
+  "pool_size" = 10,000 × 0.050 × 2 = 1,000
+  This is the number of CONCURRENT IN-FLIGHT RPCs you need capacity for
+  — NOT the number of TCP connections. A single HTTP/2 connection can
+  multiplex hundreds to low-thousands of concurrent streams (bounded by
+  MAX_CONCURRENT_STREAMS, commonly 100–1000 depending on server config)
+  before you need a second connection at all.
+```
+
+What you actually need to size is **channels for load-balancing spread**, not raw concurrency — the real question is "how many backend pods do I want this traffic spread across," which is a small number (one connection per pod you want to reach, typically single digits to a few dozen), not one connection per unit of target throughput:
+
+```
+Real sizing question: how many backend pods should share this load?
+  If MAX_CONCURRENT_STREAMS per connection = 100, and you need 1,000
+  concurrent in-flight RPCs of headroom, you need at least
+  1,000 / 100 = 10 connections to avoid stream-limit backpressure —
+  and separately, at least that many (or a multiple, for even spread)
+  distinct backend pods to avoid concentrating all 10 connections on
+  too few pods.
 
 Implementation:
-  Option 1: Create 1,000 channels upfront
-  Option 2: Create channels on-demand, up to 1,000
+  Option 1: One channel per backend pod you want in the spread (via a
+            headless Service + client-side round-robin resolver)
+  Option 2: A service mesh sidecar, which handles per-request spread
+            without the app managing channel count at all
 ```
 
 ### Monitoring: Connection Distribution
 
 ```prometheus
-# Measure traffic per backend
+# Measure traffic per backend — grpc_server_handled_total is a COUNTER,
+# not a histogram, so histogram_quantile doesn't apply here at all;
+# histogram_quantile only makes sense against a _bucket metric emitted
+# by a histogram (e.g. grpc_server_handling_seconds_bucket).
 
-histogram_quantile(0.99,
-  rate(grpc_server_handled_total[5m])
-) by (backend)
+# Traffic volume per backend — just the request rate, no quantile:
+sum(rate(grpc_server_handled_total[5m])) by (backend)
 
 # Expected: ~equal (within 10% variance)
 # Bad: One backend 3-4x higher than others
 
-# Check why:
-#   1. DNS resolution (one backend favored in round-robin)
-#   2. Connection reuse (client creating single connection)
+# If you actually want LATENCY per backend (a real use for
+# histogram_quantile), use the histogram's _bucket series instead:
+histogram_quantile(0.99,
+  sum(rate(grpc_server_handling_seconds_bucket[5m])) by (le, backend)
+)
+
+# Check why traffic is uneven:
+#   1. kube-proxy's per-connection pod selection (not DNS — see Part 2)
+#   2. Connection reuse (client creating a single long-lived connection)
 #   3. Backend performance (one backend slower, connections queue)
 ```
 
 ### Monitoring: Connection Count
 
 ```prometheus
-# Count active connections
+# grpc_server_started_total - grpc_server_handled_total gives you
+# IN-FLIGHT RPCs (started but not yet finished) — a proxy for load,
+# but NOT the same thing as active TCP connections. One connection can
+# have hundreds of in-flight streams; this metric can't tell you how
+# many distinct connections are open.
 
-grpc_server_started_total - grpc_server_handled_total
-by (instance)
+sum(grpc_server_started_total - grpc_server_handled_total) by (instance)
 
-# Expected: stable (within 10% variance)
-# Bad: Continuously increasing (connection leak)
+# Expected: stable (within normal variance), tracks concurrent RPC load
+# Bad: Continuously increasing (RPCs not completing — hung streams,
+#      deadlocked handlers, or a genuine backlog building)
 # Bad: Sudden spikes (thundering herd / cascade)
+
+# To actually count active TCP CONNECTIONS, you need a connection-level
+# metric, not an RPC-level one — e.g. Envoy's
+# envoy_cluster_upstream_cx_active, or OS-level `ss -s` / conntrack
+# counts against the target pods.
 ```
 
 ---
@@ -865,7 +923,7 @@ by (instance)
 === "Foundation"
     **Q: You deploy a gRPC service in Kubernetes. Traffic is uneven: 80% to pod-1, 10% each to pod-2 and pod-3. Why?**
     
-    "Most likely: DNS caching. Client resolved 'payment' to pod-1's IP, created a gRPC channel (connection) to that IP, and reuses it for all requests. Since gRPC multiplexes all calls on one connection, all traffic goes to pod-1. Fix: (1) Use service mesh (Envoy sidecar) to load-balance, (2) Create multiple gRPC channels and round-robin between them, (3) Use gRPC's built-in round-robin resolver (not all clients support it), or (4) Disable DNS caching (Java TTL=0)."
+"Most likely: kube-proxy's per-connection pod selection, combined with gRPC's connection reuse — not DNS. A plain ClusterIP Service always resolves to the same virtual IP regardless of which pod ends up serving the request, so DNS isn't where the imbalance comes from. What actually happens: the client opens one TCP connection to the ClusterIP, kube-proxy's iptables/IPVS rule picks one backend pod for that connection at SYN time, and because gRPC multiplexes every subsequent call onto that same connection, all traffic then goes to whichever pod was picked. Fix: (1) Use a service mesh (Envoy sidecar) to load-balance per-request instead of per-connection, (2) switch to a headless Service and use gRPC's client-side round-robin resolver — the client resolves the pod IPs directly and opens a connection to each, (3) or open multiple channels explicitly and round-robin between them at the application layer."
     
     **Q: What's the difference between HTTP/2 and HTTP/1.1 in terms of connection pooling?**
     
@@ -878,7 +936,7 @@ by (instance)
     
     **Q: Your Java service makes gRPC calls to a backend. Traffic shows 100% to one backend pod. How do you fix it?**
     
-    "Three causes: (1) DNS caching (Java caches DNS infinitely by default), (2) gRPC connection reuse, (3) Single gRPC channel. Fixes: (1) Set `java.security.Security.setProperty("networkaddress.cache.ttl", "10")` to cache DNS for 10 seconds, (2) Create multiple gRPC channels (e.g., 10 channels), round-robin between them on each call, (3) Or use service mesh (no code change). Test: Monitor traffic per backend (Prometheus), confirm it's now balanced."
+"Two real causes, and DNS caching is only a factor for the headless-Service client-side-LB approach — it doesn't apply if the client is going through a plain ClusterIP, since every DNS query already returns the same ClusterIP regardless of caching. The two causes that actually matter: (1) gRPC connection reuse — one channel means one underlying TCP connection carries every RPC, and (2) kube-proxy (or the L4/L7 LB in front) makes its pod-selection decision once, at connection setup, then pins to that pod for the connection's life. Fixes: (1) move to a headless Service plus gRPC's built-in round-robin resolver, so the client itself opens a connection per pod and balances across them — here Java's infinite DNS caching would matter, so also set `networkaddress.cache.ttl` to a short value, (2) create multiple gRPC channels explicitly and round-robin between them, or (3) use a service mesh so balancing happens per-request via the sidecar, no code change. Test: Monitor traffic per backend (Prometheus), confirm it's now balanced."
 
 === "Staff"
     **Q: You're running 1000 microservices in Kubernetes with gRPC inter-service communication. 5% of service pairs show 3-4x traffic imbalance. How do you solve this systematically?**
@@ -893,10 +951,10 @@ by (instance)
     1. **HTTP/1.1 pools connections** (many connections, traffic distributed by pool), **HTTP/2 multiplexes on one connection** (all traffic on one connection = hotspot).
     2. **gRPC inherits HTTP/2 behavior:** one channel = one connection = one backend = hotspot. Fix: create multiple channels or use service mesh.
     3. **DNS caching + gRPC reuse = hotspot:** Client resolves DNS once, creates channel to that IP, reuses forever. Result: 100% traffic to one backend.
-    4. **K8s service discovery**: ClusterIP service is DNS entry. DNS resolves to random backend per query (but client-side caching defeats this). Fix: service mesh or client-side LB.
+    4. **K8s service discovery**: a plain ClusterIP Service's DNS name always resolves to the same virtual IP — it never round-robins across pod IPs. Pod selection happens later, at connection setup, via kube-proxy's iptables/IPVS NAT rules. Only a **headless Service** (`clusterIP: None`) returns individual pod IPs from DNS — that's the mechanism client-side gRPC load balancing actually relies on. Fix: service mesh (per-request LB via sidecar) or headless Service + client-side LB (per-connection LB via the client itself).
     5. **kube-proxy iptables/IPVS:** Round-robins per new connection. With gRPC (long-lived connection), that's one backend for entire lifetime.
     6. **L4 LB (NLB):** Sees TCP/gRPC as opaque flows. Pins connection to backend → hotspot.
-    7. **L7 LB (ALB):** Can see HTTP/2, but routing is complex. Still pins connection → hotspot unless explicitly configured.
+    7. **L7 LB (ALB):** Genuinely different from L4 — ALB terminates the client's HTTP/2 connection and can parse individual gRPC calls within it, load-balancing **per-request**, not just per-connection, when the target group is explicitly configured for gRPC/HTTP/2. Without that configuration (e.g. an HTTP/1.1 target group), it falls back to connection-level pinning like an L4 LB.
     8. **Service mesh solves this:** Envoy sidecars load-balance across all backends, automatically. Cost: memory + latency.
     9. **Client-side load balancing:** Multiple connections, round-robin between them. No service mesh, but requires app changes.
     10. **Monitor constantly:** Track connection count and traffic per backend. Hotspots will appear; fix before they cascade.

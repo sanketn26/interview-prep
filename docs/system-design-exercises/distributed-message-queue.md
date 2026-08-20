@@ -71,8 +71,16 @@ Producers:
   Peak (3x): 3M messages/sec
 
 Ingest bandwidth:
-  1M msg/s x 1 KB = ~1 GB/s average, ~3 GB/s peak
-  With RF=3, each byte written 3x (leader + 2 followers) → ~3 GB/s replication traffic average, 9 GB/s peak
+  1M msg/s x 1 KB = ~1 GB/s average, ~3 GB/s peak (this is what the producer
+  sends to the leader — logical ingress, one copy)
+  With RF=3: leader writes 1 copy locally + sends 2 copies to followers.
+  Total physical disk-write volume across the cluster = 3x logical ingress
+  ≈ 3 GB/s average, 9 GB/s peak — but "replication traffic" specifically
+  (the network bytes the leader sends OUT to followers, separate from the
+  producer→leader bytes it already received) is only the 2 follower
+  copies ≈ 2x logical ingress ≈ 2 GB/s average, 6 GB/s peak. Don't double-
+  count the leader's own local write as "replication" — it isn't network
+  traffic, and the 3x figure is total disk-write volume, not network load.
 
 Retention:
   7-day default retention window
@@ -86,7 +94,9 @@ Partitioning:
 Brokers:
   Each broker: ~20 TB usable disk (multiple disks per node), ~500 MB/s sustained disk write budget
   1.8 PB / 20 TB per broker ≈ 90 brokers minimum just for storage
-  9 GB/s peak replication traffic / 500 MB/s per broker ≈ 18 brokers minimum just for write bandwidth
+  9 GB/s peak total disk-write volume (not just network replication —
+  every byte written to disk across the cluster, leader + follower copies)
+  / 500 MB/s per broker ≈ 18 brokers minimum just for write bandwidth
   Storage is the binding constraint here: a cluster of 90-120 brokers at 20 TB each is a realistic target
 
 Consumer fan-out:
@@ -222,8 +232,25 @@ graph TD
 ```
 
 ```python
+import zlib
+
 def choose_partition(key: bytes, num_partitions: int) -> int:
-    return hash(key) % num_partitions  # same key -> same partition, always
+    # NOT Python's built-in hash(): CPython randomizes str/bytes hashing
+    # per-process by default (PYTHONHASHSEED) for DoS-resistance, so
+    # hash(key) % num_partitions would map the SAME key to DIFFERENT
+    # partitions across producer restarts or across separate processes —
+    # exactly the "same key -> same partition, always" guarantee this
+    # function exists to provide would silently break.
+    # Use a stable, seed-independent hash instead. CRC32 (used here, via
+    # Python's stdlib zlib, purely for a self-contained example with no
+    # extra dependency) works fine for this illustration. Kafka's own
+    # Java client does NOT default to CRC32 for partition selection —
+    # its DefaultPartitioner/StickyPartitioner uses Murmur2 specifically
+    # (CRC32 shows up elsewhere in Kafka's protocol, for message
+    # checksums, which is an easy mix-up). If you're actually replicating
+    # Kafka's exact partition-assignment behavior rather than just
+    # building a stable custom hash, use Murmur2 or xxHash, not CRC32.
+    return zlib.crc32(key) % num_partitions  # same key -> same partition, always
 
 def produce(topic: str, key: bytes, value: bytes, acks: str = "all") -> int:
     partition = choose_partition(key, num_partitions(topic))
@@ -366,14 +393,22 @@ Traces:
 ```
 Broker cluster (100 brokers, 20 TB usable disk each, RF=3):   ~$115,000/month (compute + disk)
 Controller quorum (5 small nodes, Raft-based):                 ~$1,500/month
-Cross-AZ replication network transfer (RF=3, ~3 GB/s avg):     ~$12,000/month
+Cross-AZ replication network transfer (RF=3, ~3 GB/s avg):
+  3 GB/s × 2.6M sec/month ≈ 7.8M GB/month
+  AWS bills BOTH sides of an inter-AZ transfer at ~$0.01/GB each (~$0.02/GB total)
+  7.8M GB × $0.02/GB ≈ ~$156,000/month
 Monitoring/metrics pipeline:                                   ~$1,500/month
-Total:                                                          ~$130,000/month
+Total:                                                          ~$274,000/month
+
+Cross-AZ replication is now the single largest line item, ahead of the broker fleet itself —
+worth calling out explicitly in an interview, since it's the cost that's easy to under-budget
+if you only think in terms of "how many brokers do I need for this throughput."
 
 Cost lever: tiered storage (offload segments older than 24h to S3/GCS)
   Local disk needed drops from 7-day retention to ~1-day hot window
   Broker disk requirement drops ~6x → broker count driven by throughput, not storage
-  Estimated savings: ~$25,000/month, at the cost of higher latency reads on old data
+  Estimated savings: ~$25,000/month on the storage line — cross-AZ replication cost is
+  unaffected by tiered storage, since it's driven by write volume, not retention window
 ```
 
 ---

@@ -67,7 +67,7 @@ COMMIT;
 
 Split those three tables across three services and the guarantee evaporates. Now you have three separate calls, any of which can fail — or worse, time out ambiguously. Charge the customer, then fail to reserve inventory, and you have taken money for an order that does not exist.
 
-Two-phase commit exists but is rarely acceptable: it holds locks across services for the duration, and a coordinator crash can block participants indefinitely. So the industry answer is the **saga** — give up atomicity, and instead make every step undoable:
+Two-phase commit exists but is rarely acceptable: it holds locks across services for the duration, and a coordinator crash can block participants indefinitely. See [Distributed Transactions](distributed-transactions.md) for the 2PC/3PC protocol mechanics, XA, and TCC as the lock-free alternative — and the narrow cases where 2PC is still the right call. So the industry answer for most cross-service flows is the **saga** — give up atomicity, and instead make every step undoable:
 
 ```python
 """Saga: a sequence of local transactions, each with a compensating action."""
@@ -148,7 +148,9 @@ The credible interview position: **start with a modular monolith** — clear int
 | Page | Status |
 |------|--------|
 | [Sagas](sagas.md) | Complete — orchestrator simulator |
+| [Distributed Transactions (2PC/3PC/TCC)](distributed-transactions.md) | **Complete** — protocol mechanics, blocking failure mode, XA, TCC, when 2PC is still the right call |
 | [Microservices Communication](microservices-communication.md) | Complete |
+| [API Architectural Styles](api-architectural-styles.md) | **Complete** — REST vs GraphQL vs gRPC vs SOAP vs Webhooks, head-to-head |
 | [Event Sourcing & CQRS](event-sourcing-cqrs.md) | **Complete** — when they earn their complexity, trade-offs, projections, failure modes |
 | [Microservices vs. Monolith](microservices-vs-monolith.md) | **Complete** — antipatterns, real tradeoffs, when to adopt, Netflix case study |
 | [Event-Driven Architecture](event-driven-architecture.md) | **Complete** — notification vs. state-transfer events, choreography vs. orchestration, the distributed-monolith antipattern |
@@ -160,7 +162,11 @@ The credible interview position: **start with a modular monolith** — clear int
 
 [Sagas](sagas.md) covers orchestration vs choreography with a simulator where shipping fails after the card is charged and you watch compensations run. Prerequisites: [distributed systems](../distributed-systems/index.md) for why the ambiguity exists, and [messaging](../messaging/index.md) for the delivery semantics sagas depend on.
 
+[Distributed Transactions](distributed-transactions.md) goes one level deeper than the "why not 2PC" aside above: the actual 2PC/3PC protocol phases, exactly where and why a coordinator crash blocks every participant, XA as 2PC's real-world plumbing (and why it never spans third-party APIs), and TCC as the lock-free, application-level alternative — plus the narrow set of situations (same datacenter, all-internal, intermediate state truly can't be visible) where 2PC is still the right tool.
+
 [Microservices Communication](microservices-communication.md) surveys the eight patterns services use to talk to each other — REST, gRPC, queues, pub/sub, choreography, orchestration, event sourcing + CQRS, and service mesh — and what coupling each one trades away.
+
+[API Architectural Styles](api-architectural-styles.md) puts REST, GraphQL, gRPC, SOAP, and webhooks side by side and answers "which one, for which caller" — including the two this section otherwise only mentions in passing: SOAP's WSDL-contract model for partners you don't fully trust, and webhooks' at-least-once, server-initiated delivery with its own duplicate/ordering/spoofing failure modes.
 
 [Event Sourcing & CQRS](event-sourcing-cqrs.md) explains why you'd store events instead of snapshots, how separate read/write models solve the shape-mismatch problem, when they earn their complexity, projections, snapshots, schema evolution, and production failure modes. Includes e-commerce order system case study and interview progression.
 

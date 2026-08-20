@@ -133,13 +133,14 @@ graph LR
 
 ### Offsets
 
-Every message in a partition has a monotonically increasing **offset**. Consumers track their position by committing the offset of the last processed message.
+Every message in a partition has a monotonically increasing **offset**. Kafka's committed-offset convention is the offset of the **next** record the consumer should read, not the offset of the last one it processed — so after successfully processing the message at offset 5, the consumer commits `6`, and a restart resumes from `6`, not `5` (committing `5` would mean re-reading and reprocessing that same message on restart).
 
 ```
 Partition 0: offset 0, 1, 2, 3, 4, 5, 6...
                                      ↑
-                              Consumer committed here
-                              → on restart, resume from 5
+                        Consumer just processed offset 5
+                        → commits 6 (next record to consume)
+                        → on restart, resume from 6
 ```
 
 **Auto-commit pitfall:** Kafka can auto-commit the offset before the message is actually processed. If the consumer crashes between auto-commit and processing → **message loss**.
@@ -290,7 +291,7 @@ Key metrics:
 === "Senior"
     **Q: How do you handle a hot partition in Kafka?**
 
-    "First, identify the hot key — look at per-partition message rates to see which partition is receiving disproportionate traffic. If it's a specific key (e.g., one large tenant), options are: (1) add a random suffix to the key to distribute across multiple partitions at the cost of losing ordering; (2) create a separate topic for that tenant; (3) handle the hot key at the application level — deduplicate or aggregate before producing. I'd also monitor consumer CPU for the hot partition's consumer and potentially create a separate consumer group for it with more dedicated resources."
+    "First, identify the hot key — look at per-partition message rates to see which partition is receiving disproportionate traffic. If it's a specific key (e.g., one large tenant), options are: (1) add a random suffix to the key to distribute across multiple partitions at the cost of losing ordering; (2) create a separate topic for that tenant; (3) handle the hot key at the application level — deduplicate or aggregate before producing. One thing that does NOT help: creating a separate consumer group for that partition — a new consumer group gets its own independent copy of the entire topic's data (every group tracks its own offsets and reads everything), it doesn't add processing capacity to a specific partition within the original group. Since exactly one consumer *within a group* can read a given partition at a time, the only way to add parallelism to a single hot partition without splitting the key itself is to split that partition's data across more partitions (options 1/2 above) — you can't just throw more consumers at one partition within the same group, and a second group duplicates work rather than sharing it."
 
 === "Staff"
     **Q: We're migrating from 3 to 30 partitions for a critical topic. What are the risks?**

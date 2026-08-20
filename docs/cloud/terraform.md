@@ -46,7 +46,7 @@ flowchart LR
 
 The state file is Terraform's memory — a JSON record mapping your config's resource names to real-world resource IDs, plus every attribute Terraform knows about them. Lose it, and Terraform has no idea what it created; it will try to create everything again, colliding with resources that already exist.
 
-**Why this becomes a production incident:** state files by default live on local disk. Two engineers running `terraform apply` from their own laptops have two different beliefs about reality, and the second `apply` overwrites the first person's state — silently orphaning whatever they created.
+**Why this becomes a production incident:** state files by default live on local disk. Two engineers running `terraform apply` from their own laptops each have their own local state file — the files themselves never touch or overwrite each other, since they're just separate files on separate machines. The actual damage happens against the **real infrastructure**, independently of the state files ever colliding: Engineer A applies, creates resource X, and their local state now reflects that. Engineer B's local state has no idea X exists — B's `plan` sees a gap between their (stale) state and their config, and `apply` can create a *second* copy of X, or, if B's config happened to reference the same resource name/identity, attempt to modify or destroy what A just created. Either way you end up with duplicated resources nobody has a single source of truth for, or one engineer's work getting silently clobbered by the other's apply — not because the state files overwrote each other, but because two independent, out-of-sync beliefs about reality both got to act on that same reality.
 
 ```mermaid
 flowchart TB
@@ -56,13 +56,13 @@ flowchart TB
         S1 -.conflicts with.-> S2
     end
     subgraph Right["Remote state — the fix"]
-        E3[Engineer A] --> RS[(Remote backend: S3 + DynamoDB lock)]
+        E3[Engineer A] --> RS[(Remote backend: S3 with native locking,<br/>or legacy S3 + DynamoDB lock table)]
         E4[Engineer B] --> RS
         RS -->|lock held, B waits| E4
     end
 ```
 
-The fix: a **remote backend** (S3+DynamoDB, Terraform Cloud, GCS) that both centralizes the state file and provides **locking** — a second `apply` blocks while one is in flight, instead of racing it.
+The fix: a **remote backend** (S3, Terraform Cloud, GCS) that both centralizes the state file and provides **locking** — a second `apply` blocks while one is in flight, instead of racing it. Historically, S3-backed locking required a separate DynamoDB table (`dynamodb_table` in the backend config) to hold the lock, since S3 itself had no native compare-and-swap primitive. Terraform 1.10+ added **native S3 locking** using S3's own conditional-write support, so a DynamoDB table is no longer required for new S3 backends — treat the S3+DynamoDB pairing as the legacy pattern you'll still encounter in existing infrastructure, not the current recommended default for a fresh setup.
 
 !!! warning "Production trap"
     State files contain resource attributes in plaintext, including things like initial database passwords set via a resource argument. A local or improperly-permissioned remote state file is a secrets leak waiting to be discovered. Restrict who can read the state backend the same way you'd restrict who can read a secrets manager.

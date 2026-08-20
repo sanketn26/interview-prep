@@ -405,7 +405,9 @@ Load balancer tier in front of gateway:                    ~$400/month
 Total:                                                       ~$2,400/month
 
 Cost per million requests:
-  $2,400 / (150K rps x 2.6M sec/month) ~= $0.0000062 per request
+  Monthly request volume: 150K rps x 2.6M sec/month = 390 billion requests/month
+  $2,400 / 390,000,000,000 requests ~= $0.0000000062 per request (6.2 x 10^-9)
+  ~= $0.0062 per million requests
   Aggregation endpoints cost ~3x more per request (3 backend calls) --
   worth tracking per-route cost if BFF traffic grows disproportionately
 ```

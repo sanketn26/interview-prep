@@ -9,7 +9,7 @@ prerequisites:
 
 **Prerequisites:** [Stateless vs Stateful Applications](stateless-vs-stateful.md)
 
-[← Stateless vs Stateful](stateless-vs-stateful.md) | [Next: System Design Framework →](framework.md)
+[← Stateless vs Stateful](stateless-vs-stateful.md) | [Next: System Design Framework →](framework.md) | See also: [API Architectural Styles](../architecture-patterns/api-architectural-styles.md) for how REST and GraphQL compare against gRPC, SOAP, and webhooks
 
 ---
 
