@@ -417,6 +417,41 @@ class MoveValidator:
         return False
 ```
 
+```mermaid
+sequenceDiagram
+    participant V as MoveValidator
+    participant M as Move (Command)
+    participant B as Board
+    participant P as Piece (mover)
+    participant C as captured Piece
+
+    Note over V,C: execute() — capture pre-move state, then mutate the board
+    V->>M: execute(board)
+    activate M
+    M->>M: piece_had_moved = piece.has_moved
+    M->>B: move_piece(from_pos, to_pos)
+    B->>B: pop piece at from_pos
+    B->>B: captured = grid.get(to_pos)
+    B->>B: grid[to_pos] = piece
+    B->>P: piece.has_moved = True
+    B-->>M: captured (or None)
+    M->>M: captured_piece = captured
+    M->>M: captured_had_moved = captured.has_moved if captured else False
+    deactivate M
+
+    Note over V,C: undo() — restore exactly what execute() captured
+    V->>M: undo(board)
+    activate M
+    M->>B: grid.pop(to_pos)
+    M->>B: grid[from_pos] = piece
+    M->>P: piece.has_moved = piece_had_moved
+    alt captured_piece is not None
+        M->>B: grid[to_pos] = captured_piece
+        M->>C: captured_piece.has_moved = captured_had_moved
+    end
+    deactivate M
+```
+
 Only Rook, Bishop/Queen (which reuse the same sliding-move helper), Knight, and Pawn are shown as fully distinct shapes — `King`'s raw movement is one more `OFFSETS` list in the same pattern as `Knight`, and castling, promotion, and en passant are each a thin special case layered on top of `MoveValidator`/`Move` rather than a change to any `Piece.valid_moves` implementation.
 
 ---

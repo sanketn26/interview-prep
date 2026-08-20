@@ -111,6 +111,22 @@ classDiagram
     Elevator --> ElevatorState
 ```
 
+```mermaid
+stateDiagram-v2
+    [*] --> IDLE
+    IDLE --> MOVING_UP : add_stop(floor > current_floor)
+    IDLE --> MOVING_DOWN : add_stop(floor < current_floor)
+    MOVING_UP --> MOVING_UP : step() [more stops above]
+    MOVING_DOWN --> MOVING_DOWN : step() [more stops below]
+    MOVING_UP --> DOORS_OPEN : step() [current_floor in stops]
+    MOVING_DOWN --> DOORS_OPEN : step() [current_floor in stops]
+    MOVING_UP --> MOVING_DOWN : step() [no stop ahead, one behind]
+    MOVING_DOWN --> MOVING_UP : step() [no stop ahead, one behind]
+    DOORS_OPEN --> MOVING_UP : step() [stops remain, next is above]
+    DOORS_OPEN --> MOVING_DOWN : step() [stops remain, next is below]
+    DOORS_OPEN --> IDLE : step() [no stops remain]
+```
+
 **Why `Dispatcher` is a separate class from `Elevator`:** an individual `Elevator` should only know how to move itself and manage its own stop set — it should not know how to compare itself against sibling elevators to decide who "wins" a request. That comparison logic is a different responsibility ([SRP](../low-level-design/solid-principles.md#s-single-responsibility-principle)) and belongs to the `Dispatcher`, with the actual comparison algorithm pulled out one level further into `SchedulingStrategy`.
 
 ---

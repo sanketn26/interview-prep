@@ -268,6 +268,36 @@ Phone A sends → persist → ACK to A
              → RECV to Tablet of B when it next connects (catch-up GET after_seq)
 ```
 
+```mermaid
+sequenceDiagram
+    participant A as Phone A (sender)
+    participant MS as Message Service
+    participant Store as Chat Store
+    participant B as Phone B (online)
+    participant WebA as Web A (sender's other device)
+    participant TabB as Tablet B (offline)
+
+    A->>MS: SEND { conv_id, payload }
+    MS->>Store: persist, assign seq
+    Store-->>MS: server_msg_id, seq
+    MS-->>A: ACK { server_msg_id, seq }
+
+    par fan out to online sessions
+        MS->>B: RECV { server_msg_id, seq, payload }
+        MS->>WebA: RECV { server_msg_id, seq, payload } (echo to sender's other device)
+    and
+        note over TabB: offline — not connected, message queued
+        MS->>Store: increment unread for Tablet B's cursor
+    end
+
+    note over TabB: later, Tablet B connects
+    TabB->>MS: GET /catch-up?conv_id=...&after_seq=Tablet B's last_seq
+    MS->>Store: fetch messages where seq > after_seq
+    Store-->>MS: missed messages (including this one)
+    MS-->>TabB: RECV [messages...] (catch-up)
+    TabB->>MS: advance delivery cursor to latest seq
+```
+
 Do not store “delivered” as a single boolean on the message. Store receipts per device or at least per user; multi-device read receipts are a product decision (WhatsApp: read on one device reads for the account).
 
 ---

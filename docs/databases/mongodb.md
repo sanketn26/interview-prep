@@ -224,6 +224,19 @@ Primary writes: INSERT order(id=1, amount=100)
 Replicas: apply INSERT operation
 ```
 
+```mermaid
+flowchart TB
+    App["Application"] -->|"writes"| Primary[("Primary")]
+    App -->|"reads (readPreference)"| Primary
+    App -.->|"reads (secondary/nearest)"| R1
+    App -.->|"reads (secondary/nearest)"| R2
+    Primary -->|"oplog stream"| R1[("Replica-1")]
+    Primary -->|"oplog stream"| R2[("Replica-2")]
+    R1 <-.->|"heartbeat / election"| R2
+    R1 <-.->|"heartbeat / election"| Primary
+    style Primary fill:#1b5e20,color:#fff
+```
+
 ### Read Preferences
 
 You can read from replicas to reduce load on primary:
@@ -274,6 +287,21 @@ Mongos (router):
   Query: "find all users"
   → broadcasts to all shards, merges results
 ```
+
+```mermaid
+flowchart TB
+    App["Application"] --> Mongos["mongos router"]
+    Mongos -.->|"scatter-gather:<br/>find all users"| S1
+    Mongos -.->|"scatter-gather:<br/>find all users"| S2
+    Mongos -.->|"scatter-gather:<br/>find all users"| S3
+    Mongos ==>|"targeted: _id = 5,000,000"| S2["Shard-2 (replica set)<br/>_id 3,000,001–6,000,000"]
+    S1["Shard-1 (replica set)<br/>_id 1–3,000,000"]
+    S3["Shard-3 (replica set)<br/>_id 6,000,001–9,000,000"]
+    CFG[("Config servers<br/>chunk metadata")] -.-> Mongos
+    style S2 fill:#1b5e20,color:#fff
+```
+
+A query with the shard key (`_id = 5,000,000`) routes to exactly one shard. A query without it (`find all users`) fans out to every shard and merges results — the same scatter-gather cost as generic sharding.
 
 ### Shard Keys
 

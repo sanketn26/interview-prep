@@ -199,6 +199,30 @@ Outbox pattern:
      marks row published (or deletes it)
 ```
 
+```mermaid
+sequenceDiagram
+    participant App as Order Service
+    participant DB as Database
+    participant Poller as Poller / CDC
+    participant Broker as Message Broker
+
+    App->>DB: BEGIN TRANSACTION
+    App->>DB: INSERT order
+    App->>DB: INSERT outbox row (order.placed)
+    App->>DB: COMMIT
+    Note over DB: Atomic — order + outbox row committed<br/>together, or neither is
+
+    loop poll interval (or CDC reading the WAL)
+        Poller->>DB: SELECT * FROM outbox WHERE published = false
+        DB-->>Poller: unpublished rows
+        Poller->>Broker: publish("order.placed", row)
+        Broker-->>Poller: ack
+        Poller->>DB: mark row published (or delete)
+    end
+
+    Note over Poller,Broker: Publish is at-least-once and retryable —<br/>a crash here just retries next poll, never risks<br/>"order saved, event lost forever"
+```
+
 Because steps 2 and 3 are in the *same database transaction*, they're atomic together — either both happen or neither does. The publish to the broker becomes an at-least-once, retryable, decoupled step that can fail and be retried without ever risking "order saved but event never sent." Consumers downstream then need to be idempotent anyway (the outbox publisher is itself at-least-once), which ties back to idempotent consumers above.
 
 Two common implementations: a **polling publisher** that scans `outbox_table WHERE published = false` on an interval, or **CDC (change data capture)** via something like Debezium reading the DB's write-ahead log and streaming inserts directly to Kafka — lower latency, no polling overhead, more moving parts.

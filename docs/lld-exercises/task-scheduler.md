@@ -106,6 +106,21 @@ classDiagram
     TaskQueue o-- Task : holds references while ready/pending
 ```
 
+```mermaid
+stateDiagram-v2
+    [*] --> Pending : submit() [run_at in future]
+    [*] --> ReadyQueue : submit() [already due]
+    Pending --> ReadyQueue : promoter thread\npromotes at run_at
+    Pending --> Cancelled : cancel() [lazy flag]
+    ReadyQueue --> Cancelled : cancel() [lazy flag]
+    ReadyQueue --> Running : worker pop_ready()
+    Cancelled --> [*] : skipped on pop (lazy deletion)
+    Running --> Done : fn() returns
+    Running --> Done : fn() raises\n(isolated, logged)
+    Done --> Pending : reschedule_recurring()\n[interval_seconds set]
+    Done --> [*] : [not recurring]
+```
+
 **Why a min-heap keyed on `(scheduled_time, priority, submitted_seq)`, and not a plain FIFO queue or a plain priority queue alone:**
 
 - A **plain FIFO queue** loses priority entirely — a `priority=10` task submitted after a `priority=1` task would still run second. That directly violates "higher-priority tasks execute before lower-priority ones."

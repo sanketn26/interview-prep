@@ -98,6 +98,33 @@ OrderPlaced → InventoryService reserves stock → StockReserved
   → NotificationService emails confirmation
 ```
 
+```mermaid
+sequenceDiagram
+    participant U as Caller
+    participant O as OrderService
+    participant I as InventoryService
+    participant P as PaymentService
+    participant S as ShippingService
+    participant N as NotificationService
+
+    Note over U,S: Direct call — one call stack, one place to look
+    U->>O: place_order()
+    O->>I: reserve()
+    I->>P: charge()
+    P->>S: ship() ❌ throws
+    Note over U,S: Exception propagates straight back up the SAME stack trace
+
+    Note over O,N: Choreographed fan-out — no stack, only independent subscriptions
+    O->>O: publish OrderPlaced  (no trace_id attached!)
+    O-->>I: OrderPlaced
+    I-->>I: reserve, publish StockReserved
+    I-->>P: StockReserved
+    P-->>P: charge, publish PaymentCaptured
+    P-->>N: PaymentCaptured
+    Note over S: ShipmentScheduled never fires — no caller,<br/>no stack, nothing points at why
+    Note over O,N: Without a trace_id on every event, "charged but never<br/>shipped" has no single log to grep — reconstruction across 4 services
+```
+
 **Nobody wrote this sequence down.** It emerged from five services each independently subscribing to the event that precedes their own reaction. This is the architecture's core tension:
 
 ```

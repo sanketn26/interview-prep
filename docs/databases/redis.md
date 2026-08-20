@@ -220,6 +220,28 @@ Slot 5461 → Master-1 (primary)
             Replica-1-1, Replica-1-2 (backups)
 ```
 
+```mermaid
+flowchart TB
+    subgraph M1G["Shard 1 — slots 0-5460"]
+        Ma1[("Master-1")] -->|"async replication"| Ra1[("Replica-1-1")]
+        Ma1 -->|"async replication"| Ra2[("Replica-1-2")]
+    end
+    subgraph M2G["Shard 2 — slots 5461-10922"]
+        Ma2[("Master-2")] -->|"async replication"| Rb1[("Replica-2-1")]
+        Ma2 -->|"async replication"| Rb2[("Replica-2-2")]
+    end
+    subgraph M3G["Shard 3 — slots 10923-16383"]
+        Ma3[("Master-3")] -->|"async replication"| Rc1[("Replica-3-1")]
+        Ma3 -->|"async replication"| Rc2[("Replica-3-2")]
+    end
+    Client["Client"] -->|"key: user:1<br/>hash → slot 5461"| Ma1
+    style Ma1 fill:#1b5e20,color:#fff
+    style Ma2 fill:#1b5e20,color:#fff
+    style Ma3 fill:#1b5e20,color:#fff
+```
+
+Each master owns a contiguous slice of the 16,384 hash slots and replicates asynchronously to its own replicas; a client hashes the key to find the owning slot, then routes directly to that shard's master.
+
 **Cost**: Complexity. Operations becomes harder (no transparent failover, multi-key transactions limited).
 
 ---

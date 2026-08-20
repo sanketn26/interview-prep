@@ -284,6 +284,39 @@ class NotificationService:
 
 ## 8. Concurrency
 
+```mermaid
+sequenceDiagram
+    participant O as OrderService
+    participant N as NotificationService
+    participant Pr as UserPreferences
+    participant Pool as ThreadPoolExecutor
+    participant E as EmailChannel
+    participant S as SmsChannel
+    participant Pu as PushChannel
+
+    O->>N: publish(event)
+    activate N
+    N->>N: acquire _lock, check _seen_event_ids
+    N->>N: channels = list(_subscribers[event_type])
+    N->>N: release _lock
+    N->>N: rendered = template.render(event.data)
+    N->>Pr: prefs.is_enabled(event_type, channel.name) per channel
+    Pr-->>N: eligible = [EmailChannel, SmsChannel, PushChannel]
+    N->>Pool: submit(_safe_send, EmailChannel, ...)
+    N->>Pool: submit(_safe_send, SmsChannel, ...)
+    N->>Pool: submit(_safe_send, PushChannel, ...)
+    par fan-out, concurrent
+        Pool->>E: send(user_id, rendered)
+    and
+        Pool->>S: send(user_id, rendered)
+    and
+        Pool->>Pu: send(user_id, rendered)
+    end
+    Pool-->>N: results as_completed()
+    N-->>O: dict[channel_name, bool]
+    deactivate N
+```
+
 Two distinct concurrency concerns, and they're solved differently.
 
 **Fan-out to channels for one event.** `_dispatch` submits every eligible channel's `send()` to a `ThreadPoolExecutor` and gathers results with `as_completed`, rather than looping and calling `send()` synchronously one channel at a time. If `SmsChannel.send()` blocks for 2 seconds on a slow gateway and it ran first in a serial loop, email and push for the *same event* would wait behind it for no reason — see [Concurrency Basics — Race Conditions](../low-level-design/concurrency-basics.md#race-conditions) for why "looks safe because it's sequential" is itself a common source of latency bugs, not just correctness bugs. Concurrent dispatch removes that head-of-line blocking.

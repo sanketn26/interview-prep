@@ -263,6 +263,20 @@ def can_finish(num_courses: int, prerequisites: list[list[int]]) -> bool:
 
 ## Tree-Specific Traversals
 
+```
+Tree:
+        1
+       / \
+      2   3
+     / \
+    4   5
+
+pre-order   (Root → L → R):  1 2 4 5 3    — visit before descending (serialization)
+in-order    (L → Root → R):  4 2 5 1 3    — sorted order on a BST
+post-order  (L → R → Root):  4 5 2 3 1    — visit after both subtrees (safe deletion)
+level-order (BFS, layer by layer): 1 2 3 4 5
+```
+
 ```python
 class TreeNode:
     def __init__(self, val, left=None, right=None):

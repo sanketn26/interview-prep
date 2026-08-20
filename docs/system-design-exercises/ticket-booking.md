@@ -259,6 +259,40 @@ def confirm_hold(hold_id, payment_token) -> str:
 
 This is correct — the conditional `UPDATE ... WHERE status='available'` is atomic per row, so two concurrent holds on the same seat can't both succeed. Ship it for a small venue with modest traffic. Then find the actual bottleneck before adding anything.
 
+The same CAS discipline is what keeps `confirm_hold` correct under concurrency. Two racing confirms for the *same* hold (double-tap, retried request) and a concurrently running sweeper all target the same `active -> payment_pending` transition — only one of the three can win it:
+
+```mermaid
+sequenceDiagram
+    participant C1 as Confirm call #1
+    participant C2 as Confirm call #2
+    participant DB as holds table
+    participant SW as Sweeper (TTL scan)
+
+    note over DB: hold_id=h_9f2a, status='active', expires_at=t+10m
+
+    par racing confirms
+        C1->>DB: UPDATE holds SET status='payment_pending'\nWHERE hold_id=h_9f2a AND status='active' AND expires_at>now()
+    and
+        C2->>DB: UPDATE holds SET status='payment_pending'\nWHERE hold_id=h_9f2a AND status='active' AND expires_at>now()
+    end
+
+    DB-->>C1: rowcount=1 (won the CAS)
+    DB-->>C2: rowcount=0 (status already 'payment_pending')
+    C2->>C2: raise Gone("already being confirmed")
+
+    par sweeper runs concurrently
+        SW->>DB: UPDATE holds SET status='expired'\nWHERE status='active' AND expires_at<now() LIMIT 1000
+        note over SW,DB: h_9f2a is now 'payment_pending', not 'active' —\nsweeper's WHERE clause excludes it, so it can't\nreclaim a seat while C1's charge is in flight
+    end
+
+    C1->>C1: charge(payment_token, idempotency_key=hold:h_9f2a)
+    C1->>DB: UPDATE holds SET status='confirmed'\nWHERE hold_id=h_9f2a AND status='payment_pending'
+    DB-->>C1: rowcount=1
+    note over C1,DB: seat marked sold, booking row inserted
+```
+
+The invariant that makes this safe: `payment_pending` is a state only `confirm_hold` ever writes into and out of, and the sweeper's query never matches it. Whichever caller wins the first CAS effectively holds an exclusive lease on charging the card and finishing the booking; the loser and the sweeper are both locked out by the same `WHERE status='active'` / `WHERE status='payment_pending'` predicates, not by an explicit mutex.
+
 ---
 
 ## 9. Identify the bottleneck

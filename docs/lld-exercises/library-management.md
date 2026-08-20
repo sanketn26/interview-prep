@@ -368,6 +368,32 @@ Two members calling `checkout()` for the same title at the same instant, with ex
 
 **Why per-copy locking, not one lock around the whole `Library`:** two members checking out *different* titles shouldn't block on each other. Locking at `BookCopy` granularity lets unrelated checkouts proceed concurrently — see [Locks](../low-level-design/concurrency-basics.md#locks).
 
+```mermaid
+sequenceDiagram
+    participant M as Member (return)
+    participant L as Library
+    participant Q as reservation queue (deque)
+    participant C as BookCopy
+
+    M->>L: return_copy(loan)
+    activate L
+    L->>L: _hand_off_copy(copy)
+    L->>L: acquire Library._lock
+    L->>Q: peek queue[0] for copy.book.isbn
+    L->>C: mark_available()
+    alt queue non-empty
+        L->>C: try_claim_for_hold()
+        C-->>L: True [AVAILABLE -> ON_HOLD]
+        L->>Q: popleft() the claimed reservation
+        L->>L: reservation.status = READY_FOR_PICKUP
+        L->>M: _notify(reservation, copy)
+    else queue empty
+        Note over L,C: copy stays AVAILABLE for general checkout
+    end
+    L->>L: release Library._lock
+    deactivate L
+```
+
 A second, subtler race lives in `_hand_off_copy()`: returning a copy while the reservation queue is non-empty involves *two* pieces of shared state — the queue itself and the copy's status — and they must change together. If popping the queue and claiming the copy were two separate locked operations, a window opens where a concurrent `checkout()` call could steal the just-returned copy via `try_checkout()` between the two steps, leaving the popped reservation "fulfilled" against a copy that's actually in someone else's hands. The fix is holding `Library._lock` across the read-queue-then-claim-copy sequence, so the pop and the claim are one atomic unit — not per-copy locking here, because the invariant being protected ("this copy and this queue move together") spans two objects, not one.
 
 ---

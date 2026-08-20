@@ -25,6 +25,31 @@ The root cause is almost always **connection pooling + load balancer + service d
 
 ## Part 1: Connection Model Fundamentals
 
+```mermaid
+flowchart TB
+    subgraph H1["HTTP/1.1 — pooled connections"]
+        C1[Client] -->|conn 1| B1[Backend 1]
+        C1 -->|conn 2| B2[Backend 2]
+        C1 -->|conn 3| B3[Backend 3]
+    end
+
+    subgraph H2["HTTP/2 — one connection, many streams"]
+        C2[Client] -->|"conn (streams 1..N)"| B4[Backend 1]
+        B5[Backend 2]:::idle
+        B6[Backend 3]:::idle
+    end
+
+    subgraph G["gRPC over HTTP/2 — channel reuse"]
+        C3[Client] -->|"1 channel, 1000s of RPCs as streams"| B7[Backend 1]
+        B8[Backend 2]:::idle
+        B9[Backend 3]:::idle
+    end
+
+    classDef idle fill:none,stroke-dasharray: 3 3
+```
+
+Streams multiplex onto one connection; connections pin to one backend. HTTP/1.1 spreads load because it opens several connections. HTTP/2 and gRPC concentrate load because they deliberately reuse one — that's the root of the hotspot problem this page works through.
+
 ### HTTP/1.1
 
 ```
@@ -157,6 +182,22 @@ Result: 100% of traffic on 10.0.1.5 (the first resolved IP)
 - No explicit load balancing
 
 ### Kubernetes with Service Mesh (Envoy Sidecar)
+
+```mermaid
+sequenceDiagram
+    participant App as App container
+    participant LE as Local Envoy sidecar
+    participant PE as Peer Envoy sidecar
+    participant Pod as Backend pod
+
+    App->>LE: request to localhost:50051
+    LE->>LE: pick endpoint (round-robin, health-checked)
+    LE->>PE: forward over mesh (mTLS)
+    PE->>Pod: deliver to app container
+    Pod-->>PE: response
+    PE-->>LE: response (mTLS)
+    LE-->>App: response
+```
 
 ```
 Client pod:
@@ -505,6 +546,21 @@ semaphore := make(chan struct{}, maxConnectionsPerClient)
 ## Part 6: Production Failure Modes and Recovery
 
 ### Failure Mode 1: Slow Backend Cascades Through gRPC
+
+```mermaid
+sequenceDiagram
+    participant C as Clients (x10)
+    participant A as Backend A
+    participant B as Backend B/C (idle)
+
+    Note over A: GC pause (500ms)
+    C->>A: requests queue up (all 10, same connection)
+    A--xC: timeout (no response in time)
+    C->>A: retry (same connection, same backend)
+    Note over A: CPU spikes handling retries + backlog
+    A--xC: cascading failure
+    Note over B: never receives traffic — no failover without multiple connections
+```
 
 ```
 Setup:

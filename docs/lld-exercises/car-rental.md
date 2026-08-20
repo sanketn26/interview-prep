@@ -124,6 +124,17 @@ classDiagram
     Vehicle --> VehicleStatus
 ```
 
+```mermaid
+stateDiagram-v2
+    [*] --> HELD : reserve()
+    HELD --> PICKED_UP : pick_up()\n(binds a Vehicle, starts a Rental)
+    HELD --> CANCELLED : cancel()
+    HELD --> NO_SHOW : start_date passes, never picked up\n(v1 gap — no automatic sweep, see Edge Cases)
+    PICKED_UP --> [*] : return_vehicle()\n(closes the Rental; reservation stays PICKED_UP)
+    CANCELLED --> [*]
+    NO_SHOW --> [*]
+```
+
 **Why `Branch *-- Vehicle` is composition, but `Vehicle.current_branch` still changes over time:** a vehicle is physically located at exactly one branch at any instant and is meaningless outside some branch's fleet — that's the composition test from [Class Relationships](../low-level-design/solid-principles.md#class-relationships-uml-basics). What's *unusual* compared to [Parking Lot](parking-lot.md)'s simpler composition (`Level *-- ParkingSpot`, spots never move levels) is that a one-way rental moves a `Vehicle` from one composing `Branch` to another as a side effect of `return_vehicle()`. This is still composition, not aggregation — the vehicle doesn't "outlive" branch ownership the way a `Ticket` outlives being tracked by a lot — but it's composition with a **transfer operation**: `return_vehicle` must remove the vehicle from the pickup branch's fleet and add it to the return branch's fleet atomically, or the vehicle would transiently appear in neither (or both) fleets. That's the one real structural twist this problem has over parking-lot's model.
 
 **Why `Reservation` doesn't reference a `Vehicle` directly:** at booking time, the customer is guaranteed a *category*, not a specific VIN — which specific car they get is decided at `pick_up()`, when a concrete vehicle from that branch's fleet is bound. This mirrors why `search_availability` counts by category rather than checking individual vehicles one by one (see Patterns Applied below). `Rental` is the class that finally holds a real `Vehicle` reference.

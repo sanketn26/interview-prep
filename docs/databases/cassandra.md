@@ -78,6 +78,21 @@ Now any of the 3 nodes can serve reads. If Node-2 crashes:
   → No data loss
 ```
 
+```mermaid
+flowchart TB
+    subgraph Ring["Hash Ring — RF = 3"]
+        N1["Node-1<br/>range 0–43"] --> N2["Node-2<br/>range 43–86"]
+        N2 --> N3["Node-3<br/>range 86–0"]
+        N3 --> N1
+    end
+    W["Write user_123<br/>hash = 50 → Node-2's range"] --> N2
+    N2 -->|replica 1| N3
+    N2 -->|replica 2| N1
+    style N2 fill:#1b5e20,color:#fff
+```
+
+`user_123` hashes into Node-2's range, so Node-2 is the coordinator/primary for that key; walking clockwise around the ring places replica 1 on Node-3 and replica 2 on Node-1 — the same "next N-1 nodes clockwise" rule consistent hashing uses everywhere.
+
 ---
 
 ## Part 2: Quorum Consistency
@@ -254,6 +269,32 @@ Node-1 crashes:
 Node-1 recovers:
   Gossip resumes
   Hinted handoff: replicas replay data written while Node-1 was down
+```
+
+```mermaid
+sequenceDiagram
+    participant N1 as Node-1
+    participant N2 as Node-2
+    participant N3 as Node-3
+
+    loop Every ~1s
+        N1->>N2: gossip heartbeat (version 10)
+        N2->>N3: gossip heartbeat (version 10)
+        N3->>N1: gossip heartbeat (version 10)
+    end
+
+    Note over N1: Node-1 crashes
+    N2--xN1: no heartbeat received
+    N3--xN1: no heartbeat received
+    Note over N2,N3: ~30s of silence → cluster marks Node-1 down
+
+    par Writes continue against replicas
+        N2->>N2: write "user_123", store hint for Node-1
+    end
+
+    Note over N1: Node-1 recovers, rejoins gossip
+    N2->>N1: hinted handoff — replay stored writes
+    Note over N1: Node-1 caught up, consistent again
 ```
 
 ### Hinted Handoff

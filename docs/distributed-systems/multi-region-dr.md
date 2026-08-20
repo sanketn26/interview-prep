@@ -122,6 +122,28 @@ Failover gets the attention because it's the dramatic, time-pressured half. **Fa
 - Failback in the DC-as-DR-target direction is often manual and untested, because DR drills tend to test failover (the scary direction) and skip failback (the "we'll figure it out" direction) — which means the first real failback is happening under the additional pressure of "we've now been running degraded for however long the DR window lasted."
 - **The only credible claim is "we've tested failover *and* failback, on a schedule."** "We have a replica" and "we have successfully failed over and back within our RTO in the last quarter" are different claims, and only the second one is evidence.
 
+```mermaid
+sequenceDiagram
+    participant P as Primary (original site)
+    participant D as DR site
+    participant Ops as Operators
+
+    Note over P,D: FAILOVER — fast, rehearsed, time-pressured
+    P--xP: Outage
+    Ops->>D: Redirect traffic to DR site
+    D->>D: DR site starts accepting writes
+    Note over D: RTO/RPO clock is running
+
+    Note over P,D: Time passes — DR site is now the de facto source of truth
+    D->>D: Accumulates writes for the duration of the outage
+
+    Note over P,D: FAILBACK — slower, often manual, frequently untested
+    P->>P: Primary recovers, but its data is now STALE
+    Ops->>P: Reconcile — replay/merge DR's writes into primary
+    Note over P,D: A second multi-leader conflict problem —<br/>not just "switch DNS back"
+    Ops->>P: Cut traffic back once reconciled
+```
+
 ---
 
 ## Realistic Example

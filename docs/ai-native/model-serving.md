@@ -32,6 +32,28 @@ The interview-relevant skill is understanding that model serving is fundamentall
 
 **KV cache management** — during autoregressive generation, each new token's attention computation needs the key/value tensors from every previous token in the sequence. Recomputing them from scratch each step would be enormously wasteful, so they're cached (the "KV cache") and reused. The catch: the KV cache grows linearly with sequence length and is held in GPU memory for the entire lifetime of a request — it's usually the actual constraint on how many concurrent requests fit on a GPU, not the model weights themselves. This is why techniques like **PagedAttention** (allocating KV cache in non-contiguous, page-sized blocks, the same idea as OS virtual memory paging) matter: naive contiguous allocation fragments memory and wastes a large fraction of it, capping concurrency well below what the hardware could otherwise support.
 
+```
+Naive contiguous allocation — each request reserves one unbroken block sized
+for its max sequence length; free space stranded between requests is unusable
+unless a new request's need happens to fit that exact gap:
+
+  [ Req A: 3/8 used ][  free  ][ Req B: 6/6 used ][ free, 2 slots ]
+     ***.....            ..        ******              ..
+  Req C needs 5 slots. Plenty of total free memory exists, but no single
+  contiguous run is long enough → blocked / OOM despite enough free memory.
+
+Paged allocation (PagedAttention) — KV cache lives in small fixed-size pages;
+each request holds a page table (a list of page IDs), exactly like OS virtual
+memory paging instead of a flat reserved address range:
+
+  pages:  [A0][A1][A2][B0][B1][B2][B3][B4][B5][ . ][ . ][ . ]
+  Req C needs 3 pages → grabs any 3 free pages, wherever they physically sit:
+  pages:  [A0][A1][A2][B0][B1][B2][B3][B4][B5][C0][C1][C2]
+
+  No external fragmentation: any free page satisfies any request's next page,
+  regardless of which requests own the neighboring pages.
+```
+
 ---
 
 ## Request Flow Through a Model Server

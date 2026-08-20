@@ -99,6 +99,18 @@ classDiagram
     Player --> Symbol
 ```
 
+```mermaid
+stateDiagram-v2
+    [*] --> IN_PROGRESS
+    IN_PROGRESS --> X_WON : make_move() [win_checker.register_move() true, mover is X]
+    IN_PROGRESS --> O_WON : make_move() [win_checker.register_move() true, mover is O]
+    IN_PROGRESS --> DRAW : make_move() [no win, board.is_full()]
+    IN_PROGRESS --> IN_PROGRESS : make_move() [no win, board not full]
+    X_WON --> [*]
+    O_WON --> [*]
+    DRAW --> [*]
+```
+
 **Why composition for `Game *-- Board` and `Game *-- WinChecker`:** neither has meaning outside a specific game — a `Board` isn't shared across games, and a `WinChecker`'s running counters are only valid for the single board it was tracking. Delete the game, both go with it. **Why aggregation for `Game o-- Player`:** a `Player` (name, chosen symbol, and in a real system an account/session) exists before the game starts and after it ends — the game references two players, it doesn't own their lifecycle — see [Class Relationships](../low-level-design/solid-principles.md#class-relationships-uml-basics).
 
 `WinChecker` is deliberately a separate class from `Board`, not a method on it: `Board` owns *what's on the grid*; `WinChecker` owns *whether the current grid state is a win*, including the running-counter state that makes that check fast. Splitting them keeps `Board` a dumb, reusable grid and keeps the win-detection algorithm swappable (see Patterns below) without touching grid storage.

@@ -461,6 +461,23 @@ graph LR
 
 A network partition divides the cluster:
 
+```mermaid
+flowchart TB
+    subgraph Maj["Majority partition — has quorum"]
+      direction LR
+      A["Node A<br/>term=5"] <--> B["Node B<br/>term=5"]
+      A -->|"2/3 votes"| L["A wins election,<br/>becomes leader,<br/>keeps committing"]
+    end
+    subgraph Min["Minority partition — no quorum"]
+      direction LR
+      C["Node C<br/>term=4"]
+      C -->|"1/3 votes"| X["Cannot elect —<br/>stuck as candidate/follower,<br/>refuses writes"]
+    end
+    Maj -. "partition heals: higher term wins, minority side steps down" .-> Min
+    style Maj fill:#1b5e20,color:#fff
+    style Min fill:#b71c1c,color:#fff
+```
+
 ```
 Partition 1: A, B (have 2/3, quorum)
 Partition 2: C (has 1/3, not quorum)
@@ -582,6 +599,25 @@ Coordinator expires it at T+900ms (100ms before Process A expects).
 Process B acquires the lock at T+950ms.
 
 Now both A and B think they hold the lock. ✗
+```
+
+```mermaid
+sequenceDiagram
+    participant Co as Coordinator clock (100ms slow)
+    participant A as Process A's clock (accurate)
+
+    Note over Co,A: Both believe the lock is acquired at "T"
+    Co->>Co: T (coordinator's own clock)
+    A->>A: T (real time)
+
+    Note over Co: Coordinator's "T + 1s" is actually real T + 900ms<br/>(its clock runs 100ms slow)
+    Note over A: Process A still believes the lock is valid until real T + 1000ms
+
+    Note over Co,A: DOUBLE-LOCK WINDOW — real T+900ms to T+1000ms
+    Co->>Co: Coordinator expires the lock at T+900ms,<br/>grants it to Process B
+    Note over A: A has not observed the expiry —<br/>still acting as the lock holder
+
+    Note over Co,A: Both A and B now believe they hold the lock ✗
 ```
 
 **Fix:** Use timers on the client side, not coordinator side. Process A internally increments a counter and only uses the lock while counter < threshold.

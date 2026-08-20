@@ -127,6 +127,7 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Real-Time Communication | Complete | `networking/realtime-communication.md` — WebSockets vs. long polling vs. SSE vs. webhooks, connection cost, event fan-out, reconnect behavior, webhook delivery semantics |
 | Release Engineering | Complete | `cloud/release-engineering.md` — semantic/API versioning, lockfiles and dependency hell, build-layer caching, cron vs. event-triggered scheduling |
 | Growth Mindset (new top-level pillar) | Complete | `growth-mindset/` — 7 pages: self-respect, standing your ground, crucial conversations, protecting your sanity, boundaries (don't say yes to mean no), the strong engineer, seeing what others miss. Distinct from `behavioural/` — internalized judgement, not STAR-interview framing |
+| Concurrency Execution Models | Complete | `low-level-design/concurrency-execution-models.md` — language-agnostic thread pool/work-stealing/lightweight-thread comparison with per-language mapping table, a Visual Reference section (CAS retry loop, memory-visibility, optimistic/pessimistic, throughput-vs-threads, fencing-token diagrams), plus 10 expandable deep-dive questions |
 
 ---
 

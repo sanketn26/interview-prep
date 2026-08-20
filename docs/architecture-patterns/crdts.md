@@ -96,6 +96,29 @@ Replica A increments 3x, Replica B increments 5x, independently:
 
 **OR-Set (observed-remove set):** the practical answer to 2P-Set's limitation. Each *add* is tagged with a unique ID (not just the value); removal removes only the specific tagged instances the remover has *observed*. This allows "remove X, then add X again" to work correctly — the re-add gets a fresh unique tag, so it isn't confused with the removed instance. This is the set CRDT actually used in production systems (Riak, Redis CRDTs).
 
+```mermaid
+sequenceDiagram
+    participant R1 as Replica 1
+    participant R2 as Replica 2
+
+    Note over R1,R2: Both start with OR-Set = {}
+
+    R1->>R1: add("milk") → tag (R1,1)
+    Note over R1: state = {milk#(R1,1)}
+    R2->>R2: add("milk") → tag (R2,1)
+    Note over R2: state = {milk#(R2,1)} — concurrent, different tag
+
+    R1->>R1: remove("milk") — removes only the OBSERVED tag (R1,1)
+    Note over R1: state = {} plus tombstone (R1,1)
+
+    R1->>R2: gossip: tombstone (R1,1)
+    R2->>R1: gossip: add (R2,1)
+
+    Note over R1,R2: merge = union(all adds) minus observed removes.<br/>R2's (R2,1) was never observed as removed by R1 → survives.<br/>Result on BOTH replicas: {milk#(R2,1)} — "milk" present, not lost
+```
+
+**What this shows:** a 2P-Set would have tombstoned "milk" permanently once any replica removed it, so R2's concurrent add would be silently lost forever. OR-Set's per-instance tags mean R1's remove only ever touches the instance R1 actually saw — R2's independently-added instance survives the merge.
+
 **LWW-Register (last-write-wins register):** stores a single value plus a timestamp (physical or logical); merge picks the value with the higher timestamp. Simple, and what the DDIA page's LWW-Counter example is built on — but it silently discards the loser's write entirely, which is the trade-off worth naming explicitly (see Failure Modes).
 
 **RGA (Replicated Growable Array):** the CRDT behind collaborative text editing (ordered sequences — think Google Docs-style character insertion, though Docs itself uses Operational Transformation, not RGA). Each element's unique ID is a `(replica-id, logical-counter)` pair — the replica's own ID plus a counter it increments on every local insert — along with a reference to the ID of its logical predecessor. Concurrent inserts at the same position are ordered deterministically by comparing these IDs (e.g. the insert with the higher replica-id sorts first among ties at the same predecessor), so "type X" and "type Y" at the same cursor position from two users both survive, ordered consistently across all replicas because every replica applies the same comparison rule, rather than one overwriting the other.

@@ -26,6 +26,23 @@ There are 23 patterns in the Gang of Four book and roughly six that show up repe
 
 **Pressure:** object creation logic (which concrete class to instantiate) is scattered across the codebase, or depends on a runtime value the caller shouldn't have to branch on.
 
+```mermaid
+classDiagram
+    class Vehicle {
+        <<interface>>
+        +spot_size_required()* str
+    }
+    class Car
+    class Motorcycle
+    class VehicleFactory {
+        +create(vehicle_type, plate)$ Vehicle
+    }
+
+    Vehicle <|.. Car
+    Vehicle <|.. Motorcycle
+    VehicleFactory ..> Vehicle : creates
+```
+
 ```python
 class Vehicle(ABC):
     @abstractmethod
@@ -86,6 +103,23 @@ class Ticket:
 ## Observer — "Notify interested parties without hard-coding who they are"
 
 **Pressure:** one event needs to trigger reactions in an open-ended, possibly-growing set of other objects, and the source of the event shouldn't need to know about them individually.
+
+```mermaid
+sequenceDiagram
+    participant Lot as ParkingLot (Subject)
+    participant D as DisplayBoard (Observer)
+    participant S as SmsAlert (Observer)
+
+    Lot->>Lot: park_vehicle(vehicle)
+    Lot->>Lot: _is_full()? true
+    Lot->>Lot: _notify("LOT_FULL")
+    loop for each subscribed observer
+        Lot->>D: update("LOT_FULL")
+        D->>D: show("Lot Full")
+        Lot->>S: update("LOT_FULL")
+        S->>S: send_sms("Lot is now full")
+    end
+```
 
 ```python
 class Observer(ABC):
@@ -171,6 +205,28 @@ pizza = (PizzaBuilder("large")
 
 **Pressure:** you need to integrate an existing class (often third-party, can't be modified) whose interface doesn't match what your code expects.
 
+```mermaid
+classDiagram
+    class ModernPaymentGateway {
+        <<interface>>
+        +pay(amount_cents)* bool
+    }
+    class LegacyBillingSystem {
+        +make_payment(dollars) str
+    }
+    class LegacyBillingAdapter {
+        -legacy: LegacyBillingSystem
+        +pay(amount_cents) bool
+    }
+    class Checkout {
+        +gateway: ModernPaymentGateway
+    }
+
+    ModernPaymentGateway <|.. LegacyBillingAdapter
+    LegacyBillingAdapter --> LegacyBillingSystem : wraps
+    Checkout --> ModernPaymentGateway : depends on (target)
+```
+
 ```python
 class ModernPaymentGateway(ABC):
     @abstractmethod
@@ -197,6 +253,29 @@ class LegacyBillingAdapter(ModernPaymentGateway):
 ## Decorator — "Add behavior to an individual object, without subclassing or touching other instances"
 
 **Pressure:** you need to add responsibilities to an object dynamically and combinably (logging + caching + rate limiting on a service call), and subclassing for every combination explodes combinatorially.
+
+```mermaid
+classDiagram
+    class Coffee {
+        <<interface>>
+        +cost()* float
+        +description()* str
+    }
+    class SimpleCoffee
+    class MilkDecorator {
+        -coffee: Coffee
+    }
+    class WhipDecorator {
+        -coffee: Coffee
+    }
+
+    Coffee <|.. SimpleCoffee
+    Coffee <|.. MilkDecorator
+    Coffee <|.. WhipDecorator
+    MilkDecorator o-- Coffee : wraps
+    WhipDecorator o-- Coffee : wraps
+    note for WhipDecorator "WhipDecorator(MilkDecorator(SimpleCoffee()))\neach layer wraps the previous result"
+```
 
 ```python
 class Coffee(ABC):

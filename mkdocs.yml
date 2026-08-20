@@ -207,6 +207,7 @@ nav:
       - SOLID Principles: low-level-design/solid-principles.md
       - Design Patterns: low-level-design/design-patterns.md
       - Concurrency Basics: low-level-design/concurrency-basics.md
+      - Concurrency Execution Models: low-level-design/concurrency-execution-models.md
   - Practice:
     - Design Exercises:
       - system-design-exercises/index.md

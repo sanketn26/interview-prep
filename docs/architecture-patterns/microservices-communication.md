@@ -131,6 +131,31 @@ A realistic e-commerce checkout typically uses several of these at once, not one
 | Financial ledger | Event sourcing | Regulatory/audit requirement for full history |
 | All internal service-to-service traffic | Service mesh (mTLS, retries) | Uniform security and resilience without per-service reimplementation |
 
+The same checkout path, as one flow, annotated by which pattern each hop uses:
+
+```mermaid
+flowchart LR
+    M["Mobile app"] -->|"REST"| GW["API Gateway"]
+    GW -->|"gRPC"| ORD["Order service"]
+    ORD -->|"queue: confirmation email"| MQ["Message Queue"]
+    ORD -->|"pub/sub: OrderPlaced"| PS["Pub/Sub Topic"]
+    PS --> INV["Inventory"]
+    PS --> ANA["Analytics"]
+    PS --> FRD["Fraud check"]
+    ORD -->|"saga: orchestration"| SAGA["Checkout Saga"]
+    SAGA --> RES["Reserve stock"]
+    SAGA --> CHG["Charge card"]
+    SAGA --> SHP["Schedule shipment"]
+    CHG -->|"event sourcing"| LED[("Ledger<br/>event store")]
+    ORD -.->|"mesh: mTLS + retries<br/>on every internal hop"| MESH["Service Mesh"]
+
+    style GW fill:#1565c0,color:#fff
+    style PS fill:#6a1b9a,color:#fff
+    style SAGA fill:#e65100,color:#fff
+    style LED fill:#1b5e20,color:#fff
+    style MESH fill:#37474f,color:#fff
+```
+
 ---
 
 ## Trade-offs

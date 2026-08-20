@@ -160,6 +160,16 @@ Follower-2: UPDATE users SET name = "Alice" WHERE id = 1  ← same order, same r
 
 **Why this works**: All three machines apply the same writes in the same order → same final state.
 
+```mermaid
+flowchart TB
+    Client["Client"] -->|"writes"| Leader[("Leader")]
+    Client -.->|"reads (may be stale)"| F1
+    Client -.->|"reads (may be stale)"| F2
+    Leader -->|"replication log<br/>(lag: 0-100ms typical)"| F1[("Follower-1")]
+    Leader -->|"replication log<br/>(lag: 0-100ms typical)"| F2[("Follower-2")]
+    style Leader fill:#1b5e20,color:#fff
+```
+
 **Replication lag** — the delay between leader applying a write and followers catching up — is your operational reality:
 
 ```
@@ -745,6 +755,36 @@ Phase 2 (Commit):
 If EITHER said "no" in phase 1 → Coordinator tells both "Abort" instead.
 ```
 
+```mermaid
+sequenceDiagram
+    participant Co as Coordinator
+    participant A as Database-A
+    participant B as Database-B
+
+    rect rgb(230, 245, 230)
+    Note over Co,B: Phase 1 — Prepare
+    Co->>A: prepare
+    A->>A: lock row, write to log
+    A-->>Co: yes, I can commit
+    Co->>B: prepare
+    B->>B: lock row, write to log
+    B-->>Co: yes, I can commit
+    end
+
+    rect rgb(230, 245, 230)
+    Note over Co,B: Phase 2 — Commit
+    Co->>A: commit
+    Co->>B: commit
+    A->>A: apply write, release lock
+    B->>B: apply write, release lock
+    end
+
+    Note over Co,B: Failure mode — coordinator crashes between phases
+    Co--xA: (coordinator down, no decision sent)
+    Co--xB: (coordinator down, no decision sent)
+    Note over A,B: Both hold locks, blocked — can't unilaterally<br/>commit or abort until coordinator recovers
+```
+
 **The failure mode that makes 2PC infamous**: if the coordinator crashes *after* Phase 1 (both participants said "yes" and are now holding locks, waiting) but *before* sending the Phase 2 decision, both A and B are stuck — they can't unilaterally commit (the other participant might have failed) or abort (the coordinator might come back and say "commit"). They hold their locks, blocking other transactions, until the coordinator recovers.
 
 ```
@@ -802,6 +842,32 @@ A sends to all: "This entry is now committed"
 B, C, D, E mark as committed
 
 If A crashes now → B, C have committed data → new leader will have it
+```
+
+```mermaid
+sequenceDiagram
+    participant A as Leader A
+    participant B as Follower B
+    participant C as Follower C
+    participant D as Follower D
+    participant E as Follower E
+
+    A->>A: append entry "value=100" (uncommitted)
+    par Replicate to all followers
+        A->>B: AppendEntries("value=100")
+        A->>C: AppendEntries("value=100")
+        A->>D: AppendEntries("value=100")
+        A->>E: AppendEntries("value=100")
+    end
+    B-->>A: ACK
+    C-->>A: ACK
+    Note over A: majority reached (3/5: A, B, C) — commit
+    A->>A: mark entry committed
+    par Notify followers of commit
+        A->>B: commit "value=100"
+        A->>C: commit "value=100"
+    end
+    Note over D,E: D and E ACK later — commit still<br/>guaranteed durable once majority has it
 ```
 
 **Why this works**: Majority replication means even if half the cluster dies, the surviving half has the latest committed data and can continue.

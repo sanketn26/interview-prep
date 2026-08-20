@@ -334,6 +334,34 @@ RETURNING id;
 
 If this returns zero rows, the driver was already claimed — the losing matcher immediately retries against the next-nearest candidate from its already-fetched candidate list (no need to re-query the geo-index for a small miss). This is the same compare-and-swap pattern as the rate limiter's token bucket and pastebin's burn-after-read delete — "check and mutate" must be one atomic operation against a single authoritative row, never two round trips with a gap an interleaved request can land in.
 
+```mermaid
+sequenceDiagram
+    participant A as Rider A's matcher
+    participant B as Rider B's matcher
+    participant Geo as Geo-index (eventually consistent)
+    participant D as drivers table (source of truth)
+    participant DrvD as Driver D
+
+    A->>Geo: nearest_available(rider A location)
+    Geo-->>A: [Driver D, Driver E, ...]
+    B->>Geo: nearest_available(rider B location)
+    Geo-->>B: [Driver D, Driver F, ...]
+    note over A,B: both see Driver D as nearest — expected,\nthe index is read-mostly and slightly stale by design
+
+    par racing CAS claim on the same driver row
+        A->>D: UPDATE drivers SET status='matched', current_trip_id=trip_A\nWHERE id=D AND status='available'
+    and
+        B->>D: UPDATE drivers SET status='matched', current_trip_id=trip_B\nWHERE id=D AND status='available'
+    end
+
+    D-->>A: 1 row updated (won the CAS)
+    D-->>B: 0 rows updated (status was no longer 'available')
+
+    A->>DrvD: send offer(trip_A)
+    B->>B: claim failed — retry against next candidate\n(Driver F) from already-fetched list, no re-query of Geo
+    note over B: no dirty read-then-write gap — B never\nbelieved it had Driver D in the first place
+```
+
 - **The geo-index is allowed to be eventually consistent** (a driver shown as "available" 200ms after they were actually claimed is fine — the CAS above is what actually enforces correctness, not index freshness).
 - **Driver status is the one place strong consistency is non-negotiable.** Everything else in this system (location display, ETA estimates, surge pricing snapshots) can tolerate seconds of staleness; driver assignment cannot tolerate even a few milliseconds of a dirty read-then-write gap.
 - **Idempotency on offer response:** a driver's "accept" arriving twice (retry after a flaky network) must not double-assign — key the accept on `offer_id`, and a second accept on an already-resolved offer is a no-op 409, not a re-run of the assignment.

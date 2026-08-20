@@ -220,6 +220,17 @@ DynamoDB table → stream → Lambda function
                           (e.g., update cache, send email, log analytics)
 ```
 
+```mermaid
+flowchart LR
+    App["Application"] -->|"write/update/delete"| Table[("DynamoDB Table")]
+    Table -->|"change event<br/>(INSERT/MODIFY/REMOVE)"| Stream["DynamoDB Stream<br/>(ordered, per-shard)"]
+    Stream --> Lambda["Lambda Consumer"]
+    Lambda --> ES[("Elasticsearch<br/>search index")]
+    Lambda --> Cache[("ElastiCache<br/>read-through cache")]
+    Lambda --> Notif["SNS / Email<br/>notifications"]
+    style Table fill:#1b5e20,color:#fff
+```
+
 **Use case**: Sync DynamoDB writes to Elasticsearch for full-text search:
 
 ```
@@ -244,6 +255,24 @@ Celebrity user (100M followers):
   Other partitions sit idle
 
 Actual: 1 partition at 95% capacity while others at 5%
+```
+
+```mermaid
+flowchart TB
+    subgraph Before["Before — key = user_id"]
+        A1["All traffic for<br/>user_id='elon'"] --> P1["Partition 1<br/>95% capacity"]
+        P2a["Partition 2<br/>5% capacity"]
+        P3a["Partition 3<br/>5% capacity"]
+    end
+    subgraph After["After — key = user_id#random(0,99)"]
+        A2["Same traffic,<br/>salted key"] --> P1b["Partition 1<br/>~33%"]
+        A2 --> P2b["Partition 2<br/>~33%"]
+        A2 --> P3b["Partition 3<br/>~33%"]
+    end
+    style P1 fill:#b71c1c,color:#fff
+    style P1b fill:#1b5e20,color:#fff
+    style P2b fill:#1b5e20,color:#fff
+    style P3b fill:#1b5e20,color:#fff
 ```
 
 ### Solutions

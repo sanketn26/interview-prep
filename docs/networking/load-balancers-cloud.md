@@ -281,6 +281,29 @@ ALB can handle this (capacity is in LCUs, not request count). But if you misconf
 
 ### Pitfall 3: Cookie-Based Sticky Sessions Breaking
 
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant ALB as ALB
+    participant S1 as Server-1
+    participant S2 as Server-2
+
+    U->>ALB: Request 1 — login
+    ALB->>S1: route (no cookie yet)
+    S1-->>U: session created, Set-Cookie AWSALB
+    U->>ALB: Request 2 (AWSALB cookie)
+    ALB->>S1: sticky route to server-1
+    S1-->>U: response
+
+    Note over S1: Server-1 crashes
+
+    U->>ALB: Request 3 (AWSALB cookie, still points to server-1)
+    ALB->>S1: try server-1
+    S1--xALB: unreachable
+    ALB->>S2: reroute to server-2 (no session data)
+    S2-->>U: "You've been logged out"
+```
+
 ```
 Request 1: User logs in, ALB routes to server-1
          Server-1 sets AWSALB cookie

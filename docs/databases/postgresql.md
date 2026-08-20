@@ -58,6 +58,24 @@ Reader-C: SELECT * FROM user WHERE id = 1;
 
 **Key insight**: Each transaction sees a snapshot of the database at the moment it started. Writes don't block readers.
 
+```mermaid
+sequenceDiagram
+    participant A as Writer-A (txid 100)
+    participant Row as Row (id=1)
+    participant B as Reader-B (started before commit)
+    participant C as Reader-C (started after commit)
+
+    Note over Row: balance=50, xmin=90, xmax=NULL
+    A->>Row: BEGIN; UPDATE balance = 100
+    Row->>Row: new version: balance=100, xmin=100
+    Row->>Row: old version kept: balance=50, xmax=100
+    B->>Row: SELECT balance
+    Row-->>B: 50 (snapshot taken before txid 100 committed)
+    A->>Row: COMMIT
+    C->>Row: SELECT balance
+    Row-->>C: 100 (sees xmin=100, committed and visible)
+```
+
 ### Transaction IDs (xmin, xmax)
 
 Every row has two internal columns:
@@ -283,6 +301,16 @@ Standby-2:
 
 **Replication lag**: time between primary write and standby apply. Can be 0 (synchronous) to seconds (asynchronous).
 
+```mermaid
+flowchart TB
+    App["Application"] -->|"writes"| Primary[("Primary<br/>WAL writer")]
+    App -.->|"read-only queries"| S1
+    App -.->|"read-only queries"| S2
+    Primary -->|"stream WAL"| S1[("Standby-1")]
+    Primary -->|"stream WAL"| S2[("Standby-2")]
+    style Primary fill:#1b5e20,color:#fff
+```
+
 ### Synchronous Replication
 
 ```sql
@@ -298,6 +326,27 @@ SELECT pg_ctl_reload_conf();
 ### Failover
 
 When the primary crashes, promote a standby to primary:
+
+```mermaid
+sequenceDiagram
+    participant App as Application
+    participant P as Primary
+    participant S1 as Standby-1
+    participant S2 as Standby-2
+    participant Mon as Failover monitor
+
+    P->>S1: stream WAL
+    P->>S2: stream WAL
+    Note over P: Primary crashes
+    App--xP: writes fail
+    Mon->>P: health check fails
+    Mon->>S1: check replication lag (most caught up)
+    Mon->>S1: pg_ctl promote
+    Note over S1: Standby-1 becomes new primary
+    S1->>S2: stream WAL (as new primary)
+    App->>S1: writes resume
+    Note over S2: writes between crash and promotion<br/>that never reached S1 are lost (async replication)
+```
 
 ```bash
 # On standby:
@@ -335,6 +384,22 @@ PostgreSQL connections are expensive (~5 MB RAM each). Direct connection per cli
     PgBouncer (pool: 100 connections to Postgres)
         ↓
 PostgreSQL (100 real connections, reused)
+```
+
+```mermaid
+flowchart LR
+    subgraph Clients["1000 clients"]
+        C1["Client 1"]
+        C2["Client 2"]
+        C3["Client ..."]
+        C4["Client 1000"]
+    end
+    C1 --> PB["PgBouncer<br/>pool: 100 connections"]
+    C2 --> PB
+    C3 --> PB
+    C4 --> PB
+    PB -->|"100 real connections<br/>(reused, multiplexed)"| PG[("PostgreSQL")]
+    style PB fill:#1b5e20,color:#fff
 ```
 
 Each client connects to PgBouncer; PgBouncer multiplexes to Postgres:

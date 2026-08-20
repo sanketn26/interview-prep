@@ -272,6 +272,35 @@ class LoggerFactory:
             return cls._loggers[name]
 ```
 
+```mermaid
+sequenceDiagram
+    participant App as Application thread
+    participant Log as Logger.log()
+    participant Q as Queue (thread-safe)
+    participant W as _drain_loop (worker thread)
+    participant Sink as ConsoleSink / FileSink / RemoteSink
+
+    App->>Log: log(level, message)
+    activate Log
+    Log->>Log: level < self.level? (cheap filter)
+    Log->>Q: put_nowait(record)
+    Log-->>App: return (non-blocking)
+    deactivate Log
+    Note over App,Log: caller never waits on I/O
+
+    loop drain loop, single background thread
+        W->>Q: get(timeout=0.5)
+        Q-->>W: record
+        loop for each configured sink
+            W->>Sink: sink.accepts(record)?
+            alt accepted
+                W->>Sink: write(record)
+                Sink-->>W: ok, or raises (caught, logged to stderr)
+            end
+        end
+    end
+```
+
 The producer/consumer split is the crux: `log()` (producer, called from N application threads) only validates the level and does a non-blocking `queue.put_nowait`, then returns — no I/O happens on the caller's thread. `_drain_loop()` (consumer, exactly one background thread per `Logger`) is the only code that ever calls a sink's `write()`, so all sink I/O — including a slow `RemoteSink._send()` — happens off the critical path of every caller.
 
 ---

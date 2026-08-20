@@ -171,6 +171,20 @@ User svc → Auth svc → User svc
 
 Service A calls B, which calls A. At deploy time, which one deploys first? A can't deploy if B isn't compatible with the new API. B can't deploy if A isn't compatible. You're deadlocked.
 
+```mermaid
+flowchart TB
+    subgraph Cycle["Runtime cycle"]
+      U["User svc"] -->|"validate user"| A["Auth svc"]
+      A -->|"load user roles"| U
+    end
+    subgraph Deploy["Deploy-order deadlock"]
+      D1["Deploy User svc first?"] -->|"needs Auth's new API"| D2["Auth svc not compatible yet"]
+      D3["Deploy Auth svc first?"] -->|"needs User's new API"| D4["User svc not compatible yet"]
+    end
+    style Cycle fill:#b71c1c,color:#fff
+    style Deploy fill:#e65100,color:#fff
+```
+
 In a monolith, this is a compile error. With services, it's a subtle runtime cascade that fails at 3am in production.
 
 **The fix:** There's no clean technical fix — the problem is architectural. You have a cycle, which means these services should probably be one service. Or you need to introduce a third service that both call. Or you introduce an event bus (both publish to, rather than call each other).
@@ -384,6 +398,26 @@ Each instance routes requests to the right shard. Data is independent (shard A's
 
 Netflix didn't start with microservices.
 
+```mermaid
+flowchart LR
+    subgraph Y1["2008-2009: Monolith"]
+      M1["Java monolith<br/>Oracle DB<br/>Black Friday outages"]
+    end
+    subgraph Y2["2009: Extraction begins"]
+      M2["Recommendations, user service,<br/>streaming decisions pulled out"]
+    end
+    subgraph Y3["2009-2011: Chaos"]
+      M3["Independent deploys<br/>break each other<br/>no observability yet"]
+    end
+    subgraph Y4["2011+: Stabilization"]
+      M4["Hystrix, Eureka, Servo<br/>Chaos Monkey<br/>4,000 deploys/day"]
+    end
+    Y1 --> Y2 --> Y3 --> Y4
+    style Y1 fill:#b71c1c,color:#fff
+    style Y3 fill:#e65100,color:#fff
+    style Y4 fill:#1b5e20,color:#fff
+```
+
 **2008–2009:** Monolith (Java), runs on AWS, stores everything in Oracle. Black Friday causes outages because the database connection pool exhausts. Cost is scaling linearly with customers.
 
 **Pressure:** 
@@ -439,6 +473,19 @@ Netflix didn't start with microservices.
     "First, map the current org structure to modules. Conway's Law: the service structure will eventually match the org. If you have a payments team, billing team, orders team, etc., those become services. Start with the team(s) that have the most independent release pressure. Extract one boundary at a time; each extraction is a full project (DB migration, API contract definition, monitoring setup).
     
     Use strangler fig pattern: sit a reverse proxy in front of the monolith. Route `/payments/*` to the new payments service; everything else still hits the monolith. Gradually move traffic. When the monolith route is empty, delete the monolith branch.
+
+    ```mermaid
+    flowchart TB
+        subgraph Before["Before: reverse proxy fans everything to the monolith"]
+          RP1["Reverse proxy"] --> Mono["Monolith<br/>(orders, users, payments, ...)"]
+        end
+        subgraph After["After: payments strangled out"]
+          RP2["Reverse proxy"] -->|"/payments/*"| Pay["Payments service<br/>(new, owns its own DB)"]
+          RP2 -->|"everything else"| Mono2["Monolith<br/>(orders, users, ...)"]
+        end
+        style Before fill:#b71c1c,color:#fff
+        style After fill:#1b5e20,color:#fff
+    ```
     
     Invest in observability first: correlation IDs, distributed tracing (Jaeger), SLI/SLO tracking. When a request spans 5 services, you need to know which one is slow or failing.
     

@@ -307,6 +307,54 @@ Key production decisions:
 - **Booking is a saga, not a single transaction**, because it spans three independent systems (supplier, payment provider, your own ledger) that have no shared transaction coordinator: hold with supplier → charge customer → confirm with supplier. If confirm fails after charge succeeds, the compensating action is refund-and-release-hold, not a rollback (there's no rollback across systems you don't control). See [`architecture-patterns/sagas.md`](../architecture-patterns/sagas.md) for the general pattern this instantiates.
 - **`BookingsDB` is your actual source of truth for your own commitments** — even though you don't own room/seat inventory, you must own an authoritative, durable record of what you promised each customer, independent of the availability cache, so a cache rebuild or supplier outage can never make a confirmed booking "disappear" from your side.
 
+The topology diagram shows the components; the sequence below shows the three-phase **cache-then-verify-then-commit** flow a single booking actually walks through — cheap cached search, then a live re-check at hold time (because the cache can be stale), then a saga-style commit that must compensate if the supplier's live confirm disagrees with what was just held:
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Search as Search Service
+    participant Cache as Availability Cache
+    participant Booking as Booking Service
+    participant Supplier as Supplier API
+    participant Payment as Payment Provider
+    participant Ledger as BookingsDB
+
+    Client->>Search: search(location, checkin, checkout)
+    Search->>Cache: query_available(...)
+    Cache-->>Search: rows (as_of: 4m ago)
+    Search-->>Client: ranked results, "price/availability confirmed at checkout"
+
+    Client->>Booking: hold(room_type_id, quoted_price)
+    Booking->>Supplier: LIVE hold(room_type_id, ttl=120s)
+    alt no longer available
+        Supplier-->>Booking: unavailable
+        Booking-->>Client: 409 NoLongerAvailable (cached_price shown)
+    else price changed beyond tolerance
+        Supplier-->>Booking: available, price=P2
+        Booking-->>Client: 409 PriceChanged (new_price=P2)
+    else held successfully
+        Supplier-->>Booking: hold confirmed, price=P1
+        Booking-->>Client: hold_id, expires_in=120s
+
+        Client->>Booking: confirm(hold_id, payment_token)
+        Booking->>Payment: charge(payment_token, P1)
+        Payment-->>Booking: charge succeeded
+
+        Booking->>Supplier: LIVE confirm(hold_id)
+        alt supplier confirms
+            Supplier-->>Booking: booking_ref
+            Booking->>Ledger: INSERT booking (source of truth for OUR commitment)
+            Booking-->>Client: 200 confirmed
+        else supplier confirm fails (race with another channel, inventory pulled)
+            Supplier-->>Booking: confirm failed
+            note over Booking,Payment: saga compensation — no cross-system rollback exists
+            Booking->>Payment: refund(charge_id)
+            Booking->>Supplier: release hold (best-effort)
+            Booking-->>Client: 502 BookingFailed, refunded
+        end
+    end
+```
+
 ---
 
 ## 13. Failure analysis

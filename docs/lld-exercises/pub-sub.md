@@ -206,6 +206,33 @@ This is the crux of the exercise — "Observer at scale, thread-safe subscriber 
 
 **The bug a naive version has:** iterate the live subscriber collection directly inside `publish()` while another thread calls `subscribe()` or `unsubscribe()` on the same topic. Mutating a `dict`/`set` while another thread iterates it raises `RuntimeError: dict changed size during iteration` (or, without that safety check, silently skips or double-visits entries) — the same class of race as [Race Conditions](../low-level-design/concurrency-basics.md#race-conditions), just surfacing as a crash instead of a lost update.
 
+```mermaid
+sequenceDiagram
+    participant P as Publisher
+    participant B as Broker
+    participant D as _subscribers dict\n(guarded by _lock)
+    participant Pool as ThreadPoolExecutor
+    participant S1 as Subscriber A
+    participant S2 as Subscriber B
+
+    P->>B: publish(topic, message)
+    activate B
+    B->>B: acquire _lock
+    B->>D: list(_subscribers[topic].values())
+    D-->>B: snapshot [subA, subB]
+    B->>B: release _lock
+    Note over B: lock released BEFORE any subscriber code runs
+    B->>Pool: submit(_deliver, subA, message)
+    B->>Pool: submit(_deliver, subB, message)
+    B-->>P: return (does not wait for callbacks)
+    deactivate B
+    par async delivery
+        Pool->>S1: sub.callback(message)
+    and
+        Pool->>S2: sub.callback(message)
+    end
+```
+
 **The fix — snapshot, then release, then dispatch:**
 
 ```python

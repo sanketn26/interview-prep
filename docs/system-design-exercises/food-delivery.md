@@ -276,6 +276,45 @@ def on_restaurant_ready(order_id):
 
 Every transition (`placed`, `preparing`, `ready_for_pickup`, `courier_assigned`, ...) now has its own timeout and its own escalation, matching the state table in §7. The customer-facing request returns immediately after `placed`; everything after that streams over the WebSocket, same pattern as ride-hailing's post-match tracking.
 
+The graph above shows the topology; the sequence below shows the same flow unfolding **asynchronously across three independent actors**, with the courier CAS claim racing against other couriers and the customer getting pushed live status over the WebSocket rather than polling:
+
+```mermaid
+sequenceDiagram
+    participant Cust as Customer
+    participant OS as Order Service
+    participant Rest as Restaurant
+    participant Geo as Geo-index
+    participant Cour as Courier (winner)
+    participant CourB as Courier B (loses claim)
+
+    Cust->>OS: POST /orders
+    OS-->>Cust: 201 { order_id, status: placed }
+    OS->>Rest: push notify (status=placed)
+
+    note over Rest: minutes pass — restaurant reviewing order
+    Rest->>OS: POST /accept { prep_time }
+    OS->>OS: status=preparing
+    OS-->>Cust: WS push { status: preparing, eta }
+
+    note over Rest: prep in progress — minutes pass
+    Rest->>OS: POST /ready
+    OS->>OS: status=ready_for_pickup
+    OS->>Geo: nearest_available(restaurant_location, radius=3km)
+    Geo-->>OS: [courier, courierB, ...]
+
+    par racing CAS claim
+        OS->>Cour: UPDATE couriers SET status='assigned' WHERE id=Cour AND status='available'
+    and
+        OS->>CourB: UPDATE couriers SET status='assigned' WHERE id=CourB AND status='available'
+    end
+    Cour-->>OS: claimed (rowcount=1, won)
+    CourB-->>OS: rowcount=0 (already assigned by the time this ran) — try next candidate if needed
+
+    OS->>OS: status=courier_assigned, courier_id=Cour
+    OS->>Cour: notify_courier(order_id)
+    OS-->>Cust: WS push { status: courier_assigned, courier }
+```
+
 ---
 
 ## 11. Identify the next bottleneck

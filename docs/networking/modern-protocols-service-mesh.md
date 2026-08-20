@@ -324,6 +324,23 @@ A **service mesh** moves all of this from application code to infrastructure (si
 6. Response flows back through both proxies
 ```
 
+```mermaid
+sequenceDiagram
+    participant OC as order-container
+    participant OE as order-proxy (Envoy)
+    participant PE as payment-proxy (Envoy)
+    participant PC as payment-container
+
+    OC->>OE: request to localhost:9080
+    OE->>OE: mTLS encrypt, apply retry (3x on 5xx) + timeout (5s), pick backend
+    OE->>PE: mTLS request to payment-service:8080
+    PE->>PE: verify mTLS, validate order-service certificate
+    PE->>PC: forward to payment-container:8080
+    PC-->>PE: response
+    PE-->>OE: response (mTLS)
+    OE-->>OC: response
+```
+
 ### mTLS in Istio
 
 ```bash
@@ -357,6 +374,27 @@ Each service cert:
   - Auto-rotated before expiry
   - Subject: spiffe://cluster.local/ns/production/sa/order-service
      (SPIFFE = Secure Production Identity Framework)
+```
+
+```mermaid
+flowchart TB
+    CA["Root CA\n(Istio built-in or external)"] --> IC["Intermediate CA"]
+    IC --> OS["order-service cert\nspiffe://cluster.local/ns/production/sa/order-service"]
+    IC --> PS["payment-service cert\nspiffe://cluster.local/ns/production/sa/payment-service"]
+```
+
+```mermaid
+sequenceDiagram
+    participant OE as order-proxy (Envoy)
+    participant PE as payment-proxy (Envoy)
+
+    OE->>PE: ClientHello (proposed ciphers, order-service cert)
+    PE->>PE: verify order-service cert against trusted CA chain
+    PE-->>OE: ServerHello + payment-service cert
+    OE->>OE: verify payment-service cert against trusted CA chain
+    OE->>PE: key exchange, Finished
+    PE-->>OE: Finished
+    Note over OE,PE: mutual trust established — both sides proved identity via SPIFFE-scoped certs
 ```
 
 ### Istio VirtualService and DestinationRule

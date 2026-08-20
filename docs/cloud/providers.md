@@ -96,6 +96,37 @@ Internet
      Resource Policy: Only EC2 instance with S3ReadOnly role can read
 ```
 
+The same architecture as a boundary diagram — note the two trust boundaries are drawn separately because they're enforced by **completely different mechanisms** (network reachability vs. identity), not because they're redundant:
+
+```mermaid
+flowchart LR
+    Internet((Internet))
+
+    subgraph SGALB["Security Group boundary — network layer"]
+        ALB["ALB<br/>(public subnet)"]
+    end
+
+    subgraph SGEC2["Security Group boundary — network layer"]
+        EC2["EC2 App Server<br/>(private subnet)"]
+    end
+
+    subgraph IAMB["IAM Role boundary — identity layer"]
+        ROLE["Role: S3ReadOnly<br/>assumed by the EC2 instance"]
+        S3[("S3 Bucket<br/>Resource Policy: only S3ReadOnly role")]
+    end
+
+    Internet -->|"allow TCP:443 from 0.0.0.0/0"| ALB
+    ALB -->|"allow TCP:8080 from ALB's security group"| EC2
+    EC2 -.assumes.-> ROLE
+    ROLE -->|"read access — granted by IAM, not by network path"| S3
+
+    style SGALB fill:#0d47a1,color:#fff
+    style SGEC2 fill:#0d47a1,color:#fff
+    style IAMB fill:#4a148c,color:#fff
+```
+
+The two blue boxes are **security groups** — they control *what can reach what over the network*. The purple box is an **IAM role** — it controls *what an already-connected caller is allowed to do*, and it has no concept of subnets or ports at all. A caller can be inside every security group on the diagram and still get denied at the S3 bucket if it isn't assuming the right role — that's the two-layer model this page keeps coming back to.
+
 **Cross-cloud mapping:**
 
 ```

@@ -512,6 +512,44 @@ class ATM:
             pass  # read-only; ATM class or caller reads account.balance directly
 ```
 
+```mermaid
+sequenceDiagram
+    participant S as ATM state (select_operation)
+    participant F as perform_withdrawal()
+    participant D as CashDispenser
+    participant A as Account
+
+    S->>F: perform_withdrawal(account, dispenser, amount)
+    activate F
+    F->>D: reserve(amount)
+    alt no valid denomination plan
+        D-->>F: raises DenominationUnavailableError
+        F-->>S: raises InsufficientCashError
+    else plan reserved
+        D-->>F: plan (notes removed from inventory)
+        F->>A: debit(amount)
+        alt debit fails (funds/limit)
+            A-->>F: raises
+            F->>D: release(plan)
+            F-->>S: propagate exception
+        else debit succeeds
+            A-->>F: ok
+            F->>D: dispense_reserved(plan)
+            alt hardware failure
+                D-->>F: raises CashDispenseHardwareError
+                F->>D: release(plan)
+                F->>A: reverse_debit(amount)
+                Note over F,A: compensating transaction — undo the debit exactly
+                F-->>S: propagate CashDispenseHardwareError
+            else dispense succeeds
+                D-->>F: dispensed notes
+                F-->>S: return dispensed notes
+            end
+        end
+    end
+    deactivate F
+```
+
 ---
 
 ## 7. Edge Cases

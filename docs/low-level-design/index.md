@@ -46,7 +46,7 @@ Skipping straight to step 5 is the most common failure mode. You cannot producti
 | 1. OOP Fundamentals | [OOP Fundamentals](oop-fundamentals.md) |
 | 2. SOLID + Design Basics | [SOLID Principles](solid-principles.md) |
 | 3. Design Patterns | [Design Patterns](design-patterns.md) |
-| 4. Concurrency | [Concurrency Basics](concurrency-basics.md) |
+| 4. Concurrency | [Concurrency Basics](concurrency-basics.md), [Concurrency Execution Models](concurrency-execution-models.md) |
 | 5. LLD Problems | [LLD Problem Roadmap](../lld-exercises/index.md) |
 
 ---

@@ -340,6 +340,38 @@ Steps 2 + 3 are atomic (same DB transaction). The outbox poller handles step 6 r
 
 PSPs (Stripe, Razorpay) send webhooks for async events (3DS completion, refund confirmation). Webhooks can be delivered multiple times.
 
+```mermaid
+sequenceDiagram
+    participant PSP as Stripe/Razorpay
+    participant WH as Webhook Handler
+    participant Redis
+    participant DB as Payments DB
+
+    PSP->>WH: POST /webhooks/stripe (event_id=evt_1, payload, signature)
+    WH->>WH: verify_webhook_signature(payload, signature, secret)
+    alt signature invalid
+        WH-->>PSP: 401 Unauthorized
+    else signature valid
+        WH->>Redis: SETNX webhook:evt_1
+        alt first delivery (SETNX succeeds)
+            Redis-->>WH: OK (key was set)
+            WH->>DB: process_stripe_event(payload)
+            DB-->>WH: state updated
+            WH-->>PSP: 200 OK
+        else duplicate delivery (SETNX fails)
+            Redis-->>WH: false (key already exists)
+            note over WH: skip processing — already handled
+            WH-->>PSP: 200 OK
+        end
+    end
+
+    note over PSP,WH: PSP retries on any non-200; handler always\nreturns 200 once verified, so retries are safe no-ops.
+    PSP->>WH: POST /webhooks/stripe (event_id=evt_1, retry)
+    WH->>Redis: SETNX webhook:evt_1
+    Redis-->>WH: false (already processed)
+    WH-->>PSP: 200 OK
+```
+
 ```python
 @app.post("/webhooks/stripe")
 def handle_stripe_webhook(payload: dict, signature: str):

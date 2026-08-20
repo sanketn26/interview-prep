@@ -142,6 +142,20 @@ dp[i][c] = dp[i-1][c]                          # skip
          = max(that, v[i-1] + dp[i-1][c-w[i-1]])  # take, if w fits
 ```
 
+**Worked example** — items (w=1,v=1), (w=3,v=4), (w=4,v=5), capacity=5. Each row only reads the row above it:
+
+```
+             c:   0    1    2    3    4    5
+  i=0 (none)      0    0    0    0    0    0
+  i=1 (w1,v1)     0    1    1    1    1    1
+  i=2 (w3,v4)     0    1    1    4    5    5
+  i=3 (w4,v5)     0    1    1    4    5    6
+                                          ↑
+                     dp[3][5]=6: skip item2 (w3,v4), take item1+item3 (w1,v1)+(w4,v5)=6
+```
+
+`dp[i][c]` copies straight up from `dp[i-1][c]` when skipping, or reaches up **and left** by `w[i-1]` when taking — exactly the two terms in the recurrence above.
+
 ```python
 def knapsack(w: list[int], v: list[int], cap: int) -> int:
     n = len(w)

@@ -248,6 +248,29 @@ def apply_insert(doc: RGA, op: InsertOp):
     doc.insert_after(op.after, op.id, op.value)
 ```
 
+Two clients typing in the same spot at the same moment never blindly overwrite each other — both inserts land, and the tie-break rule is what guarantees every replica orders them identically without asking a server which one "won":
+
+```mermaid
+sequenceDiagram
+    participant CA as Client A (replica_id=A)
+    participant CB as Client B (replica_id=B)
+    participant ES as Editing Server (CRDT merge)
+
+    note over CA,CB: both start from the same base state,\ncursor at the same position (after element X)
+
+    CA->>ES: InsertOp { id: (A, 7), after: X, value: "!" }
+    CB->>ES: InsertOp { id: (B, 4), after: X, value: "?" }
+
+    ES->>ES: apply (A,7) — no existing child of X yet, insert
+    ES->>ES: apply (B,4) — X already has child (A,7); both are\nconcurrent inserts "after X" — tie-break by comparing\n(replica_id, counter): B < A, so (B,4) sorts before (A,7)
+    note over ES: deterministic order: X -> (B,4) "?" -> (A,7) "!"
+
+    ES-->>CA: broadcast (B,4) "?" (A already has its own op)
+    ES-->>CB: broadcast (A,7) "!" (B already has its own op)
+
+    note over CA,CB: both clients apply the same tie-break rule locally\nand converge to identical text: ...X?! — no coordinator involved,\nand no server-imposed "who typed first"
+```
+
 ---
 
 ## 11. Identify the next bottleneck

@@ -143,6 +143,30 @@ def build_codes(node: HuffmanNode, prefix: str = "", codes: dict[str, str] | Non
     # Result is prefix-free: no code is a prefix of another, so decoding is unambiguous.
 ```
 
+**Example** — text with character frequencies a:5, b:3, c:2, d:1 (11 characters total). Each step merges the two least-frequent nodes in the heap:
+
+```
+  merge d(1) + c(2) → N1(3)
+  merge b(3) + N1(3) → N2(6)     (tie on freq=3; either order is a valid Huffman tree)
+  merge a(5) + N2(6) → root(11)
+
+                    root(11)
+                   /        \
+               a(5)          N2(6)
+             code=0         /      \
+                         b(3)      N1(3)
+                       code=10    /      \
+                               d(1)      c(2)
+                             code=110   code=111
+
+  Fixed-width baseline: 11 chars x 2 bits = 22 bits
+  Huffman cost: 5x1 + 3x2 + 1x3 + 2x3 = 5+6+3+6 = 20 bits
+
+  a is the most frequent symbol and lands as a direct child of the root
+  (shortest code); c and d are the rarest and end up deepest (longest
+  codes) — that's the "why" behind the compression.
+```
+
 ### Fractional Knapsack (Greedy Works Here; 0/1 Knapsack Needs DP)
 
 ```python

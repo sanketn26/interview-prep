@@ -49,6 +49,21 @@ System: "Yes. Here's the balance."
 
 ### How TLS Works (Simplified)
 
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    C->>S: ClientHello (supported ciphers, TLS version)
+    S-->>C: ServerHello + certificate (public key)
+    C->>C: verify cert against trusted CA, check domain
+    C->>S: key exchange (client shares/derives symmetric key material)
+    S->>S: derive shared symmetric key
+    C->>S: Finished (encrypted)
+    S-->>C: Finished (encrypted)
+    Note over C,S: All further traffic is encrypted with the shared key
+```
+
 ```
 1. Client connects to server
    Client: "Hi, I want to talk securely"
@@ -233,6 +248,21 @@ except jwt.InvalidSignatureError:
 - Long expiration (1 week) → if token is stolen, attacker has a week to use it
 
 **Solution:** Use refresh tokens:
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant S as Server
+
+    Note over C: AccessToken expires (15 min TTL)
+    C->>S: request with expired AccessToken
+    S-->>C: 401 Unauthorized
+    C->>S: send RefreshToken
+    S->>S: validate RefreshToken
+    S-->>C: new AccessToken (+ optionally new RefreshToken)
+    C->>S: retry request with new AccessToken
+```
+
 ```
 AccessToken (15 min): Short-lived, carries user_id
 RefreshToken (7 days): Longer-lived, stored securely, only used to get new AccessToken

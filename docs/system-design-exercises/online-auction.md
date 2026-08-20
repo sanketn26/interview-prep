@@ -292,6 +292,46 @@ The `SELECT ... FOR UPDATE` on the listing row is what gives you strict ordering
     - **Proxy bidding is its own concurrency problem, layered on top.** A proxy bid isn't a single log entry — it's a standing policy ("bid up to $200 for me") that the system executes reactively as *other* bids come in. Two proxy bidders can trigger a cascade: bidder A's proxy (max $150) responds to bidder B's manual bid, which triggers bidder B's own proxy (max $180) to respond back, and so on, potentially in the same request if you're not careful — the system must resolve the full proxy cascade to a stable equilibrium (both proxies exhausted or one wins outright) **inside the same transaction/serialization point** as the triggering bid, or you reopen the exact race condition the log was built to close. A proxy engine that reads `current_max`, computes a counter-bid, and writes it as a *separate* transaction can itself be raced by a concurrent manual bid landing in between.
     - **Edge case: a user's own proxy already maxed out.** If bidder A's proxy limit is $150 and the price is already at $150 (their own last proxy response), a new manual bid of $151 from someone else must *not* trigger A's proxy again — A is exhausted, not "always respond." The proxy engine must check `amount <= my_max` strictly, or you get an infinite bidding loop between two exhausted-but-still-firing proxies.
 
+The cascade below is bidder C placing a $100 manual bid on an item where proxy A (max $150) and proxy B (max $180) are both already standing — the whole resolution happens inside one transaction, under the same `FOR UPDATE` row lock used for manual bids, so no other bid can interleave mid-cascade:
+
+```mermaid
+sequenceDiagram
+    participant C as Bidder C (manual bid)
+    participant Engine as Bid/Proxy Engine
+    participant Listing as listings row (FOR UPDATE)
+    participant PA as Proxy A (max $150)
+    participant PB as Proxy B (max $180)
+
+    C->>Engine: POST /bids { amount: 100 }
+    Engine->>Listing: SELECT ... FOR UPDATE
+    Engine->>Engine: append bid log entry (C, $100)
+
+    Engine->>PA: current_max=$100, does A respond?
+    PA-->>Engine: yes, next_bid=$105 (<= $150 max)
+    Engine->>Engine: append bid log entry (proxy A, $105)
+
+    Engine->>PB: current_max=$105, does B respond?
+    PB-->>Engine: yes, next_bid=$110 (<= $180 max)
+    Engine->>Engine: append bid log entry (proxy B, $110)
+
+    Engine->>PA: current_max=$110, does A respond?
+    PA-->>Engine: no — next_bid would be $115, still <= $150, so yes respond
+    Engine->>Engine: append bid log entry (proxy A, $115)
+
+    note over Engine,PB: cascade continues until one proxy's next_bid would exceed its max
+
+    Engine->>PB: current_max=$150 (A's last), does B respond?
+    PB-->>Engine: yes, next_bid=$155 (<= $180 max)
+    Engine->>Engine: append bid log entry (proxy B, $155)
+
+    Engine->>PA: current_max=$155, does A respond?
+    PA-->>Engine: no — next_bid $160 > $150 max, mark exhausted_at
+    note over Engine: equilibrium reached — proxy A exhausted, proxy B leading at $155
+
+    Engine->>Listing: COMMIT (release FOR UPDATE)
+    Engine-->>C: 200 { current_price: 155, you_are_winning: false }
+```
+
 ---
 
 ## 12. Version 3 — production architecture

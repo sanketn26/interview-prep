@@ -9,7 +9,7 @@ prerequisites:
 
 **Prerequisites:** [OOP Fundamentals](oop-fundamentals.md)
 
-[← Design Patterns](design-patterns.md) | [Next: LLD Problem Roadmap →](../lld-exercises/index.md)
+[← Design Patterns](design-patterns.md) | [Next: Concurrency Execution Models →](concurrency-execution-models.md)
 
 ---
 
@@ -207,4 +207,4 @@ Locks aren't the only tool — sometimes the cheaper fix is removing the shared 
     5. Coarse locks are simple and correct but cap throughput; fine-grained locks need disciplined ordering to stay deadlock-free
     6. This is step 9 of the [9-step approach](index.md) — bring it up unprompted, don't wait for the interviewer to ask "what about two threads?"
 
-**Previous:** [Design Patterns](design-patterns.md) | **Next:** [LLD Problem Roadmap](../lld-exercises/index.md)
+**Previous:** [Design Patterns](design-patterns.md) | **Next:** [Concurrency Execution Models](concurrency-execution-models.md)

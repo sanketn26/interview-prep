@@ -53,7 +53,7 @@ visit B(3) → done. Shortest A→B = 3, not the direct edge's 4.
 ## Interactive Dijkstra Visualizer
 
 !!! note "Scope of this visualizer"
-    This interactive simulation demonstrates **Dijkstra's algorithm only**. MST (Prim's/Kruskal's) and Topological Sort are covered in full in the code walkthroughs below, but don't yet have a dedicated visualization.
+    This interactive simulation demonstrates **Dijkstra's algorithm only**. MST (Prim's/Kruskal's) and Topological Sort don't have an interactive canvas visualizer, but each section below has a static step-by-step diagram showing exactly how the two approaches build their result.
 
 <div class="sim-container">
   <div class="sim-title">🛰️ Dijkstra's Shortest Path</div>
@@ -117,6 +117,35 @@ def dijkstra(graph: dict[int, list[tuple[int, int]]], start: int) -> dict[int, i
 ---
 
 ## Minimum Spanning Tree
+
+```
+Graph (5 nodes, 6 weighted edges):
+
+  A --4-- B          Edges sorted by weight (Kruskal's order):
+  A --2-- C            C-D(1)  A-C(2)  B-D(3)  A-B(4)  D-E(5)  A-E(6)
+  A --6-- E
+  B --3-- D
+  C --1-- D
+  D --5-- E
+
+Prim's (grow one tree from A):             Kruskal's (sort edges, union-find):
+
+  tree={A}                                   sorted: CD1,AC2,BD3,AB4,DE5,AE6
+  frontier: AB4, AC2, AE6
+  take AC(2) → tree={A,C}                    take CD(1) ✓ no cycle   MST={CD}
+  frontier: AB4, AE6, CD1
+  take CD(1) → tree={A,C,D}                  take AC(2) ✓ no cycle   MST={CD,AC}
+  frontier: AB4, AE6, DB3, DE5
+  take DB(3) → tree={A,C,D,B}                take BD(3) ✓ no cycle   MST={CD,AC,BD}
+  frontier: AE6, DE5                         take AB(4) ✗ cycle (A,B already connected) — skip
+  take DE(5) → tree={A,C,D,B,E}              take DE(5) ✓ no cycle   MST={CD,AC,BD,DE}
+  done. total weight = 2+1+3+5 = 11          done, n-1=4 edges. total weight = 1+2+3+5 = 11
+
+Both land on the same 4 edges {A-C, C-D, B-D, D-E} — Prim finds them by
+growing outward from one node (every step must touch the current tree),
+Kruskal finds them by scanning globally-cheapest-first with no regard for
+which component an edge touches, only rejecting it if it would cycle.
+```
 
 === "Prim's (grow a tree)"
     ```python
@@ -186,6 +215,47 @@ def dijkstra(graph: dict[int, list[tuple[int, int]]], start: int) -> dict[int, i
 ---
 
 ## Topological Sort
+
+```
+DAG (5 nodes):
+
+  A --> C --> D --> E
+  A --> B --> D
+
+  in-degree:  A=0  B=1  C=1  D=2  E=1
+
+Kahn's (BFS, drain in-degree to 0):
+
+  queue=[A]                    order=[]
+  pop A → order=[A]            C: 1→0 (ready)   B: 1→0 (ready)
+  queue=[C,B]                  order=[A]
+  pop C → order=[A,C]          D: 2→1
+  pop B → order=[A,C,B]        D: 1→0 (ready)
+  queue=[D]                    order=[A,C,B]
+  pop D → order=[A,C,B,D]      E: 1→0 (ready)
+  pop E → order=[A,C,B,D,E]    done — every node processed, no cycle
+
+DFS post-order (call stack, node appended on the way back OUT):
+
+  visit(A)
+    visit(C)
+      visit(D)
+        visit(E)
+          (no neighbors) → append E
+        → append D
+      → append C
+    visit(B)
+      visit(D)  -- already done (state=2), skip re-visiting
+      → append B
+    → append A
+
+  post-order = [E, D, C, B, A]
+  reverse    = [A, B, C, D, E]   ← valid topological order
+
+Kahn's peels off "ready" nodes layer by layer from the front; DFS dives to
+the bottom of a branch first and only records a node once everything under
+it is already recorded — reversing that gives the same ordering guarantee.
+```
 
 === "Kahn's algorithm (BFS, in-degree)"
     ```python
