@@ -123,6 +123,10 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Multi-Tenancy Design | Complete | `architecture-patterns/multi-tenancy.md` — silo/pool/bridge isolation, structural tenant_id enforcement, noisy-neighbor mitigation |
 | Testing Strategy for Distributed Systems | Complete | `observability/testing-strategy.md` — contract testing, the pyramid redrawn for services, feature flags as a testing tool |
 | Batch/ETL & Lambda vs. Kappa Architecture | Complete | `architecture-patterns/batch-etl-lambda-kappa.md` — DAG orchestration, backfills, Lambda's dual-implementation drift risk, Kappa's replay model |
+| Common Web Vulnerability Classes | Complete | `security/web-vulnerability-classes.md` — SQL injection, SSRF, CORS misconfiguration, WAF/DDoS as backstop not fix |
+| Real-Time Communication | Complete | `networking/realtime-communication.md` — WebSockets vs. long polling vs. SSE vs. webhooks, connection cost, event fan-out, reconnect behavior, webhook delivery semantics |
+| Release Engineering | Complete | `cloud/release-engineering.md` — semantic/API versioning, lockfiles and dependency hell, build-layer caching, cron vs. event-triggered scheduling |
+| Growth Mindset (new top-level pillar) | Complete | `growth-mindset/` — 7 pages: self-respect, standing your ground, crucial conversations, protecting your sanity, boundaries (don't say yes to mean no), the strong engineer, seeing what others miss. Distinct from `behavioural/` — internalized judgement, not STAR-interview framing |
 
 ---
 

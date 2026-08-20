@@ -51,6 +51,7 @@ Four questions map to four pages:
 | [Deployment Strategies](deployment-strategies.md) | Rolling, blue-green, canary, and 12 more — with the failure each one buys you out of |
 | [IAM & Managed Services](iam-managed-services.md) | Vendor-mapped IAM, managed DB, and event-bus comparison across AWS/GCP/Azure |
 | [FinOps](finops.md) | Tagging, showback/chargeback, commitment models, rightsizing, cost anomaly debugging |
+| [Release Engineering](release-engineering.md) | Semantic/API versioning, lockfiles and dependency hell, build-layer caching, cron vs. event-triggered scheduling |
 | [Kubernetes](../kubernetes/index.md) | Request path, probes, kubectl diagnosis |
 
 [Cloud Provider Comparison](providers.md) is the entry point: it explains the mental model (VPC, Auth, then everything else is a derivative), maps AWS services to GCP/Azure equivalents, and teaches when to use each cloud.

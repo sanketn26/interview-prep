@@ -165,6 +165,7 @@ nav:
       - Cloud Load Balancers: networking/load-balancers-cloud.md
       - Modern Protocols & Service Mesh: networking/modern-protocols-service-mesh.md
       - gRPC vs HTTP in K8s: networking/grpc-http-k8s-load-balancing.md
+      - Real-Time Communication: networking/realtime-communication.md
     - Reliability:
       - reliability/index.md
       - Single Points of Failure: reliability/single-points-of-failure.md
@@ -185,6 +186,7 @@ nav:
       - OAuth2 & OIDC Deep Dive: security/oauth2-oidc.md
       - Session Management Deep Dive: security/session-management.md
       - Data Privacy & Compliance: security/data-privacy-compliance.md
+      - Common Web Vulnerability Classes: security/web-vulnerability-classes.md
     - Cloud & Kubernetes:
       - cloud/index.md
       - Cloud Provider Comparison: cloud/providers.md
@@ -194,6 +196,7 @@ nav:
       - Deployment Strategies: cloud/deployment-strategies.md
       - IAM & Managed Services: cloud/iam-managed-services.md
       - FinOps: cloud/finops.md
+      - Release Engineering: cloud/release-engineering.md
       - kubernetes/index.md
     - AI-Native Systems:
       - ai-native/index.md
@@ -292,6 +295,15 @@ nav:
       - Managing Up: behavioural/managing-up.md
       - Saying No: behavioural/saying-no.md
       - Ambiguity: behavioural/ambiguity.md
+  - Growth Mindset:
+    - growth-mindset/index.md
+    - Respect — Yourself and Others: growth-mindset/self-respect.md
+    - Standing Your Ground, Professionally: growth-mindset/standing-your-ground.md
+    - Crucial Conversations: growth-mindset/crucial-conversations.md
+    - Protecting Your Sanity: growth-mindset/sustainable-pace.md
+    - Don't Say Yes When You Mean No: growth-mindset/boundaries.md
+    - The Strong Engineer: growth-mindset/strong-engineer.md
+    - Seeing What Others Miss: growth-mindset/seeing-what-others-miss.md
   - Reference:
     - reference/index.md
     - Cheat Sheets: reference/cheat-sheets.md

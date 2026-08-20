@@ -100,6 +100,7 @@ The algorithm matters less than people think, with one exception: **least-connec
 | [Cloud Load Balancers](load-balancers-cloud.md) | **Complete** — AWS NLB/ALB/GWLB, GCP Cloud LB, Azure LB/AppGateway, cost comparison, pitfalls |
 | [Modern Protocols & Service Mesh](modern-protocols-service-mesh.md) | **Complete** — HTTP/3 (QUIC), gRPC, Istio, Linkerd, mTLS, zero-trust, eBPF observability |
 | [gRPC vs HTTP in K8s & Load Balancing](grpc-http-k8s-load-balancing.md) | **Complete** — Connection models, service discovery, hotspot problem, DNS caching, skewed traffic, failure modes, solutions |
+| [Real-Time Communication](realtime-communication.md) | **Complete** — WebSockets vs. long polling vs. SSE vs. webhooks, connection cost, event fan-out, reconnect behavior |
 
 [HTTP & TCP](http-tcp.md) walks the full request path with DNS-resolution and TCP-lifecycle simulators, plus HTTP/1.1 vs 2 vs 3 and head-of-line blocking.
 

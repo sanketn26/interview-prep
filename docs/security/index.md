@@ -33,6 +33,7 @@ This section teaches the tools to answer them.
 | [OAuth2 & OIDC Deep Dive](oauth2-oidc.md) | **Complete** — Authorization Code + PKCE flow internals, token validation, refresh rotation, vulnerabilities |
 | [Session Management Deep Dive](session-management.md) | **Complete** — server-side sessions vs JWT, cookie security, fixation/hijacking, revocation problem |
 | [Data Privacy & Compliance](data-privacy-compliance.md) | **Complete** — PII classification, data residency, right-to-erasure across replicas/backups/warehouses, encryption key management |
+| [Common Web Vulnerability Classes](web-vulnerability-classes.md) | **Complete** — SQL injection, SSRF, CORS misconfiguration, and where WAF/DDoS mitigation actually fits |
 
 [Authentication & Authorization Fundamentals](authentication-authorization.md) covers how users prove identity (TLS, passwords, OAuth2), how data is protected (encryption, secrets management), and how permissions work (RBAC, least privilege). Includes a payment system case study where PCI compliance drives design decisions.
 
@@ -45,6 +46,8 @@ This section teaches the tools to answer them.
 [Session Management Deep Dive](session-management.md) covers how identity persists across stateless HTTP requests: server-side sessions vs stateless JWTs, the cookie attributes that actually matter (Secure, HttpOnly, SameSite), session fixation and hijacking defenses, scaling strategies (sticky sessions, centralized Redis, stateless JWT), and the JWT revocation problem that never fully goes away.
 
 [Data Privacy & Compliance](data-privacy-compliance.md) covers data privacy as an architectural constraint rather than a legal checkbox: PII classification, data residency's collision with multi-region DR, right-to-erasure as a distributed-systems problem spanning replicas/caches/backups/event logs, and why encryption at rest only means something if key management is separate from the data it protects.
+
+[Common Web Vulnerability Classes](web-vulnerability-classes.md) covers the three recurring vulnerability classes that don't have a home elsewhere on this site — SQL injection (and why parameterized queries fix it structurally, not just defensively), SSRF (attacking the server's own network position), and CORS misconfiguration (a browser-enforced rule, not a server firewall, and a common backend header-configuration mistake) — plus where WAF and DDoS mitigation fit as a backstop, not a substitute for the underlying fix.
 
 ---
 
