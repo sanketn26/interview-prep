@@ -46,7 +46,7 @@ Practice asking these before designing:
 |----------|-------------|
 | Latency | Redirect < 10ms p99 (cache hit), < 100ms (cache miss) |
 | Availability | 99.99% — redirect failures directly impact user experience |
-| Read/Write ratio | ~100:1 (heavy reads) |
+| Read/Write ratio | ~1000:1 (heavy reads) |
 | Scale | 100M URLs, 1B redirects/day |
 | Durability | URLs should persist indefinitely (unless explicitly deleted) |
 
@@ -148,11 +148,11 @@ How do we generate `abc123`?
     import hashlib
     def generate(long_url: str) -> str:
         h = hashlib.md5(long_url.encode()).hexdigest()
-        return h[:7]  # take first 7 chars
+        return h[:7]  # take first 7 hex chars
     ```
-    **Problem:** Two identical long URLs get the same short code (which might be desired). Collision probability higher than option B.
+    **Do not ship 7 hex characters as the short code.** MD5 hex is base-16, so `h[:7]` is only \(16^7 \approx 268\) million codes — well below 100M URLs with no headroom, and birthday collisions show up far earlier. Two identical long URLs also collide by design (sometimes desired). If you hash, **base62-encode more bits** (e.g. 64+ bits of a cryptographic hash → 11 base62 chars, same length class as option B) rather than truncating hex.
 
-**Recommended:** Option B (auto-increment + Base62) with ID generation service.
+**Recommended:** Option B (auto-increment + Base62) with ID generation service. Hash-based is fine only after encoding enough bits; 7 hex chars is not a short-code scheme.
 
 ---
 
@@ -317,15 +317,18 @@ Redis (3-shard cluster, 30 GB cache):   ~$500/month
 PostgreSQL (Multi-AZ, r5.xlarge):       ~$400/month
 2 read replicas:                         ~$400/month
 Application servers (10 pods):           ~$200/month
-CDN (~30B requests/month, at 1B/day):    ~$100/month
-Total:                                   ~$1,600/month
+CDN (~30B HTTP requests/month, at 1B/day):
+  CloudFront-class request pricing is ~$0.0075 / 10K HTTP requests
+  30B / 10K × $0.0075 ≈ $22,500/month (request charges dominate;
+  redirect bodies are tiny, so egress is a rounding error next to this)
+  At Pastebin's $0.005/1K blended rate, 30B would be ~$150K/month —
+  treat ~$20K–$150K as the realistic band, not ~$100.
+Total:                                   ~$24,000/month (CDN-dominated)
 
 Cost per redirect:
   1B redirects/day × ~30 days/month ≈ 30B redirects/month
-  $1,600 / 30,000,000,000 redirects ≈ $0.0000000533 per redirect
-  → ~$0.00005 per 1,000 redirects (a month has ~2.6M seconds, not 30M —
-    the per-second math already lives in the Capacity Estimation
-    section above: 1B/day ÷ 86,400s ≈ 11,500 rps average)
+  $24,000 / 30,000,000,000 ≈ $0.0000008 per redirect
+  (a month has ~2.6M seconds; 1B/day ÷ 86,400s ≈ 11,500 rps average)
 ```
 
 ---
@@ -336,7 +339,7 @@ Cost per redirect:
     Use DynamoDB or Redis as primary store instead of PostgreSQL. Short code → long URL is a pure key-value lookup. DynamoDB handles billions of items with sub-10ms latency. Trade-off: harder ad-hoc queries, no SQL analytics.
 
 === "Serverless"
-    Lambda + API Gateway + DynamoDB. Zero ops overhead, cost-per-request. At this system's actual volume — 1B redirects/day ≈ 30B requests/month, not 1B/month — per-request serverless pricing no longer wins the way it does at low volume; Lambda's request + compute charges at 30B/month plausibly exceed the ~$1,600/month dedicated-infra baseline from the Cost Analysis above, which is exactly the crossover point serverless-vs-dedicated discussions hinge on (see [Serverless vs. Containers](../architecture-patterns/serverless-vs-containers.md) for the general cost-crossover shape). Trade-off: cold start latency (not acceptable for redirects without provisioned concurrency), vendor lock-in.
+    Lambda + API Gateway + DynamoDB. Zero ops overhead, cost-per-request. At 1B redirects/day ≈ 30B requests/month the CDN bill is already ~$20K–$150K/month on *either* architecture (you still need an edge for <10ms hits). Putting API Gateway (~$1–$3.50/million) plus Lambda invocations in front of origin on the miss path adds tens of thousands more; that stack does not beat the ~$24,000/month dedicated origin + CDN baseline from the Cost Analysis above — this is the crossover serverless-vs-dedicated discussions hinge on (see [Serverless vs. Containers](../architecture-patterns/serverless-vs-containers.md)). Trade-off: cold start latency (not acceptable for redirects without provisioned concurrency), vendor lock-in. Serve the hot path from the CDN; don't put a per-request function on 30B redirects.
 
 ---
 

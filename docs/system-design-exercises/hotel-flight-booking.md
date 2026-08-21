@@ -69,7 +69,8 @@ Everything from the data model to the saga in Version 3 is a consequence of thes
 
 ```
 Catalog:
-  Hotels: 5,000 suppliers x avg 200 properties x avg 150 rooms ≈ 150M room-nights of state to represent
+  Hotels: 5,000 suppliers x avg 200 properties x avg 150 rooms ≈ 150M rooms of catalog state
+  (that is rooms, not room-nights — multiplying by stay horizon is a different number)
   (Represented as booked-range calendars per room-type, not per physical room — see Data Model)
   Flights: 300 airlines x ~3,000 daily flight legs x 365 days rolling ≈ ~330M leg-date rows in a 1-year window
 
@@ -115,7 +116,7 @@ Response: { "hold_id": "h_123", "expires_at": "...+120s", "confirmed_price": 612
 
 POST /v1/bookings
 Request:  { "hold_id": "h_123", "payment_token": "..." }
-Response: { "booking_id": "b_456", "supplier_confirmation": "HH-9182ailored", "status": "confirmed" }
+Response: { "booking_id": "b_456", "supplier_confirmation": "HH-9182", "status": "confirmed" }
 Status: 201 Confirmed, 409 Hold Expired / No Longer Available, 402 Payment Failed
 
 DELETE /v1/bookings/{booking_id}   -- cancellation, subject to supplier policy
@@ -408,7 +409,7 @@ Alerts:
 ## 16. Cost analysis
 
 ```
-Availability cache (sharded, ~150M room-nights + flight legs):    ~$1,800/month
+Availability cache (sharded, ~150M rooms + flight legs):    ~$1,800/month
 Supplier sync workers (polling + webhook receivers, 5,000 suppliers): ~$600/month compute
 Search/aggregation service (5,800 rps peak):                       ~$1,200/month
 Booking/saga service + Postgres ledger:                            ~$400/month

@@ -184,7 +184,7 @@ flowchart TD
     style C1 fill:#e65100,color:#fff
 ```
 
-**Reading this tree**: each leaf is a concrete, testable attack. The orange leaves are the ones worth a closer look here — an unencrypted session token (mitigated by TLS + httpOnly cookies), an IDOR (Insecure Direct Object Reference — check `account_id` in a request always belongs to the authenticated caller, never trust a client-supplied ID unchecked), and a race condition on balance checks (mitigated by the transaction isolation mechanisms from [DDIA Concepts](../databases/ddia-concepts.md#part-3-transactions--consistency-in-the-face-of-concurrency) — this is exactly the "write skew" scenario SSI is built to catch).
+**Reading this tree**: each leaf is a concrete, testable attack. The orange leaves are the ones worth a closer look here — an unencrypted session token (mitigated by TLS + httpOnly cookies), an IDOR (Insecure Direct Object Reference — check `account_id` in a request always belongs to the authenticated caller, never trust a client-supplied ID unchecked), and a race condition on balance checks (mitigated by the transaction isolation mechanisms from [DDIA Concepts](../databases/ddia-concepts.md#part-3-transactions-consistency-in-the-face-of-concurrency) — this is exactly the "write skew" scenario SSI is built to catch).
 
 ```python
 # The IDOR leaf (B1), concretely:

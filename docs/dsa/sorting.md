@@ -166,12 +166,12 @@ def _sift_down(arr: list[int], i: int, n: int) -> None:
 ```
 Values:     0.42  0.19  0.87  0.33  0.71  0.05
 
-Buckets (5, range 0.0–1.0):
-  [0.0-0.2): 0.19, 0.05
-  [0.2-0.4): 0.33, 0.42
-  [0.4-0.6): (empty)
-  [0.6-0.8): 0.71
-  [0.8-1.0): 0.87
+Buckets (5, range [0.0, 1.0)):
+  [0.0, 0.2): 0.19, 0.05
+  [0.2, 0.4): 0.33
+  [0.4, 0.6): 0.42
+  [0.6, 0.8): 0.71
+  [0.8, 1.0): 0.87
 
 Sort each bucket individually → concatenate in bucket order → done.
 ```

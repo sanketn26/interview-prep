@@ -84,22 +84,25 @@ The process_id is the tiebreaker:
 
 ### Visual: Lamport Clocks Over Time
 
+Receive rule: `local = max(local, message) + 1`. A send of `time=1` into a process at `0` becomes `2`, not `1`.
+
 ```mermaid
 graph LR
-    A1["Process A<br/>Event 1<br/>Time: 1"]
-    A2["Process A<br/>Event 2<br/>Time: 2"]
-    
-    B1["Process B<br/>Event 1<br/>Time: 1"]
-    B2["Process B<br/>Event 2<br/>Time: 3<br/>(received message<br/>with time 2)"]
-    
-    A1 -->|Send<br/>time=1| B1
-    A2 -->|Send<br/>time=2| B2
-    B1 -->|B increments| B2
-    
+    A1["Process A<br/>send<br/>Time: 1"]
+    A2["Process A<br/>local event<br/>Time: 2"]
+
+    B1["Process B<br/>idle<br/>Time: 0"]
+    B2["Process B<br/>receive<br/>Time: max(0,1)+1 = 2"]
+    B3["Process B<br/>local event<br/>Time: 3"]
+
+    A1 -->|Send time=1| B2
+    B1 --> B2
+    B2 --> B3
+
     style A1 fill:#1565c0,color:#fff
     style A2 fill:#1565c0,color:#fff
-    style B1 fill:#6a1b9a,color:#fff
     style B2 fill:#6a1b9a,color:#fff
+    style B3 fill:#6a1b9a,color:#fff
 ```
 
 ### The Limitation
@@ -134,28 +137,27 @@ Process B clock: {A: 0, B: 0}
 Process A increments its own: {A: 1, B: 0}
 
 # Process A sends a message to B (carries its clock)
+# Receive is two steps — do not fold B's increment into the merge:
 Process B receives: {A: 1, B: 0}
-Process B merges (take max of each): {A: 1, B: 1}
-Process B increments its own: {A: 1, B: 2}
+Process B merges (component-wise max): {A: 1, B: 0}
+Process B increments its own once:     {A: 1, B: 1}   # the receive event
 
-# Process B has another event
-Process B increments: {A: 1, B: 3}
+# Process B has another local event
+Process B increments: {A: 1, B: 2}
 ```
 
 ### Causality Detection
 
-Event X = `clock {A: 1, B: 2}` happened before event Y = `clock {A: 1, B: 3}` if:
-- X's clock[i] ≤ Y's clock[i] for all i, and
-- At least one clock[i] is strictly less
+Event X happened before event Y if X's clock[i] ≤ Y's clock[i] for every process, and at least one component is strictly less.
 
 ```python
-X = {A: 1, B: 2}
-Y = {A: 1, B: 3}
+X = {A: 1, B: 1}   # B's receive
+Y = {A: 1, B: 2}   # B's next local event
 
 For each process:
   X[A] = 1 ≤ Y[A] = 1 ✓
-  X[B] = 2 < Y[B] = 3 ✓
-  
+  X[B] = 1 < Y[B] = 2 ✓
+
 Result: X happened before Y (there's a causal path)
 ```
 
@@ -252,7 +254,9 @@ B has only 2/5: B does NOT hold the lock
 If coordinator 3 crashes, A still has 2/3 remaining.
 ```
 
-**Trade-off:** Network delays increase (contact multiple nodes). Clock skew can still cause "both acquired the lock" if you're not careful about expiration times.
+**Trade-off:** You pay extra round trips. Redlock is also **controversial** as a correctness story: Martin Kleppmann's critique is that pause/GC after you think you still hold the lock, plus dependence on loosely synchronized clocks, can still produce two holders. Redis's own docs treat it as best-effort mutual exclusion, not a linearizable lock.
+
+**What actually makes a distributed lock safe:** a monotonically increasing **fencing token** (ZooKeeper zxid, etcd revision, Raft log index) that the lock service returns on acquire. Every write to the resource includes the token; the resource **rejects** any write whose token is stale. That stops a delayed former holder from writing after its TTL expired — which no amount of "run the timer on the client" can do. See [leases](#leases-a-lock-with-a-built-in-expiry-contract) and [Consensus & Raft](raft.md).
 
 ---
 
@@ -442,12 +446,12 @@ graph LR
     E1["Election<br/>A wins"]
     T2["Term 2<br/>A is leader"]
     C1["A crashes"]
-    E2["Election<br/>B wins"]
-    T3["Term 3<br/>B is leader"]
+    E2["Election<br/>C wins"]
+    T3["Term 3<br/>C is leader"]
     
     T1 -->|A's timeout fires first| E1
     E1 -->|A gets quorum| T2
-    T2 -->|Network partition| C1
+    T2 -->|A crashes| C1
     C1 -->|C's timeout fires| E2
     E2 -->|C gets quorum| T3
     
@@ -492,22 +496,24 @@ Who is the real leader? → A (because A's term is higher)
 C steps down.
 ```
 
-**What if the partition kills the leader side?**
+**What if the partition isolates the current leader?**
 
 ```
-Partition 1: A (leader, has 1/3, not quorum)
+Partition 1: A (was leader, has 1/3, not quorum)
 Partition 2: B, C (have 2/3, quorum)
 
-A cannot be reelected (doesn't have quorum).
-A's term advances, but A is not leader.
+A still *believes* it is leader — Raft does not magically step it down
+or bump its term just because it is isolated. It cannot commit
+(no majority to replicate to). Clients talking to A stall or time out.
 
-B or C wins election with quorum.
-New leader exists in the partition with the majority.
+B or C times out, starts an election, wins with quorum, and becomes
+leader in a *higher* term. That majority partition keeps committing.
 
-When partition heals, A steps down.
+When the partition heals, A sees a higher term on a heartbeat/vote
+request and *then* steps down. See [Consensus & Raft](raft.md).
 ```
 
-**Key insight:** Quorum voting ensures that only one partition can have a valid leader. The partition with the minority cannot elect anyone.
+**Key insight:** Quorum voting ensures only one partition can **commit**. The minority side may still have a stale leader that thinks it is in charge; it just cannot complete a majority write.
 
 ---
 
@@ -583,44 +589,41 @@ A production-scale registry (Consul, etcd-backed) is itself a distributed system
 
 ### Scenario 1: Clock Skew
 
+A **slow** coordinator clock (lags real time) expires **late** — it thinks less time has passed. The dangerous direction for double-hold is a **fast** clock: the coordinator thinks more time has passed and expires the lock **early**, while the holder still believes it is valid.
+
 ```
-Coordinator clock is 100ms slow (drifts).
-Process A acquires lock with 1-second TTL.
+Coordinator clock is 100ms *fast* (ahead of real time).
+Process A acquires a lock with a 1-second TTL.
 
-Coordinator thinks: "Lock acquired at T, expires at T+1s"
-Process A thinks: "Lock acquired at T, expires at T+1s"
+Coordinator thinks: "acquired at T, expires at T+1s"
+Real time when the coordinator's clock hits T+1s: T+900ms.
 
-But coordinator is actually 100ms behind.
-So the coordinator's T+1s = Process A's T+900ms.
+Coordinator expires the lock at real T+900ms and grants it to B.
+Process A still believes it holds the lock until real T+1000ms.
 
-Process A thinks lock expires at T+1s.
-Coordinator expires it at T+900ms (100ms before Process A expects).
-
-Process B acquires the lock at T+950ms.
-
-Now both A and B think they hold the lock. ✗
+Double-hold window: real T+900ms to T+1000ms. ✗
 ```
 
 ```mermaid
 sequenceDiagram
-    participant Co as Coordinator clock (100ms slow)
+    participant Co as Coordinator clock (100ms fast)
     participant A as Process A's clock (accurate)
 
     Note over Co,A: Both believe the lock is acquired at "T"
-    Co->>Co: T (coordinator's own clock)
+    Co->>Co: T (coordinator's own clock, already 100ms ahead)
     A->>A: T (real time)
 
-    Note over Co: Coordinator's "T + 1s" is actually real T + 900ms<br/>(its clock runs 100ms slow)
+    Note over Co: Coordinator's "T + 1s" is actually real T + 900ms<br/>(its clock runs 100ms fast)
     Note over A: Process A still believes the lock is valid until real T + 1000ms
 
     Note over Co,A: DOUBLE-LOCK WINDOW — real T+900ms to T+1000ms
-    Co->>Co: Coordinator expires the lock at T+900ms,<br/>grants it to Process B
+    Co->>Co: Coordinator expires the lock at real T+900ms,<br/>grants it to Process B
     Note over A: A has not observed the expiry —<br/>still acting as the lock holder
 
     Note over Co,A: Both A and B now believe they hold the lock ✗
 ```
 
-**Fix:** Use timers on the client side, not coordinator side. Process A internally increments a counter and only uses the lock while counter < threshold.
+**Fix:** Do not try to "run the TTL on the client." A client-side timer does not stop the coordinator from granting the lock to B, and a GC pause can make A write *after* its own timer. The coordinator (or lock service) expires the lease; **every write carries a fencing token**; the resource rejects stale tokens. Clock-dependent TTLs remain a liveness mechanism, not a safety mechanism.
 
 ### Scenario 2: Leader Election Storms
 
@@ -665,7 +668,7 @@ If B becomes leader (faulty election), writes T10-T20 disappear. ✗
 3. **Vector clocks solve causality:** But scale poorly (clock size = number of processes).
 4. **Quorum voting prevents split-brain:** Majority partition can decide; minority partition cannot.
 5. **Randomized election timeouts prevent deadlock:** One process wins, prevents simultaneous elections.
-6. **Clock skew breaks TTL-based locks:** TTL must run on the client, not the coordinator.
+6. **Clock skew breaks TTL-only locks:** a *fast* coordinator expires early and can double-grant. Safety is a fencing token on every write, not moving the timer to the client.
 7. **Leases bound the damage of a crash without requiring anyone to detect it:** a lock held by a dead process is held forever; a lease held by a dead process expires on its own.
 8. **Gossip trades immediacy for scale:** no single coordinator, no bottleneck, but information takes O(log N) rounds to reach everyone — eventually consistent by design.
 9. **Raft and Paxos give the same guarantee; Raft is chosen for new systems because it's tractable to implement correctly**, not because it's theoretically stronger.
@@ -703,8 +706,8 @@ I'd also instrument the code to log term changes and elections so we can see exa
     3. **Vector clocks track causality precisely** (event A happened before B, or they're concurrent).
     4. **Quorum voting prevents split-brain** — only the majority partition can decide.
     5. **Randomized election timeouts prevent election deadlock** — one process usually wins first.
-    6. **The partition with the minority cannot elect a leader.** The cluster continues in the majority partition.
-    7. **TTL-based locks must run on the client,** not the coordinator (clock skew breaks coordinator-side TTLs).
+    6. **The minority partition cannot *commit*.** An isolated old leader may still believe it is leader until it sees a higher term; it just cannot gather a majority.
+    7. **TTL-only locks are not safe under clock skew or GC pauses.** Expire on the lock service; fence every write with a monotonic token. Redlock is best-effort, not a linearizable lock.
     8. **Every write carries a term number.** A process steps down if it sees a higher term.
     9. **A lease is a lock with automatic expiry** — nobody needs to detect a crash; the clock bounds the damage.
     10. **Gossip spreads membership/config info without a coordinator**, at the cost of eventual (not immediate) consistency across the cluster.

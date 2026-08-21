@@ -1,6 +1,6 @@
 ---
 title: "Design: Collaborative Document Editor (Google Docs)"
-description: Guided design of a real-time collaborative text editor — from a single in-memory document to a CRDT-based, sharded, multi-region editing platform.
+description: Guided design of a real-time collaborative text editor — from a single in-memory document to a sharded, multi-region editing platform (OT or CRDT).
 ---
 
 # Design: Collaborative Document Editor (Google Docs)
@@ -66,25 +66,25 @@ Do not reach for "just use a database with row locking." A lock held for the dur
 ```
 Documents:
   5M documents opened/day
-  Avg session length: 8 minutes → ~800K documents "open" concurrently at peak (rough, power-law skewed)
+  Avg session length: 8 minutes → concurrent open docs (Little's law): 5M × 8 / 1,440 ≈ 28K
   Of those, most are single-editor (someone alone in a doc) — only a fraction are truly multi-editor
 
 Concurrent editing sessions (the interesting number):
-  Assume 5% of open documents have >=2 concurrent editors → ~40K actively co-edited docs at peak
-  Avg concurrent editors per actively co-edited doc: ~2.5
+  Assume 5% of open documents have >=2 concurrent editors → ~1,400 actively co-edited docs
+  Avg concurrent editors per actively co-edited doc: ~2.5 → ~3,500 presence users
   Viral tail: ~50 documents at any moment with 100-500 concurrent editors (all-hands doc, shared spec)
 
-WebSocket connections at peak:
-  ~800K open docs × ~1.3 avg connections/doc (most solo, some multi) ≈ 1M concurrent WebSocket connections
+WebSocket connections:
+  ~28K open docs × ~1.3 avg connections/doc (most solo, some multi) ≈ 36K concurrent WebSocket connections
 
 Keystrokes:
   Average typist: ~5 keystrokes/second while actively typing, but only ~20% of connected time is active typing
-  1M connections × 5 keys/s × 20% active ≈ 1M operations/second system-wide at peak (before batching)
+  36K connections × 5 keys/s × 20% active ≈ 36K operations/second system-wide (before batching)
   Batched into ~50ms send windows client-side → ~20 op-batches/second/active typist, not 5 raw sends/s
 
 Presence/cursor updates:
-  ~200K actively-in-a-shared-doc users × 5 updates/s (200ms cadence) = 1M presence msgs/s
-  Presence is far higher volume than the text ops themselves and must NOT compete with them for bandwidth/priority
+  ~3,500 co-editor users × 5 updates/s (200ms cadence) ≈ 18K presence msgs/s
+  Presence is still high volume relative to text ops and must NOT compete with them for bandwidth/priority
 
 Storage:
   Avg document: 20 KB of text, plus operation log
@@ -218,14 +218,14 @@ This works for the demo: two people, low latency, edits in different parts of th
 
 ---
 
-## 10. Version 2 — CRDT-based merge and horizontal sharding
+## 10. Version 2 — OT or CRDT merge, and horizontal sharding
 
-**The core fix: replace "apply blindly, last write wins" with a merge function that makes concurrent edits at the same position both survive, deterministically, on every replica.** Two established approaches exist:
+**The core fix: replace "apply blindly, last write wins" with a merge function that makes concurrent edits at the same position both survive, deterministically, on every replica.** This is a choice, not a single correct answer. Google Docs uses **OT**; many newer editors use **CRDTs**. Either is a complete interview answer if you can name the trade-off.
 
-- **Operational Transformation (OT):** the original Google Docs approach. Every operation is transformed against every concurrent operation it might have raced with, so it can be reapplied correctly regardless of arrival order. Requires a central server to establish a canonical operation order (or a carefully specified transform function per operation pair) — the transform functions are notoriously easy to get subtly wrong, and correctness has historically required extensive testing against adversarial interleavings.
+- **Operational Transformation (OT):** the original Google Docs approach (and still what Docs uses). Every operation is transformed against every concurrent operation it might have raced with, so it can be reapplied correctly regardless of arrival order. Requires a central server to establish a canonical operation order (or a carefully specified transform function per operation pair) — the transform functions are notoriously easy to get subtly wrong, and correctness has historically required extensive testing against adversarial interleavings.
 - **CRDT (specifically an RGA-family sequence CRDT):** each character gets a unique `(replica_id, logical_counter)` identity plus a reference to its logical predecessor, as covered in [CRDTs — RGA](../architecture-patterns/crdts.md#concrete-crdt-types). Concurrent inserts at the same position are ordered by a deterministic tie-break rule every replica applies identically, so both A's and B's characters survive, in a consistent order, with **no central server required to establish canonical order** — merge is just "apply the op, compare IDs on ties."
 
-**Recommendation for a from-scratch design: CRDT (RGA).** OT is what Google Docs shipped in 2010 because CRDTs for text were less mature then, but for a new system today, CRDT is the more robust choice — the merge logic is a local, structural comparison instead of a transform function that must be proven correct against every pairwise operation interleaving, and it degrades gracefully to offline/async use (a client can queue ops locally and merge on reconnect using the *same* merge function used for live typing, which OT does not give you for free). See [CRDTs](../architecture-patterns/crdts.md) for the full mechanics — this page won't re-derive `(replica_id, counter)` tie-breaking here.
+**This walkthrough uses CRDT (RGA) from here on** so the rest of the page has one concrete merge engine to hang architecture on — not because CRDT is "what Google Docs does" (it isn't) and not because OT is invalid. OT is what Docs shipped; CRDT is the more common from-scratch pick today because merge is a local structural comparison, and the *same* function handles live typing and offline/reconnect. The costs: per-character metadata, and you still usually pin a document to an owning editing server for fan-out even if merge itself needs no sequencer. See [CRDTs](../architecture-patterns/crdts.md) for the mechanics — this page won't re-derive `(replica_id, counter)` tie-breaking here.
 
 **Horizontal scaling: shard documents across editing server instances.** One process can no longer hold every open document. Route each `doc_id` to an owning server via [consistent hashing](../databases/consistent-hashing.md) — adding or removing editing servers reshuffles only `~1/N` of documents instead of every open session, which matters because a full reshuffle would disconnect every active editor simultaneously.
 
@@ -367,18 +367,18 @@ Alerts:
 ## 16. Cost analysis
 
 ```
-WebSocket gateway fleet (1M concurrent connections, stateless, horizontally scaled): ~$3,000/month
-Editing server fleet (CRDT merge, sharded by doc_id, CPU-bound on fan-out): ~$2,500/month
+WebSocket gateway fleet (~36K concurrent connections, stateless, horizontally scaled): ~$400/month
+Editing server fleet (merge engine, sharded by doc_id, CPU-bound on fan-out): ~$800/month
 Coordination service (etcd/ZooKeeper cluster, small, high-availability):    ~$300/month
-Pub/sub for fan-out (per-doc topics, high message rate, low payload size):  ~$800/month
+Pub/sub for fan-out (per-doc topics, high message rate, low payload size):  ~$200/month
 Operation log storage (append-only, ~25 GB/day pre-compaction):            ~$400/month
 Snapshot storage (compacted, ~100 GB resident):                            ~$50/month
-Presence store (Redis, short-TTL, ephemeral, moderate size):               ~$200/month
-Total:                                                                     ~$7,250/month
+Presence store (Redis, short-TTL, ephemeral, moderate size):               ~$100/month
+Total:                                                                     ~$2,250/month
 
-Cost lever: presence update rate is the highest-volume traffic (1M msgs/s estimated) but
-carries no durability requirement — batching/coalescing presence updates more aggressively
-(e.g. 100ms instead of 200ms→lower, or coalescing multiple cursor moves per window) cuts
+Cost lever: presence update rate is still the highest-volume live traffic (~18K msgs/s)
+but carries no durability requirement — batching/coalescing presence updates more aggressively
+(e.g. 100ms instead of 200ms, or coalescing multiple cursor moves per window) cuts
 pub/sub and gateway CPU cost with zero correctness risk, unlike text ops which cannot be
 coalesced away without risking a lost keystroke.
 ```
@@ -388,7 +388,7 @@ coalesced away without risking a lost keystroke.
 ## 17. Alternative architectures
 
 === "OT vs CRDT"
-    OT (Google Docs' original 2010 approach) requires a central server to sequence operations and transform each one against every concurrent operation it could have raced with — this gives correct results *if* the transform functions are proven correct, but that proof is notoriously hard and historically a source of subtle bugs (Google's own OT implementation took years to harden). CRDT (RGA-family) makes merge a local, structural comparison with no central sequencer required, and the *same* merge function handles live typing and offline/reconnect sync — no separate code path. The trade-off: CRDT sequence types carry more per-character metadata (replica id + logical counter + predecessor reference) than raw text, which is a real memory/bandwidth cost OT avoids. For a from-scratch design today, CRDT is the safer choice specifically because "coordination-free, offline-friendly, one merge function" outweighs the metadata overhead — but say the trade-off out loud rather than presenting CRDT as a free upgrade.
+    OT is what Google Docs actually uses; CRDT is a from-scratch alternative, not an upgrade that made OT obsolete. OT requires a central server to sequence operations and transform each one against every concurrent operation it could have raced with — correct *if* the transform functions are proven, historically hard. CRDT (RGA-family) makes merge a local structural comparison with no central sequencer, and the *same* merge function handles live typing and offline/reconnect. The trade-off: CRDT sequence types carry more per-character metadata than raw text. Pick one and name the trade-off; do not present CRDT as "the Google Docs answer."
 
 === "Central lock per paragraph (naive)"
     Grant each user an exclusive lock on the paragraph they're editing; release on idle timeout. This sounds like it "solves" concurrent-edit conflicts by preventing them, but it fails the actual product requirement: two people legitimately co-editing the same paragraph (the entire point of "collaborative") get blocked from each other, one user's stalled connection holds a lock hostage until timeout, and lock acquisition/release round-trips blow the 100ms local-echo budget — the user has to wait on a network round trip just to *start* typing where someone else recently was. This is the same mistake as reaching for row-level database locking: it trades away the product's core promise (simultaneous co-editing) for a correctness guarantee the CRDT approach already provides without blocking anyone.
@@ -398,7 +398,7 @@ coalesced away without risking a lost keystroke.
 ## 18. Staff Engineer Extensions
 
 === "100× traffic"
-    ~100M concurrent WebSocket connections and viral docs with 50,000 concurrent editors. Gateway and editing-server fleets scale horizontally (consistent hashing already assumed many shards), but a single document with 50K editors breaks the "one editing server owns this doc" model outright — no single process can merge and fan out at that rate. At this extreme, split fan-out into a tree (editing server → regional relay nodes → gateways) so broadcast is O(log n) hops instead of one server pushing to every gateway directly, and consider read-only "viewer" mode with a lower consistency bar for the long tail of the 50K who are watching, not typing.
+    ~3.6M concurrent WebSocket connections (100× the ~36K baseline) and viral docs with 50,000 concurrent editors. Gateway and editing-server fleets scale horizontally (consistent hashing already assumed many shards), but a single document with 50K editors breaks the "one editing server owns this doc" model outright — no single process can merge and fan out at that rate. At this extreme, split fan-out into a tree (editing server → regional relay nodes → gateways) so broadcast is O(log n) hops instead of one server pushing to every gateway directly, and consider read-only "viewer" mode with a lower consistency bar for the long tail of the 50K who are watching, not typing.
 
 === "Multi-region (genuinely hard here)"
     Real-time typing has a physical latency floor: round-trip between a client in Tokyo and an editing server in `us-east` is 150-200ms — already blowing the 100ms convergence budget before any processing. You cannot centralize the editing server for a document with editors in multiple regions and hit the SLA. The fix: **local echo already decouples the typist's own perceived latency from the network** (they see their keystroke instantly regardless), so the 100ms budget is really about *other* editors seeing your edit, not about you seeing your own. Route each editor's ops to their nearest regional edge, apply optimistic local merge against replicated CRDT state, and use inter-region replication of the CRDT op stream (async, since CRDT merge tolerates arbitrary delivery order) to converge across regions — cross-region convergence will realistically be 150-300ms, not 100ms, for editors on opposite sides of the globe. Say this bound out loud rather than claiming a global 100ms SLA is achievable; it isn't, for the same speed-of-light reasons the rate limiter's "global quota" extension runs into.

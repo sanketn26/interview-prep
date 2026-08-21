@@ -423,7 +423,7 @@ Cost per notification:
 
 - [ ] Can I clearly separate the two fan-out problems (event→recipients vs. recipient→devices)?
 - [ ] Can I explain why the ingestion API must be async (202, not a blocking send)?
-- [ ] Can I describe how the idempotency key prevents double-sends under at-least-once queue delivery?
+- [ ] Can I describe what the idempotency key *does* close (concurrent-worker races) and what it does *not* (crash after the provider accepts but before we record `sent` — §12)?
 - [ ] Can I justify separate physical queues per priority tier instead of a single queue with a priority field?
 - [ ] Can I explain the cost asymmetry across channels and why it drives SMS eligibility rules?
 - [ ] Can I walk through what happens end-to-end when APNs is down for 10 minutes?

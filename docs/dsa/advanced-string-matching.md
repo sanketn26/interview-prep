@@ -7,7 +7,7 @@ description: Aho-Corasick multi-pattern matching, Z-algorithm, suffix arrays, Bo
 
 **Difficulty:** Hard | **Pattern Type:** Multi-pattern / linear-time string algorithms
 
-[← DSA Overview](index.md) | [← Advanced Hashing Techniques](hashing-techniques.md) | [Back to DSA Overview →](index.md)
+[← DSA Overview](index.md) | [← Skip Lists & Range Trees](skip-lists-fenwick-segment-trees.md) | [Back to DSA Overview →](index.md)
 
 ---
 
@@ -38,23 +38,24 @@ The construction has two parts:
 ```
 Patterns: "he", "she", "his", "hers"
 
-Trie:
-        (root)
-        /    \
-       h      s
-       |      |
-       e      h
-      / \      \
-     r   (his   e ── "she" ends here
-     |    branch)     |
-     s               (shares 'he' node with "he"!)
-     |
-    "hers" ends here
+Trie — two branches. "she" does NOT share the "he" nodes; it has its own s→h→e path.
+"he" and "hers" share the h→e prefix.
+
+            (root)
+           /      \
+          h        s
+         / \       |
+        e   i      h
+       / \  |      |
+      r  "his"     e     ← "she" ends here (its own e)
+      |            :
+    "hers"         :  dashed failure: she.e → he.e
+                   :  (suffix "he" is already a pattern)
 
 Failure links (dashed): each node points to the longest suffix of its
-path that's also a prefix elsewhere in the trie. E.g. the node for "sh"
-fails to the node for "h" (since "h" is a prefix, and the longest proper
-suffix of "sh" that matches a trie prefix is "h").
+path that's also a prefix elsewhere in the trie. The node for "sh" fails
+to the node for "h". The node for "she"'s e fails to "he"'s e — that is
+how scanning "she" also reports a match for "he".
 ```
 
 **Why failure links generalize KMP:** in single-pattern KMP, a mismatch falls back to *the same pattern's* own prefix-suffix structure. In Aho-Corasick, a mismatch falls back to *any other pattern's* matching prefix — because the trie holds many patterns simultaneously, "the text I've already matched might be the start of a different pattern" becomes a real, common case, not just a theoretical one.
@@ -329,7 +330,7 @@ def boyer_moore_search(text: str, pattern: str) -> list[int]:
 
 The brute-force way to find the longest palindromic substring expands around every possible center: O(n) centers x O(n) expansion each = O(n^2). Manacher's algorithm gets this to O(n) by reusing information from palindromes already found, the same "don't redo work you've already done" idea running through this whole page.
 
-**The trick:** transform the string by inserting a separator between every character (e.g. `"abc"` -> `"^#a#b#c#$"`) so that even-length and odd-length palindromes are handled uniformly (every palindrome in the transformed string has odd length, centered on a real character). Then, while sweeping left to right and expanding around each center, maintain the **rightmost palindrome boundary found so far** `[L, R]` and its center `C`. For a new center `i` inside that boundary, its mirror position `2C - i` (already processed) gives a *lower bound* on how far `i`'s palindrome extends — because the region around `C` is itself a palindrome, so the palindrome-structure around the mirror position is reflected around `i`, at least up to the boundary `R`. Expansion only needs to continue checking *past* that lower bound, not from scratch.
+**The trick:** transform the string by inserting a separator between every character (e.g. `"abc"` → `"#a#b#c#"`, matching the code below) so that even-length and odd-length palindromes are handled uniformly (every palindrome in the transformed string has odd length, centered on a real character). Then, while sweeping left to right and expanding around each center, maintain the **rightmost palindrome boundary found so far** `[L, R]` and its center `C`. For a new center `i` inside that boundary, its mirror position `2C - i` (already processed) gives a *lower bound* on how far `i`'s palindrome extends — because the region around `C` is itself a palindrome, so the palindrome-structure around the mirror position is reflected around `i`, at least up to the boundary `R`. Expansion only needs to continue checking *past* that lower bound, not from scratch.
 
 ```python
 def longest_palindromic_substring(s: str) -> str:

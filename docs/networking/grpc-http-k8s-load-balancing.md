@@ -99,7 +99,8 @@ Distribution: All streams on one connection → routed to ONE backend
 
 **Key properties:**
 - ✓ Connection setup cost minimal (one connection carries 1000s of streams)
-- ✓ No head-of-line blocking (lost stream doesn't stall others)
+- ✓ No **HTTP-level** HOL (one slow *stream* does not wait for another stream's application data)
+- ✗ **TCP HOL remains:** one lost packet stalls *all* streams on that connection (shared cwnd). HTTP/3/QUIC removes that
 - ✗ All traffic on one connection → one backend → hotspot
 - ✗ To distribute traffic, need multiple HTTP/2 connections
 
@@ -256,9 +257,9 @@ iptables rules:
 ```
 
 **Behavior:**
-- Per-packet random selection (each packet could go to different backend)
-- BUT: For TCP, NAT is connection-based (SYN packet determines backend)
-- Once connection established, all packets on that connection → same backend
+- iptables `statistic --mode random` looks per-packet, but **DNAT is conntrack**: the **first packet** (TCP SYN) wins, and later packets of that connection reuse the same NAT mapping
+- It is **not** per-packet random for an established TCP connection
+- Once the connection is established, all packets on it → same backend
 
 **Result:**
 - First packet (SYN) → random backend
@@ -291,11 +292,11 @@ Configuration:
 ```
 
 **Behavior with gRPC:**
-- `rr` (round-robin): Round-robin per new connection → even if connections are created round-robin
-- `lc` (least connections): Route to backend with fewest active connections → handles long-lived connections better
+- `rr` (round-robin): Round-robin **per new connection**
+- `lc` (least connections): New connections go to the backend with fewest *connections*. **It does not move an existing HTTP/2 channel.** A long-lived gRPC connection stays on the pod it landed on; least-conns only affects the next SYN
 - `sh` (source hash): Same source IP always goes to same backend → bad for gRPC (one client = one backend)
 
-**Result:** `lc` is better for gRPC (adapts to long-lived connections)
+**Result:** `lc` helps *new* connections land on quieter pods. It does not rebalance streams already multiplexed on an open channel.
 
 ---
 
@@ -408,20 +409,22 @@ Result: Backend-1 becomes hotspot due to performance variance
 
 ## Part 4: K8s-Specific Issues and Solutions
 
-### Problem 1: Java DNS Caching (Eternal TTL)
+### Problem 1: Java DNS Caching (TTL)
 
 ```java
-// Java networking caches DNS infinitely by default
-InetAddress.getByName("payment");  // Caches result forever
+// With a SecurityManager, the JDK used to cache successful lookups forever.
+// Modern JDK *without* a security manager defaults networkaddress.cache.ttl to ~30s,
+// not infinity. Still too long if you expect DNS to rotate pod IPs (headless Services).
+InetAddress.getByName("payment");
 
-// Fix: Set TTL to 0 (disabled caching) or small value
+// Pin an explicit TTL rather than assuming the default
 java.security.Security.setProperty("networkaddress.cache.ttl", "10");
 
 // Or: Use different resolver
 new URL("http://payment:8080").openConnection();  // Uses resolver
 ```
 
-**Impact:** Java client connects once, never reconnects → always same backend
+**Impact:** A long TTL (or a stale cache) plus one HTTP/2/gRPC channel means you keep the same backend well after pods moved. ClusterIP is a single VIP either way — the TTL issue is mainly **headless** client-side LB.
 
 ### Problem 2: HTTP/2 Idle Connection Reuse
 
@@ -543,7 +546,7 @@ semaphore := make(chan struct{}, maxConnectionsPerClient)
 | **Connection model** | Pool of connections | One connection, many streams | One connection (HTTP/2) or pool (HTTP/1.1) |
 | **Concurrent requests** | Limited by pool size | Unlimited (streams) | Depends on underlying protocol |
 | **Default distribution** | Even (if pool round-robin'd) | Hotspot (all traffic on one connection) | Hotspot (gRPC reuses connection) |
-| **Head-of-line blocking** | Yes (per connection) | No (per stream) | No (per stream) |
+| **Head-of-line blocking** | Yes (HTTP + TCP) | No HTTP-level HOL; **TCP HOL remains** | Same as HTTP/2 (TCP HOL); HTTP/3 would remove it |
 | **Latency per request** | 1-5 ms (pool setup amortized) | 0.5-1 ms (stream overhead) | 0.5-1 ms (stream overhead) |
 | **Total connections at scale** | Many (pool size × clients) | Few (1 per client) | Few (1 per client) |
 | **Complexity (application)** | Simple (standard) | Medium (need multiplexing library) | Medium (need gRPC library) |
@@ -936,7 +939,7 @@ sum(grpc_server_started_total - grpc_server_handled_total) by (instance)
     
     **Q: Your Java service makes gRPC calls to a backend. Traffic shows 100% to one backend pod. How do you fix it?**
     
-"Two real causes, and DNS caching is only a factor for the headless-Service client-side-LB approach — it doesn't apply if the client is going through a plain ClusterIP, since every DNS query already returns the same ClusterIP regardless of caching. The two causes that actually matter: (1) gRPC connection reuse — one channel means one underlying TCP connection carries every RPC, and (2) kube-proxy (or the L4/L7 LB in front) makes its pod-selection decision once, at connection setup, then pins to that pod for the connection's life. Fixes: (1) move to a headless Service plus gRPC's built-in round-robin resolver, so the client itself opens a connection per pod and balances across them — here Java's infinite DNS caching would matter, so also set `networkaddress.cache.ttl` to a short value, (2) create multiple gRPC channels explicitly and round-robin between them, or (3) use a service mesh so balancing happens per-request via the sidecar, no code change. Test: Monitor traffic per backend (Prometheus), confirm it's now balanced."
+"Two real causes, and DNS caching is only a factor for the headless-Service client-side-LB approach — it doesn't apply if the client is going through a plain ClusterIP, since every DNS query already returns the same ClusterIP regardless of caching. The two causes that actually matter: (1) gRPC connection reuse — one channel means one underlying TCP connection carries every RPC, and (2) kube-proxy (or the L4/L7 LB in front) makes its pod-selection decision once, at connection setup, then pins to that pod for the connection's life. Fixes: (1) move to a headless Service plus gRPC's built-in round-robin resolver, so the client itself opens a connection per pod and balances across them — here Java DNS TTL matters (modern JDK default ~30s without a security manager, not infinite), so also set `networkaddress.cache.ttl` to a short value, (2) create multiple gRPC channels explicitly and round-robin between them, or (3) use a service mesh so balancing happens per-request via the sidecar, no code change. Test: Monitor traffic per backend (Prometheus), confirm it's now balanced."
 
 === "Staff"
     **Q: You're running 1000 microservices in Kubernetes with gRPC inter-service communication. 5% of service pairs show 3-4x traffic imbalance. How do you solve this systematically?**
@@ -950,7 +953,7 @@ sum(grpc_server_started_total - grpc_server_handled_total) by (instance)
 !!! success "Remember"
     1. **HTTP/1.1 pools connections** (many connections, traffic distributed by pool), **HTTP/2 multiplexes on one connection** (all traffic on one connection = hotspot).
     2. **gRPC inherits HTTP/2 behavior:** one channel = one connection = one backend = hotspot. Fix: create multiple channels or use service mesh.
-    3. **DNS caching + gRPC reuse = hotspot:** Client resolves DNS once, creates channel to that IP, reuses forever. Result: 100% traffic to one backend.
+    3. **ClusterIP DNS is a single VIP** — every lookup returns the Service IP, not rotating pod IPs. The hotspot is **headless DNS + gRPC channel reuse**, or **one connection NAT'd once** through kube-proxy. Java's default positive DNS TTL is ~30s without a security manager, not infinite.
     4. **K8s service discovery**: a plain ClusterIP Service's DNS name always resolves to the same virtual IP — it never round-robins across pod IPs. Pod selection happens later, at connection setup, via kube-proxy's iptables/IPVS NAT rules. Only a **headless Service** (`clusterIP: None`) returns individual pod IPs from DNS — that's the mechanism client-side gRPC load balancing actually relies on. Fix: service mesh (per-request LB via sidecar) or headless Service + client-side LB (per-connection LB via the client itself).
     5. **kube-proxy iptables/IPVS:** Round-robins per new connection. With gRPC (long-lived connection), that's one backend for entire lifetime.
     6. **L4 LB (NLB):** Sees TCP/gRPC as opaque flows. Pins connection to backend → hotspot.

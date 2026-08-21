@@ -61,12 +61,14 @@ Out of scope for V1: ranking model internals, retweets, replies-as-threads, DMs,
 ## 5. Capacity Estimation
 
 ```
-300M DAU, 500M total users
-  Avg user: posts 0.5×/day, follows 200 accounts, has 200 followers (median, NOT mean)
+300M DAU, 500M total registered users
+  (500M is a census for feed-cache sizing; posting is a DAU behavior)
+  Avg DAU: ~0.83 posts/day, follows 200 accounts, has 200 followers (median, NOT mean)
   Celebrity accounts: ~1,000 accounts with 1M–50M followers each (long tail)
 
 Writes (posts):
-  500M users × 0.5 posts/day ≈ 250M posts/day ≈ 2,900 posts/s average, ~10x peak ≈ 29K posts/s
+  300M DAU × ~0.83 posts/day ≈ 250M posts/day ≈ 2,900 posts/s average, ~10x peak ≈ 29K posts/s
+  Inactive registered accounts are assumed not to post.
 
 Naive fan-out-on-write cost (writing post-id into every follower's feed):
   Average post: 200 followers → 250M × 200 ≈ 50B feed-writes/day just for average users

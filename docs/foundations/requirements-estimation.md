@@ -148,7 +148,8 @@ Peak read / write   16,667 / 1,852
 Cache hits          13,333 QPS
 Origin reads        3,333 QPS
 Peak NIC (in+out)   ~74 MB/s  (2 KB each way)
-Writes / day        2,315 × 10% = 232 write/s × 86,400 × 2 KB ≈ 40 GB/day
+Avg write QPS       2,315 × 10% ≈ 232 write/s   (peak write QPS is 1,852)
+Writes / day        232 write/s × 86,400 × 2 KB ≈ 40 GB/day   (use average, not peak)
 Year logical        40 GB × 365 ≈ 14.6 TB
 With RF=3           ~44 TB  (+indexes/WAL → budget ~60 TB)
 In-flight @ 80ms    18.5k × 0.08 ≈ 1,480

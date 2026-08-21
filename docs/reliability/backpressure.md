@@ -182,7 +182,7 @@ A drop policy without a `dropped_total` metric is indistinguishable from a bug. 
 
 Blocking the producer is correct locally and can be catastrophic globally: if the producer is a request-handling thread and it blocks on a full queue, the thread pool serving unrelated requests exhausts, and one slow consumer takes down endpoints that have nothing to do with it.
 
-**Fix:** bound *how far* lossless backpressure is allowed to propagate — a timeout on the blocking `put()`, converted into a `503`/`429` at the boundary, rather than an indefinite block. This is the same instinct as [decreasing timeouts down the stack](index.md#timeouts-must-decrease-down-the-stack): a stall has to surface as a fast, explicit failure at some layer, or it just moves until it finds the least monitored one.
+**Fix:** bound *how far* lossless backpressure is allowed to propagate — a timeout on the blocking `put()`, converted into a `503`/`429` at the boundary, rather than an indefinite block. This is the same instinct as [decreasing timeouts down the stack](index.md#timeouts-request-deadlines-vs-idle): a stall has to surface as a fast, explicit failure at some layer, or it just moves until it finds the least monitored one.
 
 ### Thundering Herd When Backpressure Releases
 

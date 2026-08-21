@@ -52,12 +52,12 @@ Valet key (OAuth2 access token) → limited access (drive only), for a
                                    limited time, revocable, to one "car"
                                    (one API's scopes)
 
-Valet's ID badge (OIDC id_token) → separately proves who the valet *is*,
-                                    so the garage can log "this specific
-                                    person parked this car at 2pm"
+Owner's ID (OIDC id_token)        → proves who the **user** (resource owner) is,
+                                    not who the valet/client app is. The garage
+                                    logs "Alice authorized this valet key."
 ```
 
-The access token is the valet key: it grants a scoped, revocable capability. The ID token is a separate, signed statement of identity — it doesn't grant any access to anything; it just answers "who authenticated." Conflating the two (using an access token as proof of identity, or an ID token to call an API) is the single most common OAuth2/OIDC implementation bug.
+The access token is the valet key: it grants a scoped, revocable capability. The ID token proves who the **user** (resource owner) is — not who the valet/client is. It doesn't grant API access. Conflating the two (using an access token as proof of identity, or an ID token to call an API) is the single most common OAuth2/OIDC implementation bug.
 
 ---
 
@@ -436,7 +436,7 @@ Decision tree: "users randomly getting logged out"
 === "Foundation"
     **Q: What's the difference between OAuth2 and OIDC?**
 
-    "OAuth2 is authorization — it answers 'can this app act on my behalf against an API,' and hands out an access_token scoped to that. It was never designed to prove identity. OIDC is a thin identity layer on top of OAuth2 that adds a standardized, signed id_token — a JWT that says who authenticated, when, and for which client. Every 'Sign in with Google' button is really OIDC, even though people call it OAuth login."
+    "OAuth2 is authorization — it answers 'can this app act on my behalf against an API,' and hands out an access_token scoped to that. It was never designed to prove identity. OIDC is a thin identity layer on top of OAuth2 that adds a standardized, signed id_token — a JWT that says who authenticated, when, and for which client. Many 'Sign in with X' buttons are OIDC (Google, Microsoft). Not all: GitHub's user-login OAuth flow does not issue an id_token — that one is bare OAuth2 plus a /user API call. Don't say every Sign in with X is OIDC."
 
     **Q: What is PKCE and why do you need it?**
 

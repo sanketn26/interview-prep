@@ -74,7 +74,8 @@ sequenceDiagram
    Client checks: "Does the domain match?"
    
 3. Client and server agree on an encryption key
-   (Using the server's public key to safely share a symmetric key)
+   (TLS 1.3 uses ECDHE: both sides contribute ephemeral key material.
+    The certificate authenticates the server; it is not RSA key-transport of the session key.)
    
 4. All traffic is now encrypted
    Client → Server: [encrypted]
@@ -174,7 +175,7 @@ Anyone can verify the signature with her public key.
 Proof: "only Alice could have signed this"
 ```
 
-Use case: **OAuth2 tokens and JWT** (see below).
+Typical **JWTs are signed, not encrypted** (JWS: HS256 symmetric HMAC, or RS256/ES256 with a private key). Signing proves authenticity and integrity; anyone can still *read* the payload. Encrypting a JWT is a different spec (JWE) and is uncommon for access tokens. Do not file "JWT" under asymmetric encryption — RS256 is asymmetric **signing**.
 
 ---
 
@@ -272,8 +273,9 @@ If AccessToken expires:
   Server validates it and issues a new AccessToken
   
 If RefreshToken is stolen:
-  Attacker can only refresh; they need the AccessToken to make requests
-  And AccessToken is short-lived
+  Attacker MINTS new access tokens until rotation, reuse-detection, or revocation
+  stops them. They do *not* need the current AccessToken — the refresh is how
+  they get one. Short access TTL only bounds each stolen access token.
 ```
 
 **Going deeper:** this covers JWTs at intro depth — enough to reason about expiration and refresh tokens. It doesn't cover cookie security attributes, session fixation/hijacking, sliding vs. absolute expiration, or the full "why can't you revoke a JWT" trade-off against server-side sessions. See [Session Management Deep Dive](session-management.md) for that.
@@ -430,9 +432,10 @@ batch_token = issueToken(["write_s3_bucket/invoices"])
 # ✗ Hardcoded
 DB_PASSWORD = "mysecretpassword123"
 
-# ✗ Environment variable (visible in process list)
+# ✗ Environment variable (inherited by child processes; in /proc/PID/environ
+#   for the same user or root — not in `ps aux`, which shows argv)
 import os
-DB_PASSWORD = os.getenv("DB_PASSWORD")  # $ ps aux can see this
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 # ✗ Config file in the repo
 # config.yaml: db_password: "mysecretpassword123"
@@ -457,12 +460,12 @@ Benefits:
 - ✓ Audit log of who accessed the secret
 - ✓ Separate access control
 
-**Option 2: Sealed Secrets / Encrypted ConfigMaps (Kubernetes)**
+**Option 2: Kubernetes Secret (etcd encryption at rest)**
 
-For Kubernetes, encrypt secrets in etcd:
+A normal `Secret` is not Sealed Secrets. Sealed Secrets / SOPS encrypt the *manifest* so it can sit in git; the object below is just a Secret. Enable encryption at rest in the API server if you care about etcd theft.
 
 ```yaml
-# Secret is encrypted at rest in etcd
+# Ordinary Secret (stringData). Not a SealedSecret.
 apiVersion: v1
 kind: Secret
 metadata:

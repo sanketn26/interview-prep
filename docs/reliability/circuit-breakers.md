@@ -18,14 +18,14 @@ prerequisites:
 
 Payments API calls Fraud. Fraud's p99 is 80ms. You set no timeout. Fraud's DB locks. Threads pile up. Payments p99 becomes "however long Fraud is sad." The fleet is **latched** to a dead dependency.
 
-You add retries: 3 tries, no backoff.
+You add retries: 3 retries = **4 attempts**, no backoff.
 
 ```
 1000 rps inbound
 Fraud times out
-each request × 3 tries  → 3000+ rps at Fraud
-Fraud was 80% sick      → you just made it 100% dead
-your thread pool        → also dead (retries hold slots)
+each request × 4 attempts  → 4000 rps at Fraud if every try is a full call
+Fraud was 80% sick         → you just made it 100% dead
+your thread pool           → also dead (attempts hold slots)
 ```
 
 Timeouts, backoff, jitter, then a **circuit breaker** — not as decoration, as the thing that stops you from murdering a recovering service.
@@ -44,7 +44,7 @@ Timeouts, backoff, jitter, then a **circuit breaker** — not as decoration, as 
 | Pressure | Break |
 |----------|--------|
 | Dep 5s hang, no timeout | Pool = QPS × 5s (Little's Law). 200 rps × 5s = 1,000 threads |
-| Retry ×3 immediate | 200 → 600 rps at the dep; thundering herd on recovery |
+| Retry ×3 (4 attempts) immediate | 200 → 800 rps at the dep if every try is a full call; thundering herd on recovery |
 | Synchronized retry | All pods retry on the same 1s boundary → **retry storm** |
 | One pool | Fraud death starves *shipping* on the same executor |
 | Breaker copied from a blog, 5 failures | One deploy blip opens breaker for 30s × every pod = self-DDoS of errors |
@@ -57,7 +57,7 @@ Layer the defenses. **Do not start at the breaker.**
 
 1. **Timeout** — every outbound call has a deadline < caller SLO. If Fraud SLO is 200ms p99, timeout 100–150ms, not 30s.
 2. **Retry only if safe** — GET, idempotent PUT, or a request-id. Never blind-retry `POST /charge`.
-3. **Backoff + jitter** — `sleep = min(cap, base * 2^attempt) + random`. Jitter stops lockstep.
+3. **Backoff + full jitter** — default `sleep = U(0, min(cap, base * 2^attempt))`. Full jitter `U(0, exp)` is the default; "exp + random" (equal jitter) is a different policy.
 4. **Budget** — retry at most X% extra load (e.g. 10%). Budget exhausted → fail.
 5. **Circuit breaker** — closed / open / half-open on *that dependency*.
 6. **Bulkhead** — separate pools / queue lengths per dependency.
@@ -109,7 +109,7 @@ flowchart LR
 
 ## Realistic Example With Numbers
 
-Checkout: 1,000 rps. Fraud p50=20ms, p99=80ms. Timeout 150ms. 3 retries, no jitter.
+Checkout: 1,000 rps. Fraud p50=20ms, p99=80ms. Timeout 150ms. 3 retries (**4 attempts**), no jitter.
 
 ```
 Healthy:     downstream ≈ 1,000 rps     amp 1.0×
@@ -271,7 +271,7 @@ Dashboards that pay rent: `breaker_state`, `calls_rejected`, `retry_ratio` (out/
 
 !!! success "Remember"
     1. Timeout first; retries are load you chose to create.
-    2. 1000 rps × 3 retries is a 3000 rps attack on a sick peer.
+    2. 1000 rps × 3 retries = **4 attempts** = a 4000 rps attack on a sick peer if every try is a full call.
     3. Closed / open / half-open stops the attack; half-open must be cluster-scoped.
     4. Bulkheads stop one dep from taking the process with it.
     5. Load shed on the way *in* when *you* are the sick dep.
@@ -282,4 +282,4 @@ Dashboards that pay rent: `breaker_state`, `calls_rejected`, `retry_ratio` (out/
     Reliability is a budget of extra load and extra latency you are willing to spend to hide faults. Staff engineers publish that budget (`retry_ratio < 1.2`, `timeout < 30% of SLO`) as SLOs on *clients*, not just servers. The circuit breaker is policy. If only one senior knows the thresholds, you do not have a platform — you have folklore.
 
 !!! note "Interview Insight 🎯"
-    Start from Little's Law and retry math, then name the breaker. Interviewers are hunting for "retries amplify outages." If you jump to Hystrix states without numbers, you sound like a docs page. If you say "3 retries, jitter, 10% budget, fail-fast when open," you sound like you have been on-call.
+    Start from Little's Law and retry math, then name the breaker. Interviewers are hunting for "retries amplify outages." If you jump to Hystrix states without numbers, you sound like a docs page. If you say "3 retries = 4 attempts, full jitter U(0, exp), 10% budget, fail-fast when open," you sound like you have been on-call.

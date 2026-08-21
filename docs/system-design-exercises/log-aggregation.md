@@ -16,7 +16,7 @@ description: Guided design of a fleet-wide log aggregation and search system —
 
 Design a system like Splunk or the ELK/EFK stack: every service in a large fleet writes log lines (stack traces, request logs, debug output) to stdout or a file, and the system must collect all of it, make it **searchable by free text and structured fields**, and let an on-call engineer find the five relevant lines out of a firehose within seconds during an incident.
 
-If you've done a [metrics/monitoring](metrics-monitoring.md) design, resist copying it. A metric is one small structured number emitted every 10–60 seconds per instrument. A log line is unstructured or semi-structured **text**, and a single incoming HTTP request can fan out into a dozen or more log lines across a handful of services. Fleet-wide, that's easily 100–1000x more bytes/second than the equivalent metrics pipeline, and the query pattern is fundamentally different too: metrics answer "what is the value of X over time" (aggregation over numbers), logs answer "show me every line mentioning request ID `abc123`" (search over text). That means you need something closer to the [search engine](search-engine.md)'s inverted index, not a time-series rollup — but built for a stream that is append-only, time-ordered, and enormous.
+If you've done a [metrics/monitoring](metrics-monitoring.md) design, resist copying it. A metric is one small structured number emitted every 10–60 seconds per instrument. A log line is unstructured or semi-structured **text**, and a single incoming HTTP request can fan out into a dozen or more log lines across a handful of services. Fleet-wide, that's ~60× more bytes/second than the equivalent metrics pipeline (2M lines/s × 500 B vs ~1M points/s × 16 B — not 100–1000×), and the query pattern is fundamentally different too: metrics answer "what is the value of X over time" (aggregation over numbers), logs answer "show me every line mentioning request ID `abc123`" (search over text). That means you need something closer to the [search engine](search-engine.md)'s inverted index, not a time-series rollup — but built for a stream that is append-only, time-ordered, and enormous.
 
 The other axis that dominates this design is economics. At real fleet scale, raw log volume is genuinely **petabyte-scale per year**, and every byte you index for full-text search costs several times more than the byte cost to just store it. The whole system is an exercise in deciding, continuously, what deserves to be searchable *now*, what can be searchable *later*, and what is only worth keeping as a cold, un-indexed archive you'd retrieve in the rare case someone needs it for compliance.
 
@@ -51,7 +51,7 @@ The other axis that dominates this design is economics. At real fleet scale, raw
 | Ingestion-to-searchable latency | < 30s p99 for hot tier | An on-call engineer debugging a live incident needs logs from *this minute*, not from an hour-old batch job |
 | Ingest durability | No app-visible blocking; best-effort but low loss (< 0.01%) under normal load | A logging system must never slow down or crash the service it's monitoring |
 | Availability (search) | 99.9% during business hours; degraded-but-alive during fleet-wide incidents | Search is most needed exactly when the fleet is unhealthy |
-| Scale | 50K hosts, 2M lines/sec fleet-wide peak, ~500 bytes/line avg | Two to three orders of magnitude more write volume than a comparable metrics pipeline |
+| Scale | 50K hosts, 2M lines/sec fleet-wide average (~10M peak in an incident), ~500 bytes/line avg | ~60× the byte rate of a comparable metrics pipeline, not 100–1000× |
 | Retention | 7 days hot (fast, full-text), 30 days warm (searchable, slower), 1 year cold (archived, not indexed) | Retention length is the single biggest cost lever — must be explicit and tiered, not "keep everything forever" |
 | Query latency | p99 < 2s for a single-day, single-service search; minutes acceptable for a cold-tier scan | Sets expectations for what's "live debugging" vs. "compliance retrieval" |
 
@@ -66,7 +66,7 @@ The other axis that dominates this design is economics. At real fleet scale, raw
 Fleet:
   50,000 hosts/containers, each emitting ~40 log lines/second average (10x peak during incidents)
   Fleet-wide average: 50,000 x 40 = 2,000,000 lines/sec average
-  Fleet-wide peak (incident): easily 5-10x -> 10-20M lines/sec is the nightmare case; design for 2M sustained, headroom to 5M
+  Fleet-wide peak (incident): easily 5-10x → 10-20M lines/sec is the nightmare case; design for 2M sustained average, headroom to ~10M peak
 
 Per-line size:
   Avg log line: ~500 bytes (stack traces and JSON blobs push this up)

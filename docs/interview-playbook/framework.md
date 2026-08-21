@@ -1,6 +1,6 @@
 ---
 title: Interview Framework
-description: How senior interviews are actually scored — reasoning, trade-offs, ambiguity, and the Learn / Practice / Hint / Interview / Solution / Staff modes.
+description: How senior interviews are actually scored — reasoning, trade-offs, ambiguity, and how to use Learn / Practice / Hint / Interview / Solution / Staff as study modes (the tab switcher is not wired on every page).
 ---
 
 # Interview Framework
@@ -47,7 +47,7 @@ Use one mode at a time. Mixing "learn" and "solution" is how you get déjà vu i
     Only after you have a design. Diff yours vs the page. The delta is the study plan, not the page itself.
 
 === "Staff"
-    Re-open the same problem with: org boundaries, 3-year evolution, compliance, cost, migration, "what if we are wrong." Staff tabs on concept pages are this lens.
+    Re-open the same problem with: org boundaries, 3-year evolution, compliance, cost, migration, "what if we are wrong." Some pages have Staff Q&A or seniority tabs; this is not a Staff tab on every concept page.
 
 ---
 

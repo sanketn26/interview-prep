@@ -77,7 +77,7 @@ Two failure modes dominate:
 
 ## Build a Story Bank, Not Scripts
 
-You cannot script answers to unpredictable questions, but the questions cluster. Prepare **six stories** and map them to the clusters — most prompts are one of these wearing a different hat:
+You cannot script answers to unpredictable questions, but the questions cluster. Prepare **6 load-bearing stories** and map them to the clusters — most prompts are one of these wearing a different hat:
 
 | Cluster | Prompts it covers |
 |---|---|

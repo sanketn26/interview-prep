@@ -168,7 +168,7 @@ CAP theorem ──────→ Consistency models ──────→ Repli
 Expand each for a reference answer.
 
 ??? question "1. Can a system really be both consistent and available during a partition?"
-    No — that's the entire content of CAP theorem. During a partition, a node can either answer (possibly with stale data — available) or refuse to answer until it can confirm it has the latest write (consistent), but it cannot do both for the same request. Outside of a partition you get all three properties; CAP only forces a choice *while the network is actually split*. See [CAP theorem](cap-theorem.md).
+    No — that's the entire content of CAP theorem. During a partition, a node can either answer (possibly with stale data — available) or refuse to answer until it can confirm it has the latest write (consistent), but it cannot do both for the same request. CAP does **not** say you get all three when the network is healthy — even without a partition you still choose **latency vs consistency** (PACELC: if Partition, C vs A; Else, Latency vs Consistency). See [CAP theorem](cap-theorem.md).
 
 ??? question "2. What actually happens to in-flight requests when a network partition occurs?"
     They land in the same "unknown" bucket described above: the request may have been applied on the far side of the partition, or never arrived. A synchronous caller sees a timeout, not a clean error, and cannot distinguish "not yet applied" from "applied but the ack was lost." This is exactly why the idempotency section above exists — the system has to be built to survive not knowing.

@@ -126,6 +126,9 @@ flowchart LR
 
 Previously a 20-week outline that only covered a slice of Phase 1 — it never reached Phase 2, Phase 3, or LLD. This version spans all three phases end to end, at a pace consistent with each phase's stated duration above.
 
+!!! note "Start DSA in parallel from week 1"
+    Weeks 29–32 are for volume and fluency, not first contact. Interview loops mix LeetCode with design from day one — practice sliding window, BFS, and DP alongside Phase 1 instead of parking all DSA until Phase 3.
+
 **Phase 1 — Foundations (weeks 1–12, ~3 months)**
 
 | Week | Focus | Output |

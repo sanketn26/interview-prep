@@ -1,6 +1,6 @@
 ---
 title: Playgrounds
-description: All 15 first-release simulations — what each teaches and where it lives.
+description: Priority simulations plus DSA visualizers — what each teaches and where it lives.
 ---
 
 # Playgrounds
@@ -25,7 +25,28 @@ Simulations live on the **host concept page**, next to the failure they illustra
 | K8s request flow | Ingress → Service → Endpoints → Pod | [Kubernetes](../kubernetes/index.md) |
 | Capacity calculator | DAU → QPS, miss rate, storage, RF | [Requirements](../foundations/requirements-estimation.md) · [Calculators](../reference/calculators.md) |
 
-DSA visualizers (sliding window, BFS/DFS, DP) sit on those pattern pages. Little's Law / nines sit on [Calculators](../reference/calculators.md).
+**15 priority simulations** above. **16 DSA visualizers** on pattern pages (not every DSA page has one):
+
+| Visualizer | Host |
+|------------|------|
+| Sliding window (fixed-window max sum) | [Sliding window](../dsa/sliding-window.md) |
+| BFS / DFS | [BFS & DFS](../dsa/bfs-dfs.md) |
+| Coin-change DP | [Dynamic programming](../dsa/dynamic-programming.md) |
+| Heap insert / extract-min | [Heaps](../dsa/heaps.md) |
+| Dijkstra (undirected O(V²) demo) | [Graph algorithms](../dsa/graph-algorithms.md) |
+| Union-Find | [Union-Find](../dsa/union-find.md) |
+| N-Queens backtracking | [Backtracking](../dsa/backtracking.md) |
+| Sorting comparison | [Sorting](../dsa/sorting.md) |
+| Trie insert / search | [Tries](../dsa/tries.md) |
+| Interval scheduling | [Greedy](../dsa/greedy.md) |
+| KMP | [String matching](../dsa/string-matching.md) |
+| Bloom filter | [Advanced hashing](../dsa/hashing-techniques.md) |
+| Count-Min Sketch | [Probabilistic sketches](../dsa/probabilistic-sketches.md) |
+| Skip list | [Skip lists & range trees](../dsa/skip-lists-fenwick-segment-trees.md) |
+| Fenwick prefix sums | [Skip lists & range trees](../dsa/skip-lists-fenwick-segment-trees.md) |
+| Aho-Corasick | [Advanced string matching](../dsa/advanced-string-matching.md) |
+
+Foundations, two pointers, binary search, and the pattern-recognition index have no visualizer. Little's Law / nines sit on [Calculators](../reference/calculators.md).
 
 !!! note "How to use a sim"
     Predict the log line **before** you click Kill / Fail / Hot key. If the screen surprises you, the mental model is wrong — re-read the host page.

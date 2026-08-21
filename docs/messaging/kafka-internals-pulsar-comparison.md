@@ -32,65 +32,65 @@ This page teaches the internals, the failure modes, and the Pulsar alternative.
 
 ### In-Sync Replicas (ISR): The Source of Truth
 
-Every partition has **N replicas** distributed across N brokers. One is the **leader**; the rest are **followers** (in-sync replicas or ISR).
+Every partition has **N replicas** distributed across N brokers. One is the **leader**; the rest are **followers**. The **ISR** is the subset of replicas that are fully caught up: **ISR ⊆ replicas**. A lagging follower is still a replica; it is **not** in the ISR until it catches up.
 
 ```
 Topic "orders", Partition 0, RF=3
 
 Leader (Broker 0)              Follower (Broker 1)         Follower (Broker 2)
 ┌──────────────────────┐      ┌──────────────────────┐     ┌──────────────────────┐
-│ Offset 0..100        │      │ Offset 0..100        │     │ Offset 0..100        │
-│ (all committed)      │      │ (lagging)            │     │ (lagging)            │
+│ Offset 0..100        │      │ Offset 0..100        │     │ Offset 0..95         │
+│ (all committed)      │      │ (in ISR)             │     │ (lagging → NOT ISR)  │
 │                      │      │                      │     │                      │
 │ Producer writes:     │  ──→ │ Leader replicates    │ ──→ │ Followers replicate  │
-│ [msg101]             │      │ [msg101]             │     │ [msg101]             │
+│ [msg101]             │      │ [msg101]             │     │ (behind)             │
 └──────────────────────┘      └──────────────────────┘     └──────────────────────┘
          ↑
-   Consumers read from leader
+   Consumers default to the leader (KIP-392: can fetch from closest replica)
 ```
 
 **The ISR guarantee:** A message is considered **committed** (durable) only after:
 - The leader writes it
-- **All replicas in the ISR acknowledge it**
+- **Every current ISR member acknowledges it** (`acks=all`)
 
-If the leader crashes before a replica syncs, that message is **lost** (if the replica becomes leader).
+If the leader crashes before a replica syncs, that message is **lost** if an out-of-ISR replica is elected (unclean election).
 
-**Risk:** If `min.insync.replicas=1` (default), only the leader needs to ack. A leader crash loses data. If `min.insync.replicas=2` (with RF=3), the leader must wait for one replica before acking—more durable, higher latency.
+**`acks=all` vs `min.insync.replicas`:** `acks=all` waits for **every current ISR member**, not for `min.insync.replicas` replicas. `min.insync.replicas` is a **floor**: if `|ISR| < min.insync.replicas`, an `acks=all` produce fails with `NotEnoughReplicas`. With `acks=all` and `min.insync.replicas=1`, if ISR has 3 members, **all 3 still ack**. `acks=1` (`WaitForLocal`) is **independent** of `min.insync.replicas` — the leader acks locally even when ISR is larger.
+
+**Durability recipe:** `acks=all` + `min.insync.replicas=2` + `RF=3` + `unclean.leader.election.enable=false`.
 
 ```go
 // Kafka Producer config
-config.Producer.RequiredAcks = sarama.WaitForAll  // min.insync.replicas >= 2
-// Now: producer blocks until ack from leader + followers
+config.Producer.RequiredAcks = sarama.WaitForAll  // acks=all: wait for every current ISR member
+// min.insync.replicas is a floor, not the ack count. If |ISR| < min.insync.replicas → NotEnoughReplicas
 
 // vs
-config.Producer.RequiredAcks = sarama.WaitForLocal  // min.insync.replicas=1
-// Faster: producer gets ack from leader only (risky)
+config.Producer.RequiredAcks = sarama.WaitForLocal  // acks=1: leader only; independent of min.insync.replicas
+// Faster; leader crash before replication can lose the write
 ```
 
 ### Rebalancing: The Latency Killer
 
-When a consumer joins/leaves the group, Kafka **stops all consumption** while reassigning partitions.
+When a consumer joins/leaves the group, Kafka reassigns partitions. **Eager** (stop-the-world) rebalances pause **all** consumption for the group; that window is often **seconds**, not tens of milliseconds. **Cooperative sticky** (Kafka 2.4+) only pauses partitions that actually move.
+
+This is **not** the same as adding a broker. Adding a broker triggers **replica reassignment** (data movement). It does **not** by itself cause a consumer-group rebalance.
 
 ```
-Scenario: 3 consumers, 6 partitions (2 each)
+Scenario: 3 consumers, 6 partitions (eager rebalance)
 
-State 0 (steady)          State 1 (C3 joins)       State 2 (rebalance done)
-─────────────────         ──────────────────       ─────────────────────
-C1: P0, P1                C1, C2, C3 all STOP     C1: P0, P2
-C2: P2, P3                No consumption           C2: P1, P4
-C3: P4, P5                (for 5-30 seconds)      C3: P3, P5
+State 0 (steady)          State 1 (C3 joins)            State 2 (rebalance done)
+─────────────────         ──────────────────            ─────────────────────
+C1: P0, P1                C1, C2, C3 all STOP          C1: P0, P2
+C2: P2, P3                No consumption               C2: P1, P4
+C3: P4, P5                (often seconds; eager)       C3: P3, P5
 
-Timeline:
-t=0:     C3 sends JoinGroup
-t=1-5ms: Stop-the-world (pause all consumers)
-t=10ms:  Leader computes new assignment (C1-C3 have no assigned partitions yet)
-t=20ms:  Assignment sent to all consumers
-t=25ms:  Consumers resume (now processing assigned partitions)
+Eager timeline (order of seconds, not 25ms):
+  JoinGroup → all members revoke partitions → stop fetching
+  group leader computes assignment → SyncGroup
+  members resume on new assignment
 
-During rebalance window (t=1-25ms):
-  - No messages consumed
-  - Lag builds up in all partitions
-  - Downstream services starved for data
+Cooperative sticky: unaffected partitions keep fetching; only moving
+partitions pause. Prefer this over eager for latency-sensitive groups.
 ```
 
 **Why rebalancing is slow:**
@@ -111,8 +111,8 @@ C1 crashes mid-rebalance
 ```
 
 **How to minimize:**
-- `max.poll.interval.ms`: How long you can take per poll before rebalance trigger (default 300s). **Increase if processing is slow.**
-- `session.timeout.ms`: How long before a consumer is declared dead (default 10s). **Lower = faster failover, but more false positives and rebalances.**
+- `max.poll.interval.ms`: How long you can take per poll before a rebalance trigger (default **300s**). **Increase if processing is slow.**
+- `session.timeout.ms`: How long before a consumer is declared dead (default **45s**). **Lower = faster failover, but more false positives and rebalances.** Must sit in `[heartbeat.interval.ms, group.max.session.timeout.ms]`.
 
 ### Consumer Lag: The Real Health Metric
 
@@ -144,13 +144,20 @@ Meaning: Consumer is 50 messages behind production.
 
 **Monitoring lag:**
 ```python
-# Kafka admin API
-from kafka.admin import KafkaAdminClient, ConfigResource, ConfigResourceType
+from kafka import KafkaConsumer, TopicPartition
 
-admin = KafkaAdminClient(bootstrap_servers=['localhost:9092'])
-for partition in admin.describe_consumer_groups()['consumer_groups'][0].member_metadata:
-    lag = partition.latest_offset - partition.committed_offset
-    print(f"P{partition.partition}: lag={lag}")
+consumer = KafkaConsumer(
+    bootstrap_servers=["localhost:9092"],
+    group_id="order-processor",
+)
+partitions = [
+    TopicPartition("orders", p)
+    for p in consumer.partitions_for_topic("orders") or []
+]
+end_offsets = consumer.end_offsets(partitions)
+for tp in partitions:
+    committed = consumer.committed(tp) or 0
+    print(f"P{tp.partition}: lag={end_offsets[tp] - committed}")
 ```
 
 ### Ordering Guarantees
@@ -186,29 +193,46 @@ producer.SendMessage(&sarama.ProducerMessage{
 
 ### Exactly-Once Semantics (Read Carefully)
 
-Kafka 0.11+ added **transactional writes**, which gives you **exactly-once delivery** *if* you implement it correctly.
+Split two claims that are often mashed together:
+
+- **Broker / Kafka-stream EOS (0.11+):** idempotent producer + transactions can give **exactly-once within Kafka** (produce + offset commit in one txn; downstream consumers with `isolation.level=read_committed` skip aborted txns).
+- **End-to-end EOS** (source → Kafka → your DB → sink): **not** a generic database transaction. A Python `with transaction: db.insert(); kafka_consumer.commit()` is **not** Kafka EOS.
 
 ```python
-# Exactly-once read-process-write pattern
-# (process: update database, commit offset as one transaction)
+# Kafka EOS: enable.idempotence + transactional producer + sendOffsetsToTransaction
+# Offsets and output records commit together *in Kafka*. Your SQL DB is not in this txn.
 
-def exactly_once_consumer():
-    for msg in kafka_consumer:
-        # Start transaction
-        with transaction:
-            processed = process(msg)
-            db.insert(processed)
-            kafka_consumer.commit_async()  # Async commit inside transaction
-        # If anything above fails, entire transaction rolls back
-        # Message is redelivered, dedupe on business key
+producer = KafkaProducer(
+    bootstrap_servers=["localhost:9092"],
+    enable_idempotence=True,
+    transactional_id="order-processor-1",
+    acks="all",
+)
+producer.init_transactions()
+
+consumer = KafkaConsumer(
+    "orders",
+    bootstrap_servers=["localhost:9092"],
+    group_id="order-processor",
+    enable_auto_commit=False,
+    isolation_level="read_committed",
+)
+
+for msg in consumer:
+    producer.begin_transaction()
+    try:
+        producer.send("orders-processed", process(msg))
+        producer.send_offsets_to_transaction(
+            {TopicPartition(msg.topic, msg.partition): OffsetAndMetadata(msg.offset + 1, "")},
+            consumer.config["group_id"],
+        )
+        producer.commit_transaction()
+    except Exception:
+        producer.abort_transaction()
+        raise
 ```
 
-**The catch:** This requires:
-1. The *processing* to be idempotent (processing same message twice = same result)
-2. Offset commits must go to Kafka (not external DB), or you need distributed transaction
-3. End-to-end exactly-once from source→Kafka→processing→sink is extremely hard
-
-**In practice:** Most systems use **at-least-once** + **idempotent deduplication.**
+A side-effecting **idempotent sink** (upsert by business key) is still required if you write outside Kafka. **In practice:** most systems use **at-least-once** + **idempotent handlers** unless they stay inside Kafka transactions.
 
 ```python
 # At-least-once + idempotent
@@ -232,11 +256,11 @@ Leader has offset 0..100
 Follower1 has offset 0..95 (lagging)
 Follower2 has offset 0..100 (in sync)
 
-If min.insync.replicas=2:
-  Producer waits for both follower1 (slow!) and follower2 to ack
-  
-If follower1 falls too far behind (default: 10s), it is kicked out of ISR
-  Then producer only waits for follower2
+acks=all waits for every *current* ISR member, not for min.insync.replicas.
+If follower1 is still in ISR, the produce waits on it (slow).
+If follower1 falls too far behind (replica.lag.time.max.ms, default 30s),
+it is kicked out of ISR — then acks=all no longer waits on it.
+If that shrinks |ISR| below min.insync.replicas, new acks=all produces fail.
 ```
 
 **Causes:**
@@ -268,7 +292,7 @@ Pulsar: Tiered architecture
 
 | Aspect | Kafka | Pulsar |
 |--------|-------|--------|
-| **Broker scaling** | Adding a broker requires rebalancing | Add broker, it joins immediately (no rebalance) |
+| **Broker scaling** | Adding a broker **moves replicas** (data reassignment). That is not a consumer-group rebalance. | Add a stateless broker; no replica shuffle |
 | **Multi-tenancy** | Single cluster shared by all topics | Namespaces isolate teams/customers |
 | **Geo-replication** | Complex; needs federation | Built-in; replicate topic across regions |
 | **Storage scaling** | Brokers store all data → rebalance needed | BookKeepers scale independently |
@@ -488,7 +512,7 @@ If queue > threshold: producer backed off or rejected
     
     **Q: What is an in-sync replica (ISR)?**
     
-    "An ISR is a replica that has caught up to the leader. A message is considered 'committed' (safe from loss) only when ALL brokers in the ISR have replicated it. If you have RF=3 and min.insync.replicas=2, the producer waits for leader + 1 replica to ack before returning. Higher min.insync.replicas = more durable but slower."
+    "An ISR is a replica that has caught up to the leader — ISR is a subset of replicas; lagging followers are out of ISR. With acks=all, a produce waits for every *current* ISR member, not for min.insync.replicas members. min.insync.replicas is a floor: if |ISR| is below it, acks=all fails with NotEnoughReplicas. Durability recipe: acks=all, min.insync.replicas=2, RF=3, unclean.leader.election.enable=false."
 
 === "Senior"
     **Q: Your Kafka consumer group is rebalancing every 30 seconds. Why and how do you fix it?**
@@ -511,11 +535,11 @@ If queue > threshold: producer backed off or rejected
 ## Key Takeaways
 
 !!! success "Remember"
-    1. **ISR = in-sync replicas.** Message is committed only when all ISRs ack. If min.insync.replicas=1, only leader matters (risky).
-    2. **Rebalancing stops consumption** (5-30 seconds typical). This is the #1 operational pain in Kafka.
+    1. **ISR ⊆ replicas.** `acks=all` waits for every current ISR member. `min.insync.replicas` is a floor (NotEnoughReplicas), not the ack count. Recipe: acks=all + min.isr=2 + RF=3 + unclean.leader.election.enable=false.
+    2. **Eager rebalances stop the group** (often seconds). Cooperative sticky is better. Adding a broker is replica reassignment, not a group rebalance.
     3. **Consumer lag = health metric.** Lag growing = red flag. Set SLO (e.g., lag < 60 sec) and alert.
     4. **Ordering is per-partition**, not global. Use a key to route related messages to same partition.
-    5. **Exactly-once is impossible.** At-least-once + idempotent handler is the answer.
+    5. **Kafka 0.11+ EOS is within Kafka** (idempotent + transactional produce + sendOffsetsToTransaction). End-to-end across your DB is not; use at-least-once + an idempotent handler/sink.
     6. **Pulsar has stateless brokers** (no rebalancing) and multi-tenancy built-in.
     7. **Kafka simpler at small scale; Pulsar wins at multi-region/multi-tenant scale.**
     8. **Over-provision partitions.** Adding partitions later re-hashes keys (breaks ordering).

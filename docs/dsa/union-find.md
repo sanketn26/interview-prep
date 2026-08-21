@@ -33,7 +33,8 @@ union(0,1): 1 → 0           union(2,3): 3 → 2
                        |
                        3
 
-union(1,2): root(1)=0, root(2)=2 → attach smaller tree under larger
+union(1,2): root(1)=0, root(2)=2 → union by rank (equal rank → attach one root
+            under the other and increment rank; rank is a height bound, not size)
 
     0
    / \
@@ -44,7 +45,7 @@ union(1,2): root(1)=0, root(2)=2 → attach smaller tree under larger
 
 Two optimizations turn "walk to the root" from O(n) worst case into practically O(1):
 
-- **Union by rank/size:** always attach the smaller tree under the bigger tree's root, keeping trees shallow.
+- **Union by rank:** attach the lower-rank root under the higher-rank root (rank bounds height, not node count). Equal rank → increment. Union **by size** is the different rule that attaches the smaller tree.
 - **Path compression:** while walking up during `find`, repoint every visited node directly to the root, so the *next* find on any of them is instant.
 
 Together they give **O(α(n))** amortized per operation, where α is the inverse Ackermann function — for any input size that fits in the universe, α(n) ≤ 4. It is, for all practical purposes, constant time.
@@ -232,7 +233,7 @@ def accounts_merge(accounts: list[list[str]]) -> list[list[str]]:
 
 !!! success "Remember"
     1. Union-Find answers **"same group?"** and **"merge groups"** in near-O(1) amortized time — the algorithm of choice for dynamic connectivity.
-    2. **Path compression** flattens the tree on every `find`; **union by rank** keeps trees shallow by attaching the smaller under the larger.
+    2. **Path compression** flattens the tree on every `find`; **union by rank** keeps trees shallow by attaching the lower-rank root under the higher-rank one (not "smaller tree" — that is union by size).
     3. Together they give **O(α(n))** amortized — practically constant.
     4. `union(a, b)` returning **False** means `a` and `b` were already connected — that's exactly how you detect a cycle in an undirected graph.
     5. Union-Find powers **Kruskal's MST**: sort edges, add each unless `union()` says it would cycle.

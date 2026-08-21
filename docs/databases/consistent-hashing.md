@@ -22,7 +22,7 @@ Simple modular hashing (`node = hash(key) % N`) breaks when you add or remove no
 
 If you have 1 TB of data across 3 nodes and add a 4th, you'd need to move ~750 GB of data.
 
-Consistent hashing solves this: **only K/N keys need to move** when you add or remove a node (where K = total keys, N = number of nodes).
+Consistent hashing solves this: **adding a node moves ~K/(N+1) keys** (the new node's share); **removing a node moves ~K/N keys** (the departing node's share). K = total keys, N = number of nodes *before* the change.
 
 ---
 
@@ -164,7 +164,7 @@ Standard practice: **150–200 virtual nodes** per physical node.
 
 ## Rebalancing — Why It's the Part That Actually Matters
 
-Consistent hashing gets talked about as if computing "which node owns this key" is the hard part. It isn't — that's a hash and a binary search. **Rebalancing is the hard part**: physically moving the data for those K/N keys to their new owner, while the cluster keeps serving reads and writes.
+Consistent hashing gets talked about as if computing "which node owns this key" is the hard part. It isn't — that's a hash and a binary search. **Rebalancing is the hard part**: physically moving the data for those keys (~K/(N+1) on add, ~K/N on remove) to their new owner, while the cluster keeps serving reads and writes.
 
 ### What rebalancing actually involves
 
@@ -177,7 +177,7 @@ Real systems (Cassandra, DynamoDB, Redis Cluster) use a variant of #2: a key ran
 
 ### Why this is "super important," not just a detail
 
-- **Blast radius during the move.** The whole reason consistent hashing exists is to bound the blast radius of a topology change to K/N keys instead of nearly all of them. If rebalancing itself is not throttled and coordinated, you've reintroduced the exact failure mode consistent hashing was supposed to prevent — a burst of migration traffic that saturates the new node's disk/network and takes it down before it's even serving production reads.
+- **Blast radius during the move.** The whole reason consistent hashing exists is to bound the blast radius of a topology change to the new node's ~K/(N+1) share (or the departing node's ~K/N) instead of nearly all keys. If rebalancing itself is not throttled and coordinated, you've reintroduced the exact failure mode consistent hashing was supposed to prevent — a burst of migration traffic that saturates the new node's disk/network and takes it down before it's even serving production reads.
 - **It's not instantaneous.** For a node holding, say, 500 GB, moving its ~1/N share to a new peer over a 1 Gbps link is a multi-hour operation, not a config change. Anything that assumes rebalancing is atomic — a naive "just update the ring and move on" implementation — will serve wrong or missing data for every key mid-migration.
 - **Uncontrolled rebalancing cascades.** If migration itself isn't rate-limited, the new node's disk I/O and network saturate, its read latency spikes, health checks start failing, and the orchestrator may conclude the *new* node is unhealthy and route around it — the exact opposite of the intended outcome.
 - **Virtual nodes make rebalancing granular, not free.** Moving whole virtual nodes (each a fixed hash range, typically low tens of MB to a few GB) rather than the whole physical node's data is what makes it possible to throttle and checkpoint the migration — but the operator still has to actually rate-limit it; consistent hashing bounds *what* moves, not *how fast* it's safe to move it.
@@ -186,7 +186,7 @@ Real systems (Cassandra, DynamoDB, Redis Cluster) use a variant of #2: a key ran
 
 ```
 Cluster: 3 nodes, 500 GB total data, adding a 4th node
-Expected data movement: ~125 GB (1/4 of total) to the new node
+Expected data movement: ~125 GB = K/(N+1) = 1/4 of total to the new node
 
 Naive (unthrottled):
   New node receives 125 GB as fast as the network allows
@@ -208,7 +208,7 @@ The number to know for an interview: rebalancing bandwidth is a **deliberate tra
 
 ## Realistic Example: Redis Cluster
 
-Redis Cluster uses a variant — 16,384 **hash slots** (not a pure ring, but same concept):
+Redis Cluster uses **hash slots**, not a pure consistent-hash ring. 16,384 slots, `CRC16(key) % 16384`; the practical idea is "move a slice of slots, not everything," not a hash ring:
 
 ```
 key → CRC16(key) % 16384 → hash slot → node
@@ -277,11 +277,11 @@ Fix:
 
 | Dimension | Consistent Hashing | Modular Hashing |
 |-----------|-------------------|-----------------|
-| Key remapping on node add/remove | ~K/N keys | ~(N-1)/N × K keys |
+| Key remapping on node add/remove | ~K/(N+1) on add, ~K/N on remove | ~(N-1)/N × K keys |
 | Implementation complexity | Medium | Low |
 | Load balance | Good (with virtual nodes) | Perfect |
 | Hot key handling | Doesn't help | Doesn't help |
-| Used in | Redis Cluster, Cassandra, Memcached | Not used in distributed systems |
+| Used in | Cassandra, Memcached, CDNs (Redis Cluster uses hash slots, not a ring) | Not used in distributed systems |
 
 ---
 
@@ -290,7 +290,7 @@ Fix:
 === "Basic"
     **Q: What problem does consistent hashing solve?**
 
-    "It solves the massive key remapping problem in distributed caches/databases when nodes are added or removed. With simple modular hashing (key % N), changing N from 3 to 4 remaps ~75% of all keys. Consistent hashing maps both keys and nodes to a ring — adding a node only affects the keys that fall between the new node and its predecessor, which is approximately K/N keys — a much smaller fraction."
+    "It solves the massive key remapping problem in distributed caches/databases when nodes are added or removed. With simple modular hashing (key % N), changing N from 3 to 4 remaps ~75% of all keys. Consistent hashing maps both keys and nodes to a ring — adding a node only affects the keys that fall between the new node and its predecessor, which is approximately K/(N+1) keys (the new node's share). Removing a node remaps that node's ~K/N keys. Both are much smaller than the modular 75% remap."
 
 === "Senior"
     **Q: Why do we use virtual nodes in consistent hashing?**
@@ -308,9 +308,9 @@ Fix:
 
 !!! success "Remember"
     1. Consistent hashing maps both keys and nodes to a ring; keys route to the next clockwise node
-    2. Adding/removing a node remaps only K/N keys, not all keys
+    2. Adding a node remaps ~K/(N+1) keys; removing remaps ~K/N — not all keys
     3. Virtual nodes (150–200 per physical node) ensure even load distribution
-    4. Rebalancing is the part that actually matters operationally — throttled, checkpointed migration (dual-read/dual-write) is what keeps K/N keys moving from becoming a self-inflicted outage
+    4. Rebalancing is the part that actually matters operationally — throttled, checkpointed migration (dual-read/dual-write) is what keeps that 1/N-scale move from becoming a self-inflicted outage
     5. Hot keys require separate solutions — consistent hashing doesn't help
-    6. Used in: Redis Cluster (hash slots), Cassandra (vnodes), Memcached, CDN routing
+    6. Used in: Cassandra (vnodes), Memcached, CDN routing. Redis Cluster uses hash slots, not a consistent-hash ring.
 

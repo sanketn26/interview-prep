@@ -153,8 +153,11 @@ upstream api_backend {
     server api-3.internal:8080 max_fails=3 fail_timeout=30s;
 }
 
-# Cache configuration
+# Cache configuration (http{} context, same as limit_req_zone)
 proxy_cache_path /var/cache/nginx levels=1:2 keys_zone=api_cache:10m;
+
+# limit_req_zone MUST be in http{}, not server{}
+limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/s;
 
 server {
     listen 443 ssl http2;
@@ -165,8 +168,7 @@ server {
     ssl_certificate_key /etc/ssl/key.pem;
     ssl_protocols TLSv1.2 TLSv1.3;
     
-    # Rate limiting
-    limit_req_zone $binary_remote_addr zone=api_limit:10m rate=100r/s;
+    # limit_req is allowed in server/location; the zone is not
     limit_req zone=api_limit burst=200;
     
     # Proxy configuration
@@ -202,7 +204,7 @@ server {
 
 **Interview question:** "What happens if you set `proxy_read_timeout 30s` but the backend takes 60s to respond?"
 
-Answer: "nginx waits 30s, then closes the connection with a 504 Gateway Timeout. The backend request continues running and completes 30s later, but the client never sees the response. This is the classic 'timeout without cleanup' problem. You need to coordinate timeouts: LB timeout < backend timeout, and both should be reasonable for your SLO."
+Answer: "nginx waits 30s, then closes with 504. The backend may keep working on a request nobody will see. That is a **request-deadline** bug: the inner timeout must be **shorter** than the caller (client > LB > app > dependency, remaining budget). Do not mix this with **idle** timeouts, where the LB should close idle connections **before** the app so the app never thinks a dead socket is still live."
 
 ---
 
@@ -387,12 +389,12 @@ spec:
 **2. Egress Gateway (Istio, Cilium)**
 
 ```yaml
-# All external traffic goes through a gateway pod
-# Gateway pod checks and logs all egress
+# There is no kind: EgressGateway. Use Gateway (selector istio: egressgateway)
+# + VirtualService + ServiceEntry.
 apiVersion: networking.istio.io/v1alpha3
-kind: EgressGateway
+kind: Gateway
 metadata:
-  name: main-egressgateway
+  name: istio-egressgateway
 spec:
   selector:
     istio: egressgateway
@@ -402,7 +404,21 @@ spec:
         name: https
         protocol: HTTPS
       hosts:
-        - example.com
+        - api.example.com
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: api-example
+spec:
+  hosts:
+    - api.example.com
+  ports:
+    - number: 443
+      name: https
+      protocol: HTTPS
+  location: MESH_EXTERNAL
+  resolution: DNS
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -411,13 +427,24 @@ metadata:
 spec:
   hosts:
     - api.example.com
+  gateways:
+    - mesh
+    - istio-egressgateway
   http:
-    - route:
+    - match:
+        - gateways: [mesh]
+      route:
+        - destination:
+            host: istio-egressgateway.istio-system.svc.cluster.local
+            port:
+              number: 443
+    - match:
+        - gateways: [istio-egressgateway]
+      route:
         - destination:
             host: api.example.com
             port:
               number: 443
-          weight: 100
 ```
 
 **3. Firewall Rules (Cloud Provider)**
@@ -530,7 +557,7 @@ Reverse Proxy (nginx)
     ├─ Extract API key from header
     ├─ Check rate limit
     ├─ Check IP whitelist
-    ├─ Log request (accountinging)
+    ├─ Log request (accounting)
     ↓
 Payment Service (internal, HTTP only)
     └─ Trusts proxy did the auth
@@ -539,11 +566,11 @@ Payment Service (internal, HTTP only)
 **Config:**
 
 ```nginx
+# This file is included inside http { }. limit_req_zone is invalid in server {}.
 upstream payment_api {
     server payment-service:8080;
 }
 
-# Rate limiting per API key
 limit_req_zone $http_authorization zone=api_limit:10m rate=100r/s;
 
 server {
@@ -602,7 +629,7 @@ server {
 === "Staff"
     **Q: Design an egress control system for a microservices cluster where services should only talk to approved external APIs.**
     
-    "I'd start with Kubernetes NetworkPolicy for deny-all egress, then allowlist specific external IPs/domains. But NetworkPolicy is IP-based, which breaks if a domain changes IPs. For production, I'd use an egress gateway: all external traffic goes through a centralized pod that checks a policy database (allowed destinations per service). The gateway logs every external call (accounting), and I can easily update policies without redeploying. Alternatively, use Istio's EgressGateway for similar behavior with less custom code. The key insight is that NetworkPolicy alone is brittle; you need an application-level gateway if you care about domains, not IPs."
+    "I'd start with Kubernetes NetworkPolicy for deny-all egress, then allowlist specific external IPs/domains. But NetworkPolicy is IP-based, which breaks if a domain changes IPs. For production, I'd use an egress gateway: all external traffic goes through a centralized pod that checks a policy database (allowed destinations per service). The gateway logs every external call (accounting), and I can easily update policies without redeploying. In Istio that is a Gateway with `selector: istio: egressgateway`, plus VirtualService and ServiceEntry — there is no `kind: EgressGateway`. NetworkPolicy alone is brittle if you care about domains, not IPs."
 
 ---
 
@@ -615,7 +642,7 @@ server {
     4. **Egress control** requires NetworkPolicy + egress gateway for production
     5. **AAA at the proxy** means auth happens before traffic reaches backends (backends can be less trusted)
     6. **X-Forwarded-For** header preserves client IP through proxies (but can be spoofed; verify at the edge)
-    7. **Timeouts**: LB timeout < backend timeout < client timeout (prevent hangs)
+    7. **Request deadlines**: inner shorter than caller (`client > LB > app > dependency`). **Idle:** LB closes idle conns **before** the app. Do not mix the two.
     8. **Ingress pointing to nonexistent Service** = 502 (debug with `kubectl get endpoints`)
 
 **Previous:** [Load Balancing](load-balancing.md)

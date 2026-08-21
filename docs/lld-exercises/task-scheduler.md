@@ -33,7 +33,7 @@ This is the single-process version of the problem. [Distributed Job Scheduler](.
 **Explicitly out of scope for v1:** distributed/cross-machine scheduling, leader election, durability across process restarts, and exactly-once execution guarantees when a worker crashes mid-task — all covered by [Distributed Job Scheduler](../system-design-exercises/distributed-job-scheduler.md), which picks up exactly where this one stops: single process → many machines.
 
 ??? question "Clarifying questions worth asking out loud"
-    - When priority and scheduled time conflict — a low-priority task that's overdue vs. a high-priority task that just became due — which wins? (This page's answer: due tasks are ordered by time first, then priority, among tasks with the same due status — see Class Design.)
+    - When priority and scheduled time conflict — a low-priority task that's overdue vs. a high-priority task that just became due — which wins? (This page's answer: **among tasks that are already due**, higher priority wins, even if the lower-priority task became due earlier. The promoter, not the ready-heap key, is what gates "is it due yet.")
     - Is cancellation best-effort ("don't start it if it hasn't started") or must it interrupt a task already running? (Assume best-effort; interrupting a running thread mid-execution is a much harder, largely unsolved problem in most languages.)
     - What happens to a task if all workers are busy when it becomes due? (It waits in the ready queue — that's the whole point of decoupling submission from execution.)
     - Should a failed task retry automatically, or is that the caller's responsibility? (Assume caller's responsibility for v1; noted in Extensibility as dead-letter handling.)
@@ -121,11 +121,11 @@ stateDiagram-v2
     Done --> [*] : [not recurring]
 ```
 
-**Why a min-heap keyed on `(scheduled_time, priority, submitted_seq)`, and not a plain FIFO queue or a plain priority queue alone:**
+**Why a min-heap keyed on `(-priority, run_at, submitted_seq)` in the *ready* queue, and not a plain FIFO queue or a plain priority queue alone:**
 
 - A **plain FIFO queue** loses priority entirely — a `priority=10` task submitted after a `priority=1` task would still run second. That directly violates "higher-priority tasks execute before lower-priority ones."
-- A **plain priority queue keyed on priority alone** loses time — it would happily pop a `run_at` two hours from now ahead of a lower-priority task that's due immediately, because nothing in the key encodes *when* a task becomes eligible. Priority only makes sense to compare **among tasks that are already due** — comparing priorities across "due now" and "due in two hours" is comparing the wrong axis.
-- The fix is a **composite ordering key**, not a single scalar: sort primarily by due-status/time, then by priority as the tiebreak among tasks that are equally due, then by submission order (`submitted_seq`) as a final deterministic tiebreak (see Edge Cases). This is exactly the tuple-comparison trick `heapq` gives you for free — Python compares tuples lexicographically, so `(run_at, -priority, submitted_seq)` as the heap key does the right thing without a custom comparator class.
+- A **plain priority queue keyed on priority alone, with future tasks mixed in,** loses time — it would happily pop a `run_at` two hours from now ahead of a lower-priority task that's due immediately. Priority only makes sense to compare **among tasks that are already due** — comparing priorities across "due now" and "due in two hours" is comparing the wrong axis.
+- The fix is two structures, not a cleverer single key: the **promoter** holds not-yet-due tasks in a time-ordered pending heap and only pushes a task into the ready queue once `run_at` has arrived. The **ready** heap then orders by `(-priority, run_at, submitted_seq)` so among due tasks, higher priority wins — including a just-due high-priority task beating an overdue low-priority one. That matches the functional requirement. `EarliestDeadlineFirstStrategy` is the opt-in if you want time-first among due tasks instead.
 - That still leaves a second problem a single heap doesn't solve on its own: a task due two hours from now sitting in the *same* heap as tasks due right now must **not** be poppable early just because it's the smallest item once its neighbors finish. The heap's job is *ordering* candidates for the moment they're actually eligible, not *gating* eligibility. This design keeps that gate explicit — see the single-threaded promoter in Core Code — rather than baking "am I due yet" into every worker's pop logic.
 
 **Why `WorkerPool *-- Worker` is composition:** workers have no identity or lifecycle outside the pool that spawned them — shut down the pool, the worker threads terminate. **Why `TaskQueue o-- Task` is aggregation:** a submitted `Task` is a caller-owned unit of work the queue tracks and hands off, not something the queue's lifecycle defines — see [Class Relationships](../low-level-design/solid-principles.md#class-relationships-uml-basics).
@@ -162,7 +162,7 @@ from typing import Callable, Protocol
 @dataclass
 class Task:
     fn: Callable[[], None]
-    priority: int = 0                 # higher runs first among equally-due tasks
+    priority: int = 0                 # higher runs first among due tasks
     run_at: datetime = field(default_factory=datetime.now)
     interval_seconds: float | None = None   # stretch: recurring tasks
     task_id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -177,15 +177,15 @@ class SchedulingStrategy(Protocol):
 
 
 class PriorityFirstStrategy:
-    """Among due tasks, highest priority first; ties broken by submission order."""
+    """Among due tasks, highest priority first; then earlier run_at; then submission order."""
     def sort_key(self, task: Task) -> tuple:
-        return (task.run_at, -task.priority, task.submitted_seq)
+        return (-task.priority, task.run_at, task.submitted_seq)
 
 
 class FifoStrategy:
     """Ignore priority entirely — pure submission order among due tasks."""
     def sort_key(self, task: Task) -> tuple:
-        return (task.run_at, task.submitted_seq)
+        return (task.submitted_seq,)
 
 
 class EarliestDeadlineFirstStrategy:
@@ -399,7 +399,7 @@ while True:
 === "Foundation"
     **Q: Why does `Task`'s ordering need both `run_at` and `priority` in the sort key — why can't you just use a regular FIFO queue and check priority when a worker is free?**
 
-    "Because a plain FIFO queue can't express 'this task shouldn't run yet.' If I only used priority and ignored time, a high-priority task scheduled two hours from now would jump ahead of a low-priority task that's due right now — priority only makes sense to compare *among tasks that are already eligible to run*. So the sort key has to encode both: `run_at` first, so due-status and time order dominates, then `priority` as the tiebreak among tasks that are equally due. That's why I used a tuple as the heap key — `heapq` compares tuples lexicographically, so `(run_at, -priority, submitted_seq)` gets both axes right without writing a custom comparator."
+    "Because a plain FIFO queue can't express 'this task shouldn't run yet,' and a priority-only heap with future tasks mixed in would pop a high-priority task due in two hours ahead of a low-priority task that's due right now. Eligibility is the promoter's job (pending heap keyed on `run_at`). Once a task is in the ready queue it is already due, so `PriorityFirstStrategy` keys `(-priority, run_at, submitted_seq)` — among due work, higher priority wins, including a just-due high-priority task beating an overdue low-priority one. That's the functional requirement. `heapq` compares tuples lexicographically, so that key needs no custom comparator."
 
 === "Senior"
     **Q: Walk me through what happens, end to end, when a task is submitted with `delay=5` while three worker threads are all currently blocked waiting for work.**

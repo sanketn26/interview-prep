@@ -95,7 +95,8 @@ def heap_basics() -> None:
     smallest = heapq.heappop(heap)  # O(log n) — remove root + sift down
     print(smallest)                 # 1
 
-    heapq.heapify([9, 3, 7, 1])     # O(n) — build heap in place, cheaper than n pushes
+    h = [9, 3, 7, 1]
+    heapq.heapify(h)                # O(n) — in-place; heapify does not return the list
 ```
 
 **Building a heap from scratch (heapify / insert / extract):**

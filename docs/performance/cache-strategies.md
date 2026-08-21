@@ -17,7 +17,7 @@ description: Cache-aside, read-through, write-through, write-behind, write-aroun
 
 ```
 cache-aside: app checks cache, misses, reads DB, writes cache        → stale-tolerant reads
-write-through: app writes DB and cache together, synchronously       → consistent but slower writes
+write-through: app writes DB first, then cache, synchronously        → consistent but slower writes
 write-behind: app writes cache, cache writes DB later, async         → fast writes, can lose data
 write-around: app writes DB only, cache untouched until next read    → avoids caching data that's never re-read
 read-through: cache itself knows how to load from DB on miss         → app never talks to DB directly
@@ -57,8 +57,8 @@ Read path (does the APP or the CACHE own the miss?)
 Write path (WHEN does the DB get the write, relative to the cache?)
 
   Write-through:                      Write-behind (write-back):
-  App ──> Cache ──> DB (sync,         App ──> Cache (ack immediately)
-          same request)                    Cache ──> DB (async, batched, later)
+  App ──> DB ──> Cache (sync,         App ──> Cache (ack immediately)
+          DB first, same request)          Cache ──> DB (async, batched, later)
 
   Write-around:
   App ──> DB only (cache untouched)
@@ -85,8 +85,8 @@ flowchart TD
         BC -->|miss: cache loads| BD[(DB)]
     end
     subgraph "Write-Through"
-        C1[App] -->|write, sync| CC[Cache]
-        CC -->|write, sync| CD[(DB)]
+        C1[App] -->|1 write, sync| CD[(DB)]
+        C1 -->|2 write, sync| CC[Cache]
     end
     subgraph "Write-Behind"
         D1[App] -->|write, ack fast| DC[Cache]

@@ -219,7 +219,7 @@ def read_paste(paste_id: str) -> bytes:
 
 ```mermaid
 graph TD
-    Client --> CDN[CDN edge cache\npublic, unlisted pastes]
+    Client --> CDN[CDN edge cache\npublic/unlisted, NOT burn-after-read or private]
     CDN -->|miss| LB[Load Balancer]
     LB --> API[API pods]
     API -->|rate limit check| RL[Rate Limiter]
@@ -236,7 +236,7 @@ graph TD
 
 Key production decisions:
 
-- **CDN in front of reads.** Unlisted/public pastes are immutable once created — perfect for aggressive CDN caching (`Cache-Control: immutable`, keyed by paste_id). This solves the global-latency problem better than replicating your own cache fleet.
+- **CDN in front of cacheable reads only.** Public/unlisted pastes that are *not* burn-after-read are immutable once created — aggressive CDN caching (`Cache-Control: immutable`, keyed by paste_id). **Burn-after-read and private pastes must not be CDN-cached** — `Cache-Control: no-store` and origin-only. A cached burn-after-read paste is served after it has already been "consumed"; a cached private paste leaks past the auth gate. This is the global-latency lever for the public/unlisted majority, not a blanket in-front-of-everything box.
 - **TTL cleanup via index, not table scan.** `idx_expires (expires_at)` lets a sweeper batch-delete `WHERE expires_at < now() LIMIT 1000` cheaply, repeated. Never a full scan.
 - **Rate limiting at the edge** (see the [rate limiter exercise](rate-limiter.md) for the mechanism) — cap creates per IP/account before they hit Postgres or S3 at all.
 - **Async content scanning.** Don't block the write path on malware/abuse scanning. Accept, store, return the URL, scan asynchronously, and yank (`visibility = 'removed'`) if flagged. Blocking writes on a scanning service turns their outage into yours.
@@ -256,7 +256,7 @@ Key production decisions:
     Expired pastes remain readable (stale metadata) or unreadable-but-not-cleaned (wasting storage). Correctness bug: a paste readable after its promised expiry is a trust violation, not just a cost issue. **Mitigation:** check `expires_at` at read time regardless of sweeper state (already in the read path) so *visibility* is always correct even if *cleanup* lags; alert if sweeper lag exceeds N minutes.
 
 === "Hot key beyond cache capacity"
-    A paste goes viral beyond what a single Redis key's replicas can serve. **Mitigation:** CDN should already have absorbed this (public, immutable, cacheable) — if it didn't, check `Cache-Control` headers are actually being set on that visibility tier.
+    A paste goes viral beyond what a single Redis key's replicas can serve. **Mitigation:** CDN should already have absorbed this *if* it is public/unlisted and not burn-after-read — if it didn't, check `Cache-Control` headers. Burn-after-read virality cannot be edge-cached; it has to hit origin for the atomic consume.
 
 === "Content scan queue backs up"
     Malicious content stays live longer than intended. **Mitigation:** priority queue by visibility (public > unlisted); alert on queue depth; do not let scan backlog silently grow unbounded.
@@ -285,7 +285,8 @@ Key metrics:
 
 Alerts:
 - p99 read latency > 250ms
-- cache hit rate (metadata) < 90%
+- cache hit rate (metadata, hot public/unlisted only) < 90%
+  (do not alert on a global 90% — most pastes are read-once and will miss)
 - ttl_sweeper_lag > 15 minutes
 - scan_queue_depth growing for > 10 minutes
 ```
@@ -324,7 +325,7 @@ Total:                                      ~$2,085/month
 ## 18. Staff Engineer Extensions
 
 === "100× traffic"
-    115K reads/second: CDN absorbs the overwhelming majority (public/unlisted, immutable — ideal cache material). Metadata cache scales horizontally trivially (sharded Redis). The real question becomes S3 request cost at that volume — batch/edge-cache aggressively rather than paying per-GET at 100× scale.
+    115K reads/second: CDN absorbs the overwhelming majority of *public/unlisted, non-burn* traffic (immutable — ideal cache material). Burn-after-read and private stay origin-only. Metadata cache scales horizontally trivially (sharded Redis). The real question becomes S3 request cost at that volume — batch/edge-cache aggressively rather than paying per-GET at 100× scale.
 
 === "Multi-region writes"
     Users in the EU want low-latency creates too, not just reads. Region-local S3 bucket + async cross-region replication for durability; metadata write still needs a single source of truth per paste (route by paste_id hash to a home region) to avoid split-brain on delete/burn-after-read.

@@ -143,12 +143,17 @@ Client then sits in TIME_WAIT (typically 60s, 2MSL)
 |-------|---------|------------|-------------|
 | Connect | 200ms–2s | False failures on jitter | Threads stuck in SYN |
 | TLS handshake | 1–5s | Same | Same |
-| Socket idle / keep-alive | 30–350s | LB kills; app retries | FD leak |
-| Request / read | 1–30s | Cut legitimate work | Cascade when a dependency hangs |
-| LB idle vs app idle | LB idle **should be set shorter** than app idle | If LB idle is set **longer** than app idle: the app closes the connection first, but the LB still thinks it's live and forwards the next request onto it → RST from a dead socket → random 502s at the LB | If LB idle is set **too much shorter** than app idle (misconfigured too aggressively, not the general "shorter" rule): the LB kills connections mid-request while the app is still legitimately working → same random 502s, different cause |
+| Request / read deadline | 1–30s, **inner shorter than caller** | Cut legitimate work | Inner still running after the caller gave up (wasted threads) |
+| Socket idle / keep-alive | 30–350s | Idle churn | FD leak |
+| LB idle vs app idle | LB idle **shorter** than app idle (LB closes first) | If **app** idle is shorter: app closes, LB still thinks the conn is live → next request hits RST → random 502s | If LB idle is so short it fires *during* an in-flight request, you mixed idle with a request deadline |
 
 !!! warning "Production Trap"
-    The rule is **LB idle < app idle < client idle**, with the LB timeout comfortably shorter — not razor-close — so the LB always closes idle connections before the app would, and send TCP keepalives to keep intermediate devices from silently dropping the connection state. Getting the *ordering* backwards (app idle shorter than LB idle) is the classic footgun: the app times out a connection the LB still considers open, the LB forwards a new request onto that now-dead socket, and you get a random RST-driven 502. The classic version of this in practice: nginx `proxy_read_timeout` set shorter than an upstream that legitimately takes 90s to generate a report — the ordering is backwards, LB should be the one closing first.
+    **Do not mix request deadlines with idle timeouts.**
+
+    - **Request deadlines:** inner timeout **shorter** than the caller — `client > LB > app > dependency` (remaining budget). If nginx `proxy_read_timeout` is 30s and the app will run 90s, the app is still working after the client is gone. Make the app/dependency timeout shorter than the proxy's **read** timeout.
+    - **Idle:** LB should close idle connections **before** the app (`LB idle < app idle`), so the app never thinks a conn the LB already dropped is still live. Backwards (app idle shorter than LB idle) → LB forwards onto a dead socket → random 502/RST.
+
+    Keepalives exist so intermediate NATs do not silently drop idle state. `proxy_read_timeout` is a **request** timer, not an idle timer.
 
 ### Pooling
 
@@ -265,6 +270,6 @@ Symptom: p99 = 3s, p50 = 40ms, no app logs for the slow ones
     2. Handshake cost is why pools exist; dirty pools are worse than no pool
     3. TCP is a byte stream; HTTP messages are a layer on top
     4. HTTP/2 multiplexes; it does **not** remove TCP head-of-line
-    5. Timeouts must be a **stack** (client > LB > app > dependency), not copies of the same number
+    5. **Request deadlines:** `client > LB > app > dependency` (inner shorter). **Idle:** LB closes first. Do not mix them.
 
 **Previous:** [Load Balancing](load-balancing.md) | **Next:** [Kubernetes](../kubernetes/index.md)

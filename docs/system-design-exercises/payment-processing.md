@@ -107,7 +107,7 @@ Response: { "refund_id": "ref_xyz", "status": "PENDING" }
 ```
 
 !!! warning "Production Trap ⚠️"
-    **Never handle raw card numbers** in your service. Use a frontend tokenization SDK (Stripe.js, Braintree SDK) — the card token is sent to PSP, not your server. This removes you from PCI DSS scope entirely.
+    **Never handle raw card numbers** in your service. Use a frontend tokenization SDK (Stripe.js, Braintree SDK) — the card token is sent to the PSP, not your server. This **reduces PCI DSS scope** (typically SAQ-A when PAN never touches your servers); it does **not** remove PCI obligations entirely. You still attest, manage the tokenization vendor, and must never log PAN.
 
 ---
 
@@ -158,6 +158,12 @@ CREATE TABLE payment_outbox (
 ---
 
 ## 8. Architecture
+
+**V1 — one API, one DB, one PSP call.** A single payment service writes `PENDING`, calls Stripe, writes `SUCCESS`/`FAILED`. Enough to charge a card in a demo.
+
+**Named bottleneck:** the PSP charge is a network side effect. A crash after Stripe charges and before the DB commit takes money with no local record; a crash after persist and before the charge leaves a `PENDING` the client will retry into a double-charge unless you have an idempotency key. There is no outbox, so "tell Order Service" is a second non-atomic hop. V1 also stores whatever the client sent — without a tokenization SDK you are in full PCI SAQ-D scope.
+
+**Then** add idempotency, a PROCESSING state with reconciliation, transactional outbox for downstream events, webhook receipt, and the tokenization SDK. That is the architecture below.
 
 ```mermaid
 graph TD
@@ -363,10 +369,12 @@ sequenceDiagram
     Note over WH1,DB: TRANSACTION 1 (receipt) — commits independently, on its own
     WH1->>DB: BEGIN; INSERT ... ON CONFLICT DO NOTHING; COMMIT
     DB-->>WH1: committed — row exists with status='received'
+    WH1-->>PSP: 200 OK (ack after durable receipt; processing is now our job)
     WH2->>DB: BEGIN; INSERT ... ON CONFLICT DO NOTHING; COMMIT
     DB-->>WH2: conflict, no-op — row already exists (A's insert landed first)
+    WH2-->>PSP: 200 OK (already received)
 
-    Note over WH1,WH2,DB: TRANSACTION 2 (atomic claim) — A and B now race on the SAME conditional UPDATE
+    Note over WH1,WH2,DB: TRANSACTION 2 (atomic claim) — workers, not the HTTP handler
     WH1->>DB: UPDATE ... SET status='processing' WHERE status='received' (or lease expired)
     DB-->>WH1: 1 row updated — A holds the claim
     WH2->>DB: UPDATE ... SET status='processing' WHERE status='received' (or lease expired)
@@ -375,10 +383,8 @@ sequenceDiagram
     WH1->>DB: apply business-state change (e.g. UPDATE payments SET status=...) — TRANSACTION 3
     WH1->>DB: UPDATE webhook_events SET status='processed'; COMMIT
     DB-->>WH1: committed
-    WH1-->>PSP: 200 OK
-    WH2-->>PSP: 200 OK (nothing left to do — A's claim covers it)
 
-    Note over WH1,DB: If A crashes AFTER claiming but BEFORE completing: row is stuck at<br/>status='processing' until claimed_at + lease expires, then the NEXT<br/>retry's claim UPDATE matches the "expired lease" clause and reclaims it
+    Note over WH1,DB: If A crashes AFTER claiming but BEFORE completing: row is stuck at<br/>status='processing' until claimed_at + lease expires, then the NEXT<br/>worker claim UPDATE matches the "expired lease" clause and reclaims it
 ```
 
 In code, that's a receipt transaction, then a separate atomic-claim-with-lease step, then the processing transaction:
@@ -412,12 +418,16 @@ def handle_stripe_webhook(raw_body: bytes, signature: str):
             event_id, payload,
         )
 
-    # 3. Process synchronously right after acknowledging receipt (or hand
-    #    off to a background worker reading webhook_events — either way,
-    #    this step goes through the SAME atomic-claim logic below).
-    process_webhook_event(event_id, payload)
-
+    # 3. Ack AFTER durable receipt, BEFORE processing. Stripe treats 200 as
+    #    delivered and will not retry; we own claim-and-process from here
+    #    (worker reading webhook_events, or a fire-and-forget thread that
+    #    still goes through process_webhook_event's atomic claim).
+    enqueue_webhook_processing(event_id)  # worker calls process_webhook_event
     return Response(status=200)
+
+
+def enqueue_webhook_processing(event_id: str) -> None:
+    webhook_work_queue.put(event_id)  # durable receipt is in webhook_events; this is a wakeup
 
 
 def process_webhook_event(event_id: str, payload: dict) -> None:
@@ -509,7 +519,7 @@ Dashboards:
 
 ## 15. Security
 
-- Card numbers never touch your servers — use PSP tokenization SDK
+- Card numbers never touch your servers — use PSP tokenization SDK (reduces PCI scope to SAQ-A; not zero obligations)
 - Store only PSP payment tokens, never raw card data
 - Sign PSP webhooks and verify signatures
 - Rate limit payment attempts by user/card (3 failed attempts → 24h block)
@@ -530,7 +540,7 @@ Dashboards:
 
 ## 17. Interview Follow-ups
 
-1. **"Why not just call the PSP and update the DB in the same request?"** — No atomicity across a network call and a DB write. If the process dies after the PSP charges the card but before the DB commits, you've taken money with no record of it. The outbox pattern makes "charge succeeded" and "we know about it" the same transaction.
+1. **"Why not just call the PSP and update the DB in the same request?"** — No atomicity across a network call and a DB write. If the process dies after the PSP charges the card but before the DB commits, you've taken money with no record of it. The **outbox** only atomicizes the DB commit with the *event to Kafka* — it does **not** make the PSP charge and "we know about it" the same transaction. Persist `PROCESSING`, charge (network side effect), then persist `SUCCESS` (and outbox that), and reconcile anything stuck in `PROCESSING`. Never wrap `stripe.charge()` in the same DB transaction as the status write.
 2. **"How do you avoid double-charging on client retry?"** — Client-generated idempotency key, unique-constrained in the DB. Second request with the same key returns the first result instead of re-charging.
 3. **"What if the PSP's webhook never arrives?"** — Don't rely on webhooks alone; poll PSP status for anything stuck in PROCESSING past a threshold, matching §13.
 4. **"How would you support a second PSP without rewriting the payment core?"** — Adapter interface per PSP (charge/refund/status mapped to your internal state machine); route by cost/availability as in the Multi-PSP Routing extension below.

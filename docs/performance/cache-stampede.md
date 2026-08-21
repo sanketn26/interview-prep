@@ -86,11 +86,10 @@ Client₁₀₀₀ → Cache HIT            Client₁₀₀₀ → Cache MISS �
 Only one request goes to the database. All others wait (or serve stale data).
 
 ```python
+import time
 import redis
-import threading
 
 cache = redis.Redis()
-_lock = threading.Lock()
 
 def get_user(user_id: str) -> dict:
     key = f"user:{user_id}"
@@ -98,20 +97,32 @@ def get_user(user_id: str) -> dict:
     if cached:
         return json.loads(cached)
 
-    # Only one thread fetches from DB
-    with _lock:
-        # Double-check after acquiring lock
-        cached = cache.get(key)
-        if cached:
-            return json.loads(cached)
+    # threading.Lock() only coordinates threads in this process, not across pods.
+    # Distributed single-flight: SET NX across the fleet.
+    lock_key = f"lock:{key}"
+    acquired = cache.set(lock_key, "1", nx=True, ex=10)
+    if acquired:
+        try:
+            cached = cache.get(key)  # double-check after lock
+            if cached:
+                return json.loads(cached)
+            result = db.query("SELECT * FROM users WHERE id = ?", user_id)
+            cache.setex(key, 300, json.dumps(result))
+            return result
+        finally:
+            cache.delete(lock_key)
 
-        result = db.query("SELECT * FROM users WHERE id = ?", user_id)
-        cache.setex(key, 300, json.dumps(result))
-        return result
+    time.sleep(0.05)  # lost the race — wait, then re-read
+    cached = cache.get(key)
+    if cached:
+        return json.loads(cached)
+    result = db.query("SELECT * FROM users WHERE id = ?", user_id)
+    cache.setex(key, 300, json.dumps(result))
+    return result
 ```
 
-**Pros:** Simple, prevents stampede
-**Cons:** Other requests block (increased latency during miss); single point of serialization
+**Pros:** One DB fetch per key across pods (Redis SET NX / single-flight)
+**Cons:** Other requests wait (or you serve stale); lock expiry must exceed fetch time
 
 ### 2. TTL Jitter
 
@@ -201,7 +212,7 @@ Multiple keys expire at the same time (e.g., cache restart, bulk TTL set).
 Requests for keys that **don't exist** in cache or DB — cache can't help, every request hits DB.
 
 **Cause:** Often from bots/scrapers querying non-existent IDs, or bugs generating invalid keys
-**Symptoms:** DB load high but hit rate is also high (lots of empty results)
+**Symptoms:** DB load high and cache **hit rate is low** — every unknown key is a miss. A *high* hit rate of empty results is what you see **after** negative caching, not before.
 **Fix:** Cache negative results (cache `null` with short TTL), Bloom filter to reject clearly non-existent keys
 
 ### Cache Breakdown

@@ -342,6 +342,6 @@ The cost of polyglot persistence is operational: more systems to run, monitor, b
     1. "SQL vs NoSQL" is really six data models — relational, document, key-value, wide-column, graph, time-series — each built for a different access pattern, not a single scale-vs-flexibility axis
     2. Pick based on read/write pattern first: point lookup, aggregate fetch, range scan, ad-hoc join, multi-hop traversal, or timestamped-metric append
     3. The real trade-off axes are schema flexibility, join support, horizontal write scale, consistency guarantees, and query flexibility — rank your workload on each before picking a store
-    4. Most non-relational families trade ACID for BASE (basically available, soft state, eventually consistent) in exchange for horizontal scale — know which axis you're giving up before you pick one
+    4. Classic Cassandra/Riak-style AP stores trade ACID for BASE (basically available, soft state, eventually consistent) in exchange for horizontal scale — that is not a family-wide rule. MongoDB and DynamoDB transactions exist; Spanner is strongly consistent. Know the product, not the slogan.
     5. Polyglot persistence — several database types in one system, each doing what it's best at — is the normal end state at scale, not over-engineering
     6. Don't migrate the whole system for one workload's bottleneck; diagnose the specific access pattern that's failing and move only that

@@ -28,7 +28,7 @@ All three show up constantly in system design (routing, network cost minimizatio
 
 ## Mental Model
 
-**Dijkstra:** Greedy BFS with a priority queue instead of a plain queue. Always expand the *closest unvisited* node next, and **relax** (try to improve) the distance to its neighbors. Once a node is popped as the minimum, its distance is final — it can never be improved later, because all other paths to it would have to go through a farther node first.
+**Dijkstra:** Best-first search with a **min-heap**, not FIFO BFS. Always expand the *closest unvisited* node next, and **relax** (try to improve) the distance to its neighbors. Once a node is popped as the minimum, its distance is final — it can never be improved later, because all other paths to it would have to go through a farther node first.
 
 ```
    4        Relax: dist[B] = min(dist[B], dist[A] + w(A,B))
@@ -53,7 +53,7 @@ visit B(3) → done. Shortest A→B = 3, not the direct edge's 4.
 ## Interactive Dijkstra Visualizer
 
 !!! note "Scope of this visualizer"
-    This interactive simulation demonstrates **Dijkstra's algorithm only**. MST (Prim's/Kruskal's) and Topological Sort don't have an interactive canvas visualizer, but each section below has a static step-by-step diagram showing exactly how the two approaches build their result.
+    This canvas is a **simplified undirected O(V²) demo** (scan for the closest unvisited node; edges are treated as bidirectional). The snippet below is **binary-heap Dijkstra on a directed graph**. MST (Prim's/Kruskal's) and topological sort have no interactive canvas; each section below has a static walkthrough.
 
 <div class="sim-container">
   <div class="sim-title">🛰️ Dijkstra's Shortest Path</div>
@@ -458,7 +458,7 @@ def min_cost_connect_points(points: list[list[int]]) -> int:
 ## Key Takeaways
 
 !!! success "Remember"
-    1. **Dijkstra = greedy BFS with a min-heap.** Always settle the closest unvisited node; that distance is then final.
+    1. **Dijkstra = best-first search with a min-heap**, not FIFO BFS. Always settle the closest unvisited node; that distance is then final.
     2. Dijkstra requires **non-negative weights** — use Bellman-Ford otherwise.
     3. **MST** connects every node at minimum total cost with no cycles: **Prim** grows a tree (dense graphs), **Kruskal** sorts edges globally and uses union-find to reject cycles (sparse graphs).
     4. **Topological sort** only exists on a DAG — Kahn's algorithm (in-degree BFS) or DFS post-order reversed.

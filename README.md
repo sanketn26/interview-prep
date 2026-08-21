@@ -32,7 +32,7 @@ Senior backend / platform / infra engineers, SREs, DevOps, tech leads, Staff can
 
 ## First release (study this)
 
-Gold-standard modules at final quality. Everything else is **planned** — see [project status](docs/project-status.md). Do not treat stubs as complete.
+Study-first modules below. Much of the rest of the curriculum is also shipped (full DSA pattern set, LLD, extra design exercises) — see [project status](docs/project-status.md) for Complete vs Interactive vs Planned. Do not treat a stub as done.
 
 | Module | Track |
 |--------|--------|
@@ -44,7 +44,7 @@ Gold-standard modules at final quality. Everything else is **planned** — see [
 | [Technical disagreement](docs/behavioural/technical-disagreement.md), [production incident](docs/behavioural/production-incident.md) | Behavioural |
 | [Debugging high p99 / Kafka lag](docs/observability/debugging-playbook.md), [K8s debugging](docs/kubernetes/index.md) | Production |
 
-**15 priority simulations** (hash ring, sharding, Kafka, stampede, rate limiter, load balancer, retry storm, circuit breaker, Raft, saga, tail latency, DNS, TCP, K8s flow, capacity calculator) live on those pages and are indexed from [Playgrounds](docs/playgrounds/index.md).
+**15 priority simulations** (hash ring, sharding, Kafka, stampede, rate limiter, load balancer, retry storm, circuit breaker, Raft, saga, tail latency, DNS, TCP, K8s flow, capacity calculator) plus **DSA visualizers** on most pattern pages — indexed from [Playgrounds](docs/playgrounds/index.md).
 
 ---
 

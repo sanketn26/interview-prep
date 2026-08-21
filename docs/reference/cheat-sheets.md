@@ -131,9 +131,11 @@ flowchart TD
 | Quicksort | O(n log n) | O(n log n) | O(n²) | O(log n) | No |
 | Mergesort | O(n log n) | O(n log n) | O(n log n) | O(n) | Yes |
 | Heapsort | O(n log n) | O(n log n) | O(n log n) | O(1) | No |
-| Timsort (Python/Java default) | O(n) | O(n log n) | O(n log n) | O(n) | Yes |
+| Timsort (Python default; Java objects) | O(n) | O(n log n) | O(n log n) | O(n) | Yes |
 | Bubble/Insertion sort | O(n) | O(n²) | O(n²) | O(1) | Yes |
 | Counting/Radix sort | O(n+k) | O(n+k) | O(n+k) | O(n+k) | Yes |
+
+Java's `Arrays.sort` uses Timsort for objects; primitives are typically dual-pivot quicksort (not stable). Python's `sorted()` / `.sort()` is always Timsort.
 
 ### Graph algorithms
 
@@ -141,7 +143,8 @@ flowchart TD
 |-----------|------|-------|----------|
 | BFS | O(V+E) | O(V) | Shortest path, unweighted |
 | DFS | O(V+E) | O(V) | Cycle detection, topological sort, connectivity |
-| Dijkstra | O((V+E) log V) | O(V) | Shortest path, non-negative weights |
+| Dijkstra (lazy binary heap) | O((V+E) log V) | O(V+E) | Shortest path, non-negative weights; heap may hold stale entries |
+| Dijkstra (decrease-key / indexed heap) | O((V+E) log V) | O(V) | Same algorithm, heap capped at one entry per vertex |
 | Bellman-Ford | O(V·E) | O(V) | Shortest path, negative weights (detects negative cycles) |
 | Union-Find (path compression + rank) | ~O(α(n)) amortized | O(V) | Connectivity, Kruskal's MST |
 | Topological sort (Kahn's / DFS) | O(V+E) | O(V) | DAG ordering, build/dependency graphs |
@@ -234,7 +237,7 @@ One line each. Full treatment is one click away.
 | **Consensus** | Getting a set of unreliable nodes to agree on a single value/log despite crashes and delays. | [Consensus & Raft](../distributed-systems/raft.md) |
 | **Leader election** | Automatically picking one node to sequence writes after the previous leader fails. | [Consensus & Raft](../distributed-systems/raft.md) |
 | **Replication lag** | The delay between a write committing on the primary and becoming visible on a replica. | [Replication](../distributed-systems/replication.md) |
-| **Consistent hashing** | Maps keys and nodes onto a ring so only ~K/N keys move when a node is added or removed. | [Consistent Hashing](../databases/consistent-hashing.md) |
+| **Consistent hashing** | Maps keys and nodes onto a ring so ~K/(N+1) of keys remap when a node is **added**, ~K/N when one is **removed**. | [Consistent Hashing](../databases/consistent-hashing.md) |
 | **Sharding** | Horizontal partitioning of data across independent database instances by a shard key. | [Database Sharding](../databases/sharding.md) |
 | **Split brain** | Two nodes both believe they are the leader/primary and both accept writes. | [Consensus & Raft](../distributed-systems/raft.md) |
 | **Consumer lag** | How far behind a consumer is from the latest offset in a partition/queue. | [Kafka Deep Dive](../messaging/kafka.md) |

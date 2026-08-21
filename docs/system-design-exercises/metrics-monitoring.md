@@ -95,7 +95,8 @@ Storage, downsampled (1min rollup, 90 days):
   1M points/s ÷ 6 (10s→1min) × 16 bytes ≈ 2.7 MB/s ≈ 230 GB/day → 21 TB / 90 days
 
 Storage, downsampled (1hr rollup, 2 years):
-  Further ÷60 → ~350 GB/year
+  Further ÷60 from the 1-min tier: ~230 GB/day / 60 ≈ 3.8 GB/day ≈ 1.4 TB/year
+  → ~2.8 TB retained at 2 years
 
 Total steady state (bounded cardinality): low hundreds of TB with tiering.
 The SAME numbers with the billion-series bad label: raw tier alone exceeds a
@@ -387,7 +388,7 @@ Fallback when the monitoring system itself is down:
 Storage, cardinality-bounded (10M active series, tiered per §12):
   Raw (3 days):            ~4 TB   → cheap SSD-backed store
   1-min rollup (30 days):  ~21 TB  → standard object/block storage
-  1-hr rollup (2 years):   ~0.7 TB → cold storage class
+  1-hr rollup (2 years):   ~2.8 TB → cold storage class
   Total: mid tens of TB, low thousands of $/month depending on backend
 
 Storage, WITHOUT downsampling (raw kept for 90 days instead of rolling up):
@@ -446,7 +447,7 @@ Primary cost levers, in order of impact:
 
 1. **"A team's dashboard suddenly shows no data for a metric that used to work fine. How do you debug it?"** — This is the cardinality-explosion debugging path: check `cardinality_quarantined_total` for that metric first — if it's spiking, a recent deploy likely added an unbounded label and the guard is now rejecting new series (or the pre-guard system silently degraded). Confirm by checking the metric's active series count against its configured limit and correlate the timing with recent deploys to the emitting service.
 2. **"Why can't you just index every label for fast ad hoc queries?"** — Because the index itself IS the cardinality cost; indexing an unbounded label (like `request_id`) doesn't make queries on it fast, it makes the index unbounded. Fast ad hoc queries on high-cardinality dimensions require a different tool (log/trace search), not the metrics store.
-3. **"How would you support percentile aggregation (p99) across hosts if raw data is downsampled by then?"** — True percentiles can't be recomputed from already-averaged rollups; either store pre-computed histogram/sketch summaries (e.g. t-digest, HDRHistogram) at rollup time instead of a single averaged value, or accept that long-range historical percentiles are approximate.
+3. **"How would you support percentile aggregation (p99) across hosts if raw data is downsampled by then?"** — True percentiles can't be recomputed from already-averaged rollups; either store pre-computed histogram/sketch summaries (e.g. [t-digest / HDRHistogram](../dsa/probabilistic-sketches.md)) at rollup time instead of a single averaged value, or accept that long-range historical percentiles are approximate.
 4. **"Push vs. pull — which would you pick for a fleet of ephemeral serverless functions, and why?"** — Push, because pull requires the server to know a scrape target exists and reach it, which doesn't hold for functions that live for milliseconds; push through a gateway (see the hybrid alternative in §17) with the same server-side cardinality guard applied regardless.
 
 ---

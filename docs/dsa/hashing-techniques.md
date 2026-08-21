@@ -7,7 +7,7 @@ description: Bloom filters, counting Bloom filters, cuckoo hashing, and HyperLog
 
 **Difficulty:** Hard | **Pattern Type:** Probabilistic data structures / space-efficient hashing
 
-[← DSA Overview](index.md) | [← String Matching](string-matching.md) | [Next: Advanced String Matching →](advanced-string-matching.md)
+[← DSA Overview](index.md) | [← String Matching](string-matching.md) | [Next: Probabilistic Sketches →](probabilistic-sketches.md)
 
 ---
 
@@ -62,7 +62,7 @@ k = (m / n) · ln 2               # optimal number of hash functions
 ### Use Cases
 
 - **Databases (e.g. Cassandra, HBase, RocksDB):** before doing a disk read for a key, check a Bloom filter of "keys that exist in this SSTable" — a "definitely not present" answer skips the disk I/O entirely; a "maybe present" answer falls through to the real (expensive) lookup.
-- **Web crawlers:** "have I already queued this URL?" — false positives just mean occasionally skipping a URL you haven't actually seen (acceptable at crawl scale); false negatives (re-crawling) would be far more common without it.
+- **Web crawlers:** "have I already queued this URL?" — a Bloom **false positive** means you skip a URL that was never added, so you **miss a page**. Bloom filters have **no false negatives**: if the filter says "no," the URL is definitely not in the set, so you will not skip a URL you already queued. The trade at crawl scale is missing some pages, not re-crawling.
 - **CDN / cache layers:** "has this content ever been requested before?" to avoid caching one-hit-wonders (cache admission policies).
 - **Malicious URL / password blocklists** (e.g. browsers checking against a huge "known bad" list without downloading it all): a Bloom filter compresses the list; false positives trigger a slower authoritative check.
 
@@ -356,6 +356,10 @@ class HyperLogLog:
 | "How many distinct values have I seen?" at huge scale | **HyperLogLog** | O(m) space independent of cardinality; ~0.8% error at 16K buckets — can't tell you *which* items, only *how many* |
 | Need exact membership, moderate scale | **Regular hash set** | No approximation — use this unless memory is genuinely the constraint |
 | Need exact distinct count, moderate scale | **Regular hash set + `len()`** | HyperLogLog only pays off when a hash set's memory would be prohibitive |
+| Delete + compact membership (not full keys) | **[Cuckoo filter](probabilistic-sketches.md)** | Fingerprints, not bits; insert can fail when full |
+| Frequency / heavy hitters | **[Count-Min Sketch](probabilistic-sketches.md)** | Overestimates; never underestimates non-negative adds |
+| p99 without storing samples | **[t-digest / HDRHistogram](probabilistic-sketches.md)** | Not HLL (that's cardinality) |
+| Set similarity | **[MinHash](probabilistic-sketches.md)** | Jaccard, not membership |
 
 ---
 
@@ -366,7 +370,7 @@ class HyperLogLog:
 
 **Cuckoo vs Bloom for a spell-checker dictionary:** you need to both check membership *and* occasionally support removing obsolete words. A Bloom filter can't remove; a counting Bloom filter can but at higher memory; cuckoo hashing gives exact answers (no false positives at all) with native deletion — often the right call when the dictionary is small enough that the modest extra memory over a Bloom filter doesn't matter.
 
-**HyperLogLog in analytics:** counting unique daily active users across a service with 500 million events/day. Storing a hash set of user IDs seen today could be hundreds of MB to GB depending on ID size; a HyperLogLog with 16K buckets uses ~1.5 KB and gives you the count within <1% error — this is exactly what Redis's `PFADD`/`PFCOUNT` and Google's original HyperLogLog paper (built for exactly this problem at Google) target.
+**HyperLogLog in analytics:** counting unique daily active users across a service with 500 million events/day. Storing a hash set of user IDs seen today could be hundreds of MB to GB depending on ID size; a HyperLogLog with 16K buckets uses ~12 KB (`16,384 × 6 / 8 = 12,288` bytes) and gives you the count within <1% error — this is exactly what Redis's `PFADD`/`PFCOUNT` and Google's original HyperLogLog paper (built for exactly this problem at Google) target.
 
 ---
 
@@ -387,4 +391,4 @@ class HyperLogLog:
     2. **Counting Bloom filter**: same idea with small counters instead of bits — trades ~4x memory for deletion support.
     3. **Cuckoo hashing**: each item has 2 candidate slots; insertion displaces occupants like a cuckoo bird. O(1) worst-case lookup, native deletion, but capped near 50% load factor.
     4. **HyperLogLog**: estimates cardinality from the longest observed run of leading zeros across hash buckets — O(m) space independent of the actual count, ~1.04/√m standard error.
-    5. All four structures trade **exactness for space** in a mathematically bounded way — know exactly what kind of error each one accepts (false positive, no exact values, or a bounded count error) before reaching for one.
+    5. All four structures trade **exactness for space** in a mathematically bounded way — know exactly what kind of error each one accepts (false positive, no exact values, or a bounded count error) before reaching for one. Frequency, p99, Jaccard, and deletable compact filters: [Probabilistic Sketches](probabilistic-sketches.md).

@@ -133,6 +133,8 @@ def create_order(request):
     return response
 ```
 
+This get-then-insert is **not** atomic: two concurrent retries can both miss the read and both insert. Put a **unique constraint** on the idempotency key (or a business key) and treat a unique-violation as "already processed."
+
 **Why the key is client-generated, not server-generated**: the whole point is that the client can retry *without knowing* if the first attempt reached the server. If the server generated the key, the client would need a successful response to learn it — which is exactly the thing that might not have arrived. The client generates a UUID once, before the first attempt, and reuses that same UUID for every retry of that logical operation.
 
 **Why the idempotency store needs its own durability guarantee**: if "create order" and "store idempotency key" aren't atomic (or at least sequenced so the key is stored only after the order durably exists), a crash between them reopens the exact race this mechanism exists to close. This is the same atomicity concern as the outbox pattern in [Messaging Patterns](../messaging/patterns.md) — writing the side effect and recording "I did this" have to be coupled, not two independent hopes.
@@ -239,10 +241,12 @@ Without a gateway: every one of Orders, Inventory, Payments independently
   idempotency-key deduplication. Inconsistently. Some get it wrong.
   A bug in one service's auth check is a security hole specific to that service.
 
-With a gateway: auth verification, rate limiting, and idempotency
-  deduplication happen ONCE, at the edge, before a request ever reaches
-  a backend service. Backend services can trust that anything reaching
-  them has already passed these checks — they focus on business logic.
+With a gateway: auth verification, rate limiting, and *request-level*
+  idempotency dedup can happen ONCE at the edge. That is not the same as
+  durable atomicity. The order row and the idempotency record usually
+  commit together **on the resource** (the orders service / its DB).
+  A gateway TTL cache can drop a duplicate HTTP retry; it cannot be the
+  only place "this charge happened" is recorded.
 ```
 
 **What a gateway is responsible for** (and what it deliberately is not):
@@ -252,7 +256,8 @@ With a gateway: auth verification, rate limiting, and idempotency
   Authentication & Authorization Fundamentals for the token mechanics itself
 ✓ Rate limiting per client
 ✓ Request routing to the correct backend service
-✓ Idempotency-key deduplication for retried requests, centrally
+✓ Idempotency-key *request* dedup for retried HTTP calls (optional at the
+  edge). Durable atomicity of the side effect still lives with the resource.
 ✓ Request/response logging and tracing (attaching the correlation ID
   discussed in Event-Driven Architecture)
 ✓ Protocol translation (public REST/GraphQL in, internal gRPC out —
@@ -346,7 +351,7 @@ With a gateway: auth verification, rate limiting, and idempotency
     3. **Idempotency keys make POST safe to retry** — client-generated (not server-generated, since the client may never see the server's response), checked before redoing any side-effecting work
     4. **The idempotency record and the side effect must be written atomically** — otherwise a crash between them reopens the exact duplicate-processing bug the key exists to prevent
     5. **GraphQL solves shape-mismatch (over/under-fetching), not "REST but better"** — it costs you the N+1 query problem (fixed by batching resolvers) and the loss of simple per-URL caching/rate-limiting, replaced by query cost analysis
-    6. **An API Gateway centralizes cross-cutting concerns (auth, rate limiting, idempotency dedup, routing) so backend services don't reimplement them inconsistently** — but it must never hold business/authorization logic, and its own availability budget is the tightest in the system since every request depends on it
+    6. **An API Gateway centralizes cross-cutting concerns (auth, rate limiting, request-level idempotency dedup, routing)** so backends don't reimplement them inconsistently — but durable atomicity of the side effect usually lives with the resource, the gateway must never hold business/authorization logic, and its availability budget is the tightest in the system since every request depends on it
     7. **Retry safety, not verb choice, is the actual point** — every resilience pattern elsewhere in this repo (circuit breakers, at-least-once delivery, exponential backoff) silently assumes the endpoint being retried is idempotent; if it isn't, retries convert transient failures into data corruption instead of preventing it
 
 **Previous:** [Stateless vs Stateful Applications](stateless-vs-stateful.md) | **Next:** [System Design Framework](framework.md)

@@ -97,7 +97,7 @@ services:
       - "8080:8080"      # REST API
     environment:
       - zookeeperServers=zookeeper:2181
-      - brokerServiceUrl=http://broker:8080
+      - brokerServiceUrl=pulsar://broker:6650
       - PULSAR_MEM="-Xmx1G"
 ```
 
@@ -120,12 +120,12 @@ managedLedgerDefaultWriteQuorum=2
 managedLedgerDefaultAckQuorum=2
 ```
 
-**Ensemble/Quorum explanation:**
-- `EnsembleSize=3`: Write to 3 BookKeepers (one copy each)
-- `WriteQuorum=2`: Wait for 2 to ack before considering message durable
-- `AckQuorum=2`: Only count message as "committed" after 2 ack
+**Ensemble/Quorum explanation** (`Qa ≤ Qw ≤ E`):
+- `EnsembleSize=3` (E): How many bookies are in the ensemble for the ledger
+- `WriteQuorum=2` (Qw): How many bookies **receive** the write
+- `AckQuorum=2` (Qa): How many of those must **ack** before the write is committed
 
-This is equivalent to Kafka's `RF=3, min.insync.replicas=2`.
+Do not define both quorums as "wait for 2 to ack" — Qw is fan-out, Qa is the ack threshold. This is the durability analogue of Kafka `RF=3` with a write that must land on Qw and be acked by Qa.
 
 ---
 
@@ -316,23 +316,23 @@ pulsar-admin namespaces set-offload-policies \
 
 **What happens:**
 - Recent messages (hot data) live in BookKeepers (fast, expensive)
-- Messages older than 10GB offload to S3 (slow, cheap ~$0.023/GB/month vs BookKeeper ~$5-10/GB/month)
+- Messages older than 10GB offload to S3 (slow, cheap ~$23/TB-month vs hot disk at **$10/TB-month** in this example — pick one unit; do not mix $/GB-month with $/TB-month)
 - If a consumer rewinds to old data, Pulsar fetches from S3 on-demand
 
-**Cost saving example:**
+**Cost saving example** (same unit: **$/TB-month**):
 ```
 Scenario: 100MB/s production rate, 30-day retention
+Logical volume: 100MB/s × 2,592,000s ≈ 259TB
 
-Kafka: All 259TB on disk (100MB/s × 2,592,000s)
-       3 replicas × 259TB = 777TB total
-       Cost: ~$7,770/month (at $10/TB/month)
+Kafka: 3 replicas × 259TB ≈ 777TB on disk
+       Cost: ~$7,770/month at $10/TB-month
 
-Pulsar: 
-  Hot (BookKeeper, 3 days): 25TB × 3 = 75TB
-  Cold (S3, 27 days): 234TB × 0.023 = $5.38/month
-  Cost: ~$750/month (BookKeeper) + $5/month (S3) = ~$755/month
-  
-Savings: 90% reduction for this scenario
+Pulsar:
+  Hot (BookKeeper, 3 days): 100MB/s × 259,200s ≈ 26TB × 3 copies ≈ 78TB
+       ≈ $780/month at $10/TB-month
+  Cold (S3, 27 days): ≈ 233TB × $23/TB-month ≈ $5,360/month
+  (The win vs Kafka is not paying RF=3 on the full 30-day set.
+   75TB-at-$750 only works as $/TB, never as $/GB.)
 ```
 
 ---
@@ -367,7 +367,7 @@ pulsar-admin namespaces set-replication-clusters \
 - Producer writes to leader (e.g., us-east)
 - Leader replicates to us-west and eu automatically
 - Consumer in us-west reads local replica (low latency)
-- If us-east goes down, consumers fail over to us-west/eu (no data loss)
+- If us-east goes down, consumers can fail over to us-west/eu. **Async geo-replication is not a zero-loss guarantee** — in-flight or not-yet-replicated messages can still be lost; treat it as RPO > 0 unless you designed a synchronous ack across clusters.
 
 **Compare to Kafka:** You need MirrorMaker or Confluent Replicator (separate tools, complex). Pulsar: one namespace setting, automatic.
 
@@ -377,10 +377,10 @@ pulsar-admin namespaces set-replication-clusters \
 
 | Operation | Kafka | Pulsar |
 |---|---|---|
-| Add broker | Triggers rebalance (5-30s downtime) | Instant (stateless broker) |
-| Remove broker | Triggers rebalance | Instant |
-| Restart broker | Consumers rebalance | Consumers reconnect, no rebalance |
-| Add partition | Re-hashes keys (breaks ordering) | Not applicable (no partitioning) |
+| Add broker | Replica reassignment (data movement), not a consumer-group rebalance by itself | Instant (stateless broker) |
+| Remove broker | Replica reassignment | Instant |
+| Restart broker | Clients reconnect; group rebalance only if consumers miss session/poll timeouts | Consumers reconnect, no group rebalance |
+| Add partition | Re-hashes keys (breaks ordering) | Pulsar **has partitioned topics**; adding partitions has the same key-mapping caveat |
 | Scale storage | Add more brokers (expensive) | Add BookKeepers (or use tiered storage) |
 | Scale globally | MirrorMaker (separate tool) | Set replication-clusters (one command) |
 | Per-topic policies | Configure per topic (tedious) | Per-namespace (inherit by topic) |
@@ -478,7 +478,7 @@ journalFormatVersionToWrite=5  # Latest format
 === "Staff"
     **Q: You're operating Pulsar for 50 teams at 1TB/s throughput, 30-day retention, multi-region (US, EU, APAC). Optimize for cost and operational simplicity.**
     
-    "I'd use: (1) Tiered storage (hot: 3-day retention on BookKeepers ~75TB; cold: 27 days on S3 ~$5k/month), (2) Geo-replication enabled (topics auto-sync across regions, latency <200ms), (3) Per-team tenant quotas (prevents one team's surge from affecting others), (4) BookKeeper ensemble size = 3 (RF=3, spread across regions), (5) Broker count = 6 (2 per region, stateless = can scale up/down without rebalancing). Cost: ~$15k/month (BookKeepers + S3) vs Kafka would be ~$150k/month. Operational ease: broker restart = 1 minute (no rebalance); Kafka = 30 minutes (rebalance storm). Key trade: Pulsar adds ~5-10ms latency per message (tiering overhead); acceptable if SLO >= 100ms."
+    "I'd use: (1) Tiered storage — 1TB/s × 3 days of hot data is ~259 PB *logical*, not 75TB (75TB was a 100MB/s-scale leftover). Size BookKeepers for that hot window × copies, offload the other 27 days to S3. (2) Geo-replication (async: RPO > 0 unless you ack across clusters). (3) Per-team tenant quotas. (4) Ensemble/WriteQuorum/AckQuorum with Qa ≤ Qw ≤ E. (5) Stateless brokers so adding a broker is not a consumer-group rebalance. Cost is dominated by hot-disk × RF plus S3 for cold; do not quote Kafka-vs-Pulsar dollars without naming $/TB. Operational ease: broker restart is reconnect, not a group stop-the-world."
 
 ---
 

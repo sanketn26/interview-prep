@@ -57,7 +57,7 @@ Window slides from left to right:
   <div class="sim-controls">
     <button class="sim-btn success" onclick="window._sw && window._sw.runMaxSumSubarray(3)">▶ Run (K=3)</button>
     <button class="sim-btn" onclick="window._sw && window._sw.runMaxSumSubarray(4)">▶ Run (K=4)</button>
-    <button class="sim-btn danger" onclick="if(window._sw){window._sw.running=false;window._sw.left=0;window._sw.right=-1;window._sw.render();}">Reset</button>
+    <button class="sim-btn danger" onclick="window._sw && window._sw.reset()">Reset</button>
   </div>
 
   <div style="margin:1rem 0">
@@ -108,9 +108,13 @@ print(max_sum_subarray([3, 1, 2, 5, 8, 2, 6, 1, 4, 9], 3))  # 16
 
 The window size changes to maintain a constraint.
 
+The visualizer above is **fixed-window max sum** (not this variable-window problem). If a HUD ever showed `Target=11`, that was leftover state from a target-sum mode this page does not run.
+
 ```python
 def longest_subarray_with_sum_le_k(arr: list[int], k: int) -> int:
-    """Longest contiguous subarray with sum ≤ k."""
+    """Longest contiguous subarray with sum ≤ k.
+    Assumes non-negative arr — shrinking from the left is only safe then
+    (a negative could make the sum smaller, so you might need a different algorithm)."""
     left = 0
     current_sum = 0
     max_length = 0

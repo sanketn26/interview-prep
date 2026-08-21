@@ -31,7 +31,7 @@ hide:
 
 <div class="course-proof" aria-label="Academy overview">
   <div><strong>3</strong><span>Learning phases</span></div>
-  <div><strong>15</strong><span>Interactive simulations</span></div>
+  <div><strong>31</strong><span>Priority sims + DSA vizs</span></div>
   <div><strong>40+</strong><span>System design exercises</span></div>
   <div><strong>Local</strong><span>Private progress tracking</span></div>
 </div>
@@ -68,12 +68,12 @@ hide:
 -   :material-lightning-bolt: **[Design Exercises](system-design-exercises/index.md)**
 
     ---
-    Gold-standard guided designs (URL shortener, rate limiter, WhatsApp, payments). More exercises are planned, not faked.
+    Guided designs from URL shortener through video calling. See [project status](project-status.md).
 
 -   :material-play-circle: **[Simulations](playgrounds/index.md)**
 
     ---
-    Fifteen priority simulations: hashing, Kafka, Raft, retry storms, K8s request flow, capacity.
+    15 priority simulations (hashing, Kafka, Raft, K8s, capacity, …) plus DSA visualizers on pattern pages.
 
 -   :material-trophy-outline: **[Your Progress](dashboard.md)**
 

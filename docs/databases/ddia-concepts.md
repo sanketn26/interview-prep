@@ -323,7 +323,9 @@ hash("user_2") % 5 = 1 → Machine B
 hash("user_1000000") % 5 = 4 → Machine E
 ```
 
-**Pros**: Distributes load evenly; hotspots become extremely unlikely (even for celebrity users like Elon Musk).
+**Pros**: Hashing balances *keys* evenly across partitions.
+
+**Does not**: balance *traffic per key*. A celebrity/hot key still lands on one partition and hotspots there.
 
 **Cons**: Range queries are lost. "Get all users in range 1M-2M" now requires querying all machines.
 
@@ -443,7 +445,7 @@ Crash happens 1 second later → data still there
 
 ### Isolation Levels
 
-There is no single "isolation." It's a spectrum of guarantees (and performance).
+There is no single "isolation." The SQL standard defines each level by **which anomalies it forbids**, not by how the engine implements them. **Mechanism is a separate choice**: lock-based (2PL, readers/writers wait) vs MVCC (readers see a snapshot; writers don't block readers). Postgres uses MVCC — a Read Committed `SELECT` does **not** wait for a writer; it reads the latest committed version. See [PostgreSQL Deep Dive](postgresql.md#part-3-isolation-levels).
 
 #### Read Uncommitted
 ```
@@ -453,20 +455,22 @@ Transaction B: SELECT balance FROM account;
                 → sees balance = 100 (dirty read!)
 ```
 
-**Problem**: B sees data A hasn't committed. If A rolls back, B saw data that never existed.
+**Anomaly allowed**: dirty reads. B sees data A hasn't committed. If A rolls back, B saw data that never existed.
 
 **Use**: Never in production (or only for analytics on copies).
 
 #### Read Committed
 ```
-Transaction A: INSERT account(balance = 100);
+Transaction A: INSERT account(balance = 100);  (not committed)
 Transaction B: SELECT balance FROM account;
-                → blocks until A commits or rolls back
+                → does not see A's insert (no dirty read)
 ```
 
 **Guarantees**: You only see committed data. No dirty reads.
 
-**Problem**: If A reads row X, then B modifies row X and commits, then A reads again:
+In 2PL, B's SELECT might wait for A's lock. In Postgres MVCC, B's SELECT does **not** wait — it reads the previously committed version.
+
+**Anomaly still allowed**: If A reads row X, then B modifies row X and commits, then A reads again:
 ```
 A: SELECT balance FROM alice;  → 100
 B: UPDATE alice SET balance = 70;  COMMIT;
@@ -478,40 +482,31 @@ A's view of Alice's balance changed mid-transaction. This is a **non-repeatable 
 #### Repeatable Read
 ```
 Transaction A: SELECT balance FROM alice;  → 100
-               (acquires read lock)
 Transaction B: UPDATE alice SET balance = 70;  COMMIT;
-               (waits for A's read lock)
-Transaction A: SELECT balance FROM alice;  → 100 (same as before)
-               COMMIT;
-               (releases lock, B can now write)
+Transaction A: SELECT balance FROM alice;  → 100 (same as first read)
 ```
 
-**Guarantees**: Data you read at the start of the transaction is frozen. Repeatable reads.
+**Guarantees**: No dirty reads, no non-repeatable reads. How: 2PL holds a read lock so B's UPDATE waits; MVCC (Postgres) gives A a snapshot so B's UPDATE does **not** wait — A just keeps seeing the old version.
 
-**Problem**: Phantom reads. A reads "all users in USA", B inserts a new USA user, A reads again:
+**Anomaly still allowed (SQL standard)**: Phantom reads. A reads "all users in USA", B inserts a new USA user, A reads again:
 ```
 A: SELECT COUNT(*) FROM users WHERE country = 'USA';  → 500
 B: INSERT users(country = 'USA');  COMMIT;
 A: SELECT COUNT(*) FROM users WHERE country = 'USA';  → 501 (phantom!)
 ```
 
-The set of rows matching a query changed mid-transaction.
+The set of rows matching a query changed mid-transaction. (Postgres Repeatable Read is stronger than the standard here — see [postgresql.md](postgresql.md#repeatable-read).)
 
 #### Serializable
 ```
-All transactions execute sequentially, in order.
-A: SELECT...
-A: UPDATE...
-A: COMMIT;
-← (A must complete before B starts)
-B: SELECT...
-B: UPDATE...
-B: COMMIT;
+The *result* is equivalent to some serial (one-at-a-time) order.
+That is not the same as actually running all transactions sequentially.
+Postgres SERIALIZABLE is SSI: concurrent snapshots + abort/retry on conflict.
 ```
 
-**Guarantees**: No dirty reads, no non-repeatable reads, no phantoms. Perfect isolation.
+**Guarantees**: No dirty reads, no non-repeatable reads, no phantoms. Result equivalent to a serial schedule.
 
-**Cost**: Severely limited concurrency. Most production systems can't tolerate this.
+**Cost**: True serial execution is too slow for most production. SSI is the usual implementation — you pay aborts + retries on conflict, not a global queue. See [postgresql.md](postgresql.md#serializable).
 
 ### The Trade-off Chart
 
@@ -522,7 +517,7 @@ B: COMMIT;
 | Repeatable Read | No | No | Yes | Medium |
 | Serializable | No | No | No | Low |
 
-**Interview answer**: "Most systems use Read Committed by default because it prevents the worst anomalies (dirty reads) while preserving concurrency. We add explicit locks where Repeatable Read is needed (financial transactions, inventory)."
+**Interview answer**: "Most systems use Read Committed by default because it prevents the worst anomalies (dirty reads) while preserving concurrency. We bump isolation (Repeatable Read / Serializable) where non-repeatable reads or write skew are unacceptable — not because we want 2PL to run everything one-at-a-time."
 
 ### How Isolation Is Actually Implemented
 
@@ -878,18 +873,27 @@ sequenceDiagram
 
 CRDTs solve a different problem: *"What if we can't use a single leader?"* (e.g., peer-to-peer systems, offline-first apps).
 
-### Last-Write-Wins (LWW) Counter
+### Last-Write-Wins (LWW) Register — not a CRDT counter
+
+```
+Device-A: status = "shipped"    (timestamp: 100ms)
+Device-B: status = "cancelled"  (timestamp: 50ms)
+
+LWW: higher timestamp wins → "shipped"
+Device-B's write is silently lost.
+```
+
+Same trap if you treat a counter as an LWW register:
 
 ```
 Device-A: counter = 10 (timestamp: 100ms)
-Device-B: counter = 20 (timestamp: 50ms)
+Device-B: counter = 20 (timestamp: 50ms)   # B incremented locally
 
-Conflict: both sides have different values
-LWW rule: higher timestamp wins
-Result: counter = 10 (from Device-A, timestamp 100ms)
+B's timestamp is older, so B does **not** win.
+Result: counter = 10. You lost B's increments.
 ```
 
-**Problem**: Causal ordering can be wrong. Device-B's increment might have been based on 5, then Device-A increments, but Device-B's timestamp is old so it wins.
+LWW is a register: one value overwrites the other. It is **not** a CRDT counter. For counts that must converge without dropping increments, use a G-Counter or PN-Counter — see [CRDTs](../architecture-patterns/crdts.md).
 
 ### Vector Clocks
 
@@ -1142,7 +1146,7 @@ Every one of these incidents has the same shape: **the dashboard shows a symptom
 | "How do you handle replication lag?" | Monitor it religiously; alerting when lag > SLO. Use read-from-primary for critical data; eventual consistency for non-critical. |
 | "When should we use quorum reads?" | High-value data where reads must always be current. Trade-off: 2-3 nodes to read, slower than single-node read. |
 | "How do we handle hot partitions?" | Detect via monitoring (one shard gets > X% of traffic). Options: split hot keys across multiple shards with a random suffix, cache in Redis, rate-limit the user. |
-| "What consistency level should we use?" | "Read Committed by default (balance). Repeatable Read for transactions where isolation matters (inventory, financial). Serializable almost never (too slow)." |
+| "What consistency level should we use?" | "Read Committed by default (balance). Repeatable Read when non-repeatable reads matter (inventory, financial). Serializable when write skew is unacceptable (Postgres SSI: retry on conflict) — not because you want true serial execution." |
 | "Can we use eventual consistency here?" | "Only if the domain tolerates stale reads. For money, inventory, auth: no. For analytics, feed recommendations, social: yes." |
 | "What's the difference between replication and backup?" | "Replication is continuous (seconds of lag). Backup is point-in-time (minutes/hours old). Use both: replication for HA, backups for recovery." |
 | "B-tree or LSM-tree for this workload?" | "LSM (Cassandra, RocksDB) for write-heavy ingest/logging/time-series — sequential writes, background compaction. B-tree (Postgres, MySQL) for read-heavy workloads with complex queries and secondary indexes." |
@@ -1162,7 +1166,7 @@ Every one of these incidents has the same shape: **the dashboard shows a symptom
 - **Transactions are a spectrum (isolation levels), implemented via 2PL (blocking, deadlock-prone) or MVCC (snapshot-based, non-blocking).** Most systems use Read Committed by default; SSI gets you serializable guarantees near snapshot-isolation speed.
 - **Linearizability and serializability are different guarantees answering different questions.** One is about recency of a value; the other is about transaction ordering. Don't conflate "strongly consistent" with "serializable."
 - **CAP is a narrow theorem about network partitions specifically**, not a general theory of consistency — most consistency/isolation decisions are made independent of it.
-- **W + R > N guarantees read/write quorum *overlap*, not freshness on its own.** It guarantees any read quorum shares at least one replica with any write quorum — under the assumption of a fixed, non-sloppy replica set. A single stale replica inside an otherwise-correct quorum read isn't itself a problem: the coordinator collects responses from every replica in the read quorum and reconciles them (by timestamp/version, returning the freshest), so one stale member alongside at least one fresh member (guaranteed by the overlap) still yields a fresh answer. What the overlap guarantee does NOT extend to: concurrent writes can still race (two overlapping quorum reads both seeing the pre-write value, both computing a new value, both writing — a lost update, since quorum overlap says nothing about serializing concurrent read-modify-write cycles), sloppy quorums (writing to non-designated replicas during a partition, via hinted handoff) can defeat the overlap guarantee entirely because the "write quorum" and "read quorum" may no longer share a member, and clock-based conflict resolution (LWW) can silently discard a causally-later write regardless of quorum overlap. Quorum overlap is a real and useful building block for read freshness under normal operation — it is not, by itself, linearizability, and the gaps above are about concurrency and failure modes, not about a single stale reply "getting through." See [CAP Theorem](../distributed-systems/cap-theorem.md#read--write-trade-offs) for why a bank-balance mutation specifically needs more than plain quorum reads/writes.
+- **W + R > N guarantees read/write quorum *overlap*, not freshness on its own.** It guarantees any read quorum shares at least one replica with any write quorum — under the assumption of a fixed, non-sloppy replica set. A single stale replica inside an otherwise-correct quorum read isn't itself a problem: the coordinator collects responses from every replica in the read quorum and reconciles them (by timestamp/version, returning the freshest), so one stale member alongside at least one fresh member (guaranteed by the overlap) still yields a fresh answer. What the overlap guarantee does NOT extend to: concurrent writes can still race (two overlapping quorum reads both seeing the pre-write value, both computing a new value, both writing — a lost update, since quorum overlap says nothing about serializing concurrent read-modify-write cycles), sloppy quorums (writing to non-designated replicas during a partition, via hinted handoff) can defeat the overlap guarantee entirely because the "write quorum" and "read quorum" may no longer share a member, and clock-based conflict resolution (LWW) can silently discard a causally-later write regardless of quorum overlap. Quorum overlap is a real and useful building block for read freshness under normal operation — it is not, by itself, linearizability, and the gaps above are about concurrency and failure modes, not about a single stale reply "getting through." See [CAP Theorem](../distributed-systems/cap-theorem.md#read-write-trade-offs) for why a bank-balance mutation specifically needs more than plain quorum reads/writes.
 - **Consensus (Raft/Paxos) is how replicas agree on truth, and fixes 2PC's single-coordinator failure mode.** A majority is sufficient; doesn't need all.
 - **Hot partitions are data problems, not distribution problems.** Even hashing fails if one user generates all traffic; solve at the application layer.
 - **Schema and deploy changes are never atomic across a fleet.** Design every change to tolerate old and new code/schema coexisting during rollout.

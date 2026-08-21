@@ -61,7 +61,7 @@ Payment capture, idempotency keys, retry-safe charging, and PSP webhook handling
 | Inventory consistency | Strongly consistent | Money and physical goods; no "eventually" |
 | Availability (catalog) | 99.99% | Browsing must survive backend hiccups |
 | Availability (checkout) | 99.95%, fail toward "can't check out" not "oversold" | Correctness over uptime when they conflict |
-| Scale | 10M SKUs, 500K orders/day, 50K orders/sec at flash-sale peak | Catalog is read-bound; checkout is write-bound and bursty |
+| Scale | 10M SKUs, 500K orders/day; typical flash 50–100× (~300–600/s); named doorbuster 50K orders/s | Catalog is read-bound; checkout is write-bound and bursty |
 
 !!! tip "Interview Insight 🎯"
     Interviewers are listening for whether you separate these two problems out loud: "catalog is a search/read-scaling problem I've solved elsewhere; inventory is a concurrency-correctness problem that needs its own service with different consistency guarantees." Collapsing them into one data store is the tell that you haven't hit this problem before.
@@ -78,9 +78,9 @@ Catalog:
 Orders (steady state):
   500K orders/day → ~6 orders/second average, ~60/s at 10x peak
 
-Flash sale / Black Friday:
-  Traffic spikes 50-100x on a narrow set of SKUs (doorbusters)
-  Site-wide: 50K orders/second peak for a ~10 minute window
+Flash sale / Black Friday — two different spikes, do not conflate them:
+  Typical flash: 50–100× site-wide from ~6/s average → ~300–600 orders/s
+  Named doorbuster (launch window, ~10 min): 50K orders/s site-wide — this is not 50–100×
   Single hot SKU: 5,000+ concurrent "buy" attempts against a stock count of, say, 200 units
   → 4,800 of those 5,000 requests MUST fail cleanly, fast, without touching payment
 

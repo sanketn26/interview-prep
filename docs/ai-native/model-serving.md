@@ -115,7 +115,7 @@ KV cache cost per token (a 80-layer, 8-KV-head, 128-head-dim architecture, FP16)
 - `$8.20 ÷ (1,120 tokens/sec × 3,600 sec/hr) × 1,000,000 ≈ $2.03 per 1M output tokens`
 - `$8.20 ÷ (3.7 req/sec × 3,600 sec/hr) ≈ $0.0006 per request` (at the 300-token average response length above)
 
-**The lever this makes concrete:** quantizing to INT8 roughly halves the weight footprint (140GB → ~70GB), which on the same 2× A100 80GB setup frees ~90GB for KV cache instead of ~20GB — enough headroom to roughly quadruple the batch size (and therefore aggregate throughput) before hitting the same memory ceiling, at whatever quality cost INT8 has on this specific workload. That's the batching/memory/cost triangle from the sections above, with numbers attached instead of just relationships.
+**The lever this makes concrete:** quantizing to INT8 roughly halves the weight footprint (140GB → ~70GB). Against the same **~140GB usable** ceiling (not 160GB nominal), that leaves **~70GB** for KV cache instead of **<20GB** — enough headroom to raise batch size substantially (and therefore aggregate throughput) before hitting the same memory ceiling, at whatever quality cost INT8 has on this specific workload. Do not compute "160 − 70 = 90GB free"; the overhead story above still applies. That's the batching/memory/cost triangle from the sections above, with numbers attached instead of just relationships.
 
 ---
 

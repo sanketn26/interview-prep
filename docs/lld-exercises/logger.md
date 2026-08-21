@@ -124,7 +124,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import IntEnum
 from queue import Queue, Full, Empty
-from threading import Lock, Thread
+from threading import Event, Lock, Thread
 import sys
 
 
@@ -166,12 +166,26 @@ class ConsoleSink(LogSink):
         print(self.formatter.format(record), file=stream)
 
 
+class FileHandleRegistry:
+    """One handle + lock per path, process-wide. Two FileSinks writing app.log
+    must not open two descriptors that interleave writes."""
+
+    _handles: dict[str, tuple] = {}
+    _lock = Lock()
+
+    @classmethod
+    def get(cls, path: str):
+        with cls._lock:
+            if path not in cls._handles:
+                cls._handles[path] = (open(path, "a", encoding="utf-8"), Lock())
+            return cls._handles[path]
+
+
 class FileSink(LogSink):
     def __init__(self, path: str, min_level: LogLevel = LogLevel.DEBUG, formatter: LogFormatter | None = None):
         super().__init__(min_level, formatter)
         self._path = path
-        self._file = open(path, "a", encoding="utf-8")
-        self._write_lock = Lock()          # guards this sink's own handle — see Concurrency
+        self._file, self._write_lock = FileHandleRegistry.get(path)
 
     def write(self, record: LogRecord) -> None:
         line = self.formatter.format(record) + "\n"
@@ -180,7 +194,7 @@ class FileSink(LogSink):
             self._file.flush()
 
     def close(self) -> None:
-        self._file.close()
+        pass  # registry owns the handle; other sinks may still be using it
 
 
 class RemoteSink(LogSink):
@@ -207,7 +221,12 @@ class Logger:
         self.name = name
         self.level = level
         self.sinks = sinks
-        self._queue: Queue[LogRecord | None] = Queue(maxsize=queue_size)
+        # +1 reserved so shutdown can put_nowait the sentinel even when the
+        # producer-facing capacity (queue_size) is full. _shutdown covers the
+        # race where the reserved slot is already taken.
+        self._queue: Queue[LogRecord | None] = Queue(maxsize=queue_size + 1)
+        self._queue_size = queue_size
+        self._shutdown = Event()
         self._worker = Thread(target=self._drain_loop, name=f"logger-{name}", daemon=True)
         self._worker.start()
 
@@ -218,6 +237,8 @@ class Logger:
             return                          # cheap global filter before touching the queue at all
         record = LogRecord(level=level, message=message, logger_name=self.name)
         try:
+            if self._queue.qsize() >= self._queue_size:
+                raise Full
             self._queue.put_nowait(record)  # never blocks the caller — see Edge Cases for overflow policy
         except Full:
             sys.stderr.write(f"[logger:{self.name}] queue full, dropping record\n")
@@ -241,6 +262,8 @@ class Logger:
             try:
                 record = self._queue.get(timeout=0.5)
             except Empty:
+                if self._shutdown.is_set():
+                    break
                 continue
             if record is None:              # shutdown sentinel
                 break
@@ -253,7 +276,14 @@ class Logger:
                     sys.stderr.write(f"[logger:{self.name}] sink {sink!r} failed: {exc!r}\n")
 
     def shutdown(self) -> None:
-        self._queue.put(None)                 # sentinel: worker finishes records queued before this, then exits
+        # put_nowait into the reserved slot — a blocking put(None) can deadlock
+        # forever if the queue is already full of records. _shutdown lets the
+        # worker exit even if the sentinel loses the race for that slot.
+        self._shutdown.set()
+        try:
+            self._queue.put_nowait(None)
+        except Full:
+            pass
         self._worker.join(timeout=5)
 
 
@@ -313,7 +343,7 @@ The producer/consumer split is the crux: `log()` (producer, called from N applic
 | A sink's `write()` throws (e.g. `RemoteSink` gets a connection error) | Caught per-sink inside `_drain_loop`'s loop body — one broken sink logs its own failure and is skipped for that record, but the loop continues to the *next* sink for the same record and to the *next* record on the next iteration. A `FileSink` exception must never prevent `ConsoleSink` from getting the same record. |
 | Process crashes with records still in the queue | Those records are lost — permanently. This is a **fundamental durability limit of async, in-memory-queued logging**, not a bug to patch around; if durability across crashes is a hard requirement, the honest answer is a different architecture (write-ahead to disk synchronously, or accept the trade-off explicitly and document it), not a cleverer queue. |
 | A sink's error-handling path itself calls back into `log()` (e.g. `RemoteSink` logs its own connection failures through the same logger) | Risks infinite recursion / feedback loops if not caught — the `except Exception` in `_drain_loop` deliberately writes failures to raw `sys.stderr`, never back through `self.log()`, precisely to break that cycle. Any sink implementation that logs its own errors must do the same. |
-| `Logger.shutdown()` called while records are still queued | The sentinel (`None`) is enqueued *behind* whatever's already there, so `_drain_loop` finishes every record queued before shutdown was called, then exits on the sentinel — nothing queued before shutdown is silently dropped. Records enqueued *after* `shutdown()` starts are a genuine race the caller must avoid (stop producers first). |
+| `Logger.shutdown()` called while records are still queued | The sentinel (`None`) is `put_nowait` into a slot reserved at construction (`queue_size + 1`), so a full log queue cannot deadlock `join()` on a blocking `put(None)`. The worker finishes records already queued, then exits on the sentinel. Records enqueued *after* `shutdown()` starts are a genuine race the caller must avoid (stop producers first). |
 
 ---
 

@@ -122,5 +122,5 @@ The algorithm matters less than people think, with one exception: **least-connec
 - **Connection pooling removes 2 RTT per request** — the highest-leverage networking change you can make.
 - **Pool size = arrival rate × latency.** When a dependency slows down, your pool silently becomes too small.
 - **Every remote call needs a timeout**, or your pool requirement is unbounded.
-- **Health checks must check dependencies**, not just process liveness.
+- **Liveness = is this process wedged?** Do not ping Redis/DB on liveness (restart storms). **Readiness = can I take traffic?** Check a dependency on readiness only if the instance is *useless* without it; optional caches should degrade, not go unready.
 - **L7 buys routing intelligence; L4 buys raw speed.** Use least-connections when request costs vary.

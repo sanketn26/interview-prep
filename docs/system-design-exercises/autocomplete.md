@@ -48,7 +48,7 @@ Practice asking these before designing:
 | Latency | < 100ms p99 end-to-end per keystroke (network + lookup + render budget) |
 | Availability | 99.99% — a broken autocomplete degrades UX on every search, on the critical path of the product |
 | Read/Write ratio | Effectively read-only online (~10,000,000:1) — writes happen offline in batch |
-| Scale | 10B distinct historical queries logged, 500K query-prefix lookups/second at peak |
+| Scale | 10B distinct historical queries logged, ~2M query-prefix lookups/second at peak |
 | Freshness | Trending queries reflected within ~10-15 minutes; long-tail ranking refreshed daily |
 
 ---
@@ -107,7 +107,7 @@ Request: { "prefix": "syst", "selected": "system design interview questions", "p
 ```
 
 !!! note "Why suggestions are never an error"
-    A `500` or empty state from autocomplete shouldn't ever block the user from just pressing Enter and searching for their raw input. Design the client to treat autocomplete as pure enhancement — timeout fast (e.g., 50ms) and fail open to "no suggestions shown," never block the search box.
+    A `500` or empty state from autocomplete shouldn't ever block the user from just pressing Enter and searching for their raw input. Design the client to treat autocomplete as pure enhancement — timeout inside the 100ms SLO (e.g. 80ms) and fail open to "no suggestions shown," never block the search box.
 
 ---
 
@@ -312,8 +312,8 @@ Blob storage (trie versions, S3, with lifecycle cleanup):              ~$50/mont
 Total:                                                                  ~$3,150/month
 
 Cost per lookup:
-  $3,150 / (2.6M seconds/month equiv at avg load) — using avg 460K lookups/s:
-  460K/s × 2.6M s/month ≈ 1.2B lookups/month → $3,150 / 1.2B ≈ $0.0000026 per lookup
+  460K/s avg × 2.6M s/month ≈ 1.2 trillion lookups/month
+  $3,150 / 1.2e12 ≈ $2.6 per billion lookups (~$0.0000000026 each)
 ```
 
 ---

@@ -76,8 +76,8 @@ LB instance capacity:
 
 Backend pool:
   Assume 50 backend instances, each handling ~2K rps
-  Health check interval: 5s, 3 backends probed per LB per tick
-  50 backends x 1 LB instance x (1 probe / 5s) = 10 probes/sec per LB — trivial
+  Health check interval: 5s, every backend probed each interval
+  50 backends × (1 probe / 5s) = 10 probes/sec per LB — trivial
 
 Config propagation:
   Backend registry: 50-500 entries x 200 bytes ≈ 100KB, fits in memory on every LB

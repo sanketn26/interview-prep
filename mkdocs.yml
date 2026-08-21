@@ -101,6 +101,7 @@ nav:
     - Interview Framework: interview-playbook/framework.md
     - Your Progress: dashboard.md
     - Project Status: project-status.md
+    - Content review checklist: content-review.md
   - Learn:
     - Fundamentals:
       - foundations/index.md
@@ -281,6 +282,8 @@ nav:
       - Greedy Algorithms: dsa/greedy.md
       - String Matching: dsa/string-matching.md
       - Advanced Hashing Techniques: dsa/hashing-techniques.md
+      - Probabilistic Sketches: dsa/probabilistic-sketches.md
+      - Skip Lists & Range Trees: dsa/skip-lists-fenwick-segment-trees.md
       - Advanced String Matching: dsa/advanced-string-matching.md
     - Simulations:
       - playgrounds/index.md

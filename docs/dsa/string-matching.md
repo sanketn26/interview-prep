@@ -32,15 +32,19 @@ The naive way to find a pattern of length m inside a text of length n checks eve
 ```
 Text:     a  b  a  b  c  a  b  a  b  a  b  d
 Pattern:  a  b  a  b  d
-                    ^ mismatch: text 'a' vs pattern 'd' — but "abab" already matched
+                    ^ mismatch: text 'c' vs pattern 'd'  (not 'a')
+                      "abab" already matched
 
 LPS table for "ababd": [0,0,1,2,0]
   lps[3] = 2 means "ab" is both a prefix and suffix of "abab"
 
-Instead of restarting pattern at index 0 (and rewinding text), jump pattern's
-j to lps[3]=2 — resume comparing "ab" (already known to match) forward.
-The TEXT pointer never moves backward. That's the O(n) guarantee.
+On mismatch at j=4, set j = lps[3] = 2; leave the text pointer i on 'c'.
+Next comparison is text 'c' vs pattern[2]='a' — still a mismatch, so fall
+back again (j = lps[1] = 0) and then advance i. The TEXT pointer never
+moves backward. That's the O(n) guarantee.
 ```
+
+The interactive visualizer uses a longer string (`ababcabcabababd`) with the same pattern `ababd`; the first mismatch is still `'c'` vs `'d'` after matching `"abab"`.
 
 **Rabin-Karp's insight:** compute a hash of the pattern once, then slide a window across the text computing each window's hash incrementally (O(1) per shift via a rolling hash formula), and only do a full character comparison when hashes collide — hash equality is necessary but not sufficient for a real match.
 

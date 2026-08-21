@@ -184,18 +184,18 @@ SELECT * FROM orders WHERE user_id = 123;
 Savings: 1M rows transferred → 100 rows transferred (10,000× faster)
 ```
 
-### Use LIMIT for Sampling
+### Approximate counts
 
 ```sql
--- Count estimate (instead of full scan)
-SELECT COUNT(*) FROM orders;  -- scans all 1B rows, 10 seconds
+-- Exact COUNT(*) on a huge heap is a sequential scan. Don't "fix" it with
+-- TABLESAMPLE … LIMIT * 1000 — LIMIT truncates the sample, so the scale
+-- factor is no longer 1 / sample_percent.
 
-SELECT (
-  SELECT COUNT(*) FROM (
-    SELECT 1 FROM orders TABLESAMPLE BERNOULLI(0.1) LIMIT 10000
-  )
-) * 1000 as estimated_count;
--- samples 0.1% of rows, estimates total in milliseconds
+-- Postgres: planner estimate (cheap, stale after writes)
+SELECT reltuples::bigint AS estimate
+FROM pg_class WHERE relname = 'orders';
+
+-- Or EXPLAIN (without ANALYZE) and read the planned row count.
 ```
 
 ### Batch Operations
@@ -337,17 +337,17 @@ SELECT * FROM users WHERE phone = '123';
 ### IN Clause with Subquery
 
 ```sql
--- Bad: subquery executed for every row
+-- Modern planners typically rewrite IN (subquery) to a semi-join.
+-- "Executed for every row" is a myth — look at EXPLAIN, don't rewrite on folklore.
 SELECT * FROM orders
 WHERE user_id IN (SELECT user_id FROM users WHERE country = 'USA');
-  → Executes subquery for each order (plan-dependent)
 
--- Good: use JOIN
+-- JOIN is equivalent when you need columns from both tables; DISTINCT may still
+-- be required if the join would duplicate rows.
 SELECT DISTINCT o.*
 FROM orders o
 JOIN users u ON o.user_id = u.id
 WHERE u.country = 'USA';
-  → Subquery executed once, joined efficiently
 ```
 
 ### NULL Handling
@@ -415,14 +415,14 @@ LIMIT 10;
 | "Should we normalize or denormalize?" | "Normalize for correctness (schema design). Denormalize only if reads > writes by 10:1 and stale data is OK. Materialized views are a middle ground." |
 | "When do window functions matter?" | "Running aggregates (sum so far), ranking (top N per group), comparison to previous row. They eliminate self-joins, much faster." |
 | "How do we avoid cache stampede in queries?" | "Probabilistic early refresh: if cache TTL < random(0%, 50% of TTL), refresh in background. Serves stale results while refresh happens." |
-| "JOIN order impacts query speed?" | "Yes, dramatically. Optimizer tries to join smallest table first (filter early). If it chooses wrong, EXPLAIN shows the plan. Reorder SELECT / FROM / WHERE to hint the optimizer." |
+| "JOIN order impacts query speed?" | "The *chosen* join order matters; writing FROM a, b vs FROM b, a does not, in Postgres — the planner ignores lexical FROM order. If the plan is wrong, fix stats (`ANALYZE`), add indexes, or use engine-specific hints. Read EXPLAIN, don't shuffle SELECT/FROM as a portable hint." |
 
 ---
 
 ## Key Takeaways
 
 - **EXPLAIN ANALYZE is your best friend**: always check the plan before tuning.
-- **Index order matters**: (filter, sort, include). Put most selective column first.
+- **Index column order**: equality keys first, then range, then `INCLUDE` covering columns — not "most selective first." See [Indexing](indexing.md).
 - **Covering indexes eliminate disk fetches**: include non-key columns if they're queried.
 - **Partial indexes save space and speed**: index only rows matching WHERE.
 - **Normalization first, denormalization only when needed**: most queries are fast with proper indexes.

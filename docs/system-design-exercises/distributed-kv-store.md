@@ -14,7 +14,7 @@ description: A complete guided system design exercise — a Dynamo-style distrib
 
 ## 1. Problem Statement
 
-Design a distributed key-value store like Amazon DynamoDB or Cassandra's storage core — a horizontally scaled, always-writable, highly available datastore that is the **system of record** for its data, not a cache in front of one. Clients `PUT`, `GET`, and `DELETE` keys; the store partitions data across many nodes, replicates it for durability and availability, and must keep accepting writes even during network partitions.
+Design a distributed key-value store in the style of the **Dynamo paper** or **Cassandra's storage core** — leaderless, quorum-replicated, always-writable. This is **not** Amazon DynamoDB the product: DynamoDB uses a **per-partition leader**, not Cassandra-style leaderless quorums. Clients `PUT`, `GET`, and `DELETE` keys; the store partitions data across many nodes, replicates it for durability and availability, and must keep accepting writes even during network partitions.
 
 !!! note "How this differs from Distributed Cache"
     This exercise is conceptually adjacent to [Distributed Cache](distributed-cache.md) — both partition data across nodes and both use consistent hashing — but the NFRs are almost inverted. A cache is disposable (durability best-effort, source of truth lives elsewhere, eviction is a feature); this store **is** the source of truth: data must never be silently lost, there is no upstream database to fall back to on a miss, and there's no eviction policy at all — data lives until explicitly deleted. That single difference cascades into nearly every design decision below: replication exists here for **correctness and durability**, not just to absorb read/write throughput.
@@ -105,9 +105,9 @@ Status: 200 OK, or 202 Accepted (if write succeeded at W replicas but below full
 GET /keys/{key}?consistency=quorum
 Response: {
   "values": [ { "value": "...", "vector_clock": "...", "timestamp": "..." } ]
-  // >1 entry means unresolved sibling versions — see Conflict Resolution below
+  // always 200; len(values) > 1 means unresolved siblings — client/app must resolve
 }
-Status: 200 OK, or 300 Multiple Choices (siblings present, client/app must resolve)
+Status: 200 OK
 
 DELETE /keys/{key}
 Response: 204 No Content
@@ -198,7 +198,7 @@ Because writes can be accepted independently by different replicas (especially u
     Attach a timestamp to every write; on conflict, the write with the later timestamp wins and the other is discarded. **Pro:** simple, no client-side merge logic required, small metadata overhead. **Con:** relies on synchronized clocks (clock skew can silently pick the "wrong" winner) and **silently drops data** — a legitimate concurrent write just disappears. Acceptable for data where losing a stale update is low-cost (e.g., a "last seen" timestamp, a cache-adjacent counter) — not acceptable for data where every write matters (e.g., a shopping cart, a financial transaction).
 
 === "Vector Clocks"
-    Each value carries a vector clock — a per-replica-coordinator counter — that lets the system determine whether one version **causally descends from** another (safe to discard the ancestor) or the two are **concurrent** (neither descends from the other — a real conflict). On a genuine conflict, the store does **not** pick a winner: it returns both sibling versions to the client (the `300 Multiple Choices` / multi-value `GET` response in the API above), and the application resolves them with domain knowledge (e.g., a shopping cart merges siblings as a set union of items rather than picking one). **Pro:** never silently loses data. **Con:** more complex, more storage/response overhead for the vector clock metadata, and pushes resolution work up to the application, which must be designed to handle it.
+    Each value carries a vector clock — a per-replica-coordinator counter — that lets the system determine whether one version **causally descends from** another (safe to discard the ancestor) or the two are **concurrent** (neither descends from the other — a real conflict). On a genuine conflict, the store does **not** pick a winner: it returns **200** with `values[]` containing every sibling, and the application resolves them with domain knowledge (e.g., a shopping cart merges siblings as a set union of items rather than picking one). Do not use HTTP 300 Multiple Choices for this — that status is for resource negotiation, not sibling values. **Pro:** never silently loses data. **Con:** more complex, more storage/response overhead for the vector clock metadata, and pushes resolution work up to the application, which must be designed to handle it.
 
 **Recommended default:** vector clocks with application-level merge, because the system's entire premise is "durability guarantee, never silently lose an acknowledged write" — LWW violates that premise on genuine concurrent conflicts. Offer LWW as an explicit opt-in for specific low-stakes key types where the operational simplicity is worth the risk.
 
@@ -408,7 +408,7 @@ exercise for the same workload without the durability requirement.
     Use a consensus protocol (see [Raft](../distributed-systems/raft.md)) so the cluster refuses writes on a minority partition rather than accepting divergent writes on both sides. Trade-off: strictly stronger consistency (no siblings, no application-level conflict resolution needed) at the cost of write unavailability during a partition — the opposite trade-off from this exercise's Dynamo-style design. Appropriate when correctness-under-partition matters more than write availability (e.g., leader election metadata, distributed locks) rather than general-purpose application data.
 
 === "Managed Service (DynamoDB / Cosmos DB)"
-    Use a fully managed Dynamo-style store instead of operating the cluster yourself. Gets you the same architectural properties described here (partitioning, tunable consistency, quorum replication) without operating gossip, anti-entropy, or hinted handoff yourself. Trade-off: less control over placement/tuning, cost model shifts to pay-per-request/provisioned-throughput, and vendor lock-in on the specific API surface.
+    Use a fully managed store instead of operating the cluster yourself. DynamoDB the *product* is **not** leaderless like this exercise: each partition has a leader that serializes writes. You still get partitioning, replication, and tunable consistency without operating gossip, anti-entropy, or hinted handoff yourself. Trade-off: less control over placement/tuning, cost model shifts to pay-per-request/provisioned-throughput, vendor lock-in, and you cannot assume Dynamo-paper conflict siblings.
 
 ---
 

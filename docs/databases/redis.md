@@ -83,8 +83,8 @@ Use case: Unique collections (followers, tags, members)
 ```
 ZADD leaderboard 100 "alice" 90 "bob" 110 "charlie"
 ZRANGE leaderboard 0 -1 WITHSCORES
-  → [alice: 100, bob: 90, charlie: 110]
-ZREVRANGE leaderboard 0 10  → top 10 by score
+  → [bob: 90, alice: 100, charlie: 110]   # ascending by score
+ZREVRANGE leaderboard 0 10  → top 10 by score (charlie, alice, bob)
 
 Use case: Leaderboards, rate limiting (sliding window), time-series
 ```
@@ -215,30 +215,30 @@ Nodes: 6 (usually 3 masters + 3 replicas)
 Sharding: NOT consistent hashing — Redis Cluster explicitly does not
           use it. Instead, the entire key space is divided into
           16,384 fixed hash slots, and each slot is assigned to a
-          master node. A key's slot is CRC16(key) mod 16384 — a
-          direct modulo, not a hash ring.
+          master node. A key's slot is CRC16(key) % 16384 — a
+          direct modulo, not a hash ring. The idea is "move a
+          slice of slots, not everything," not a hash ring.
 
 Key: "user:1"
 CRC16("user:1") mod 16384 → slot 5461
 Slot 5461 → Master-1 (primary)
-            Replica-1-1, Replica-1-2 (backups)
+            Replica-1 (one replica per master in a 6-node cluster)
 ```
 
 Why this matters beyond terminology: consistent hashing's whole point is that adding/removing a node only remaps `~1/N` of keys. Redis Cluster gets a similar practical outcome differently — resharding means explicitly *migrating whole slots* between masters (an administrative operation, `CLUSTER SETSLOT` + key migration), not an automatic hash-ring rebalance. The fixed 16,384-slot space is what makes that migration a bounded, plannable operation instead of an unpredictable reshuffle.
 
+Failover **is** automatic: Cluster promotes a replica when its master is marked failed. Replication is still **async**, so a failover can drop writes the client already got an ACK for.
+
 ```mermaid
 flowchart TB
     subgraph M1G["Shard 1 — slots 0-5460"]
-        Ma1[("Master-1")] -->|"async replication"| Ra1[("Replica-1-1")]
-        Ma1 -->|"async replication"| Ra2[("Replica-1-2")]
+        Ma1[("Master-1")] -->|"async replication"| Ra1[("Replica-1")]
     end
     subgraph M2G["Shard 2 — slots 5461-10922"]
-        Ma2[("Master-2")] -->|"async replication"| Rb1[("Replica-2-1")]
-        Ma2 -->|"async replication"| Rb2[("Replica-2-2")]
+        Ma2[("Master-2")] -->|"async replication"| Rb1[("Replica-2")]
     end
     subgraph M3G["Shard 3 — slots 10923-16383"]
-        Ma3[("Master-3")] -->|"async replication"| Rc1[("Replica-3-1")]
-        Ma3 -->|"async replication"| Rc2[("Replica-3-2")]
+        Ma3[("Master-3")] -->|"async replication"| Rc1[("Replica-3")]
     end
     Client["Client"] -->|"key: user:1<br/>hash → slot 5461"| Ma1
     style Ma1 fill:#1b5e20,color:#fff
@@ -246,9 +246,9 @@ flowchart TB
     style Ma3 fill:#1b5e20,color:#fff
 ```
 
-Each master owns a contiguous slice of the 16,384 hash slots and replicates asynchronously to its own replicas; a client hashes the key to find the owning slot, then routes directly to that shard's master.
+Each master owns a contiguous slice of the 16,384 hash slots and replicates asynchronously to its own replica; a client hashes the key to find the owning slot, then routes directly to that shard's master.
 
-**Cost**: Complexity. Operations becomes harder (no transparent failover, multi-key transactions limited).
+**Cost**: Complexity. Multi-key transactions are limited to keys in the same slot. Failover is automatic replica promotion, not a human runbook — but async replication means acknowledged writes can still vanish on failover.
 
 ---
 

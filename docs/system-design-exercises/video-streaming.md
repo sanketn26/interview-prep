@@ -56,7 +56,7 @@ These two facts are why this is a different exercise, not "pastebin but bigger."
 | Playback start latency | < 2s to first frame | Users abandon at ~3s of spinner |
 | Playback smoothness | Rebuffer ratio < 0.5% of watch time | Stalls are the #1 churn driver |
 | Availability (playback) | 99.95%+ | Playback is the revenue path; upload can tolerate more downtime |
-| Scale | Millions of views/day, tens of thousands of concurrent streams at peak | Egress-bound, not request-bound |
+| Scale | Hundreds of millions of views/day, millions of concurrent streams at peak | Egress-bound, not request-bound |
 | Durability | Source master never lost; renditions regenerable | Master is expensive/impossible to re-acquire; renditions are just compute |
 
 !!! tip "Interview Insight 🎯"
@@ -83,12 +83,14 @@ Storage growth (source + renditions):
 
 Views:
   200M views/day, average watch session 8 minutes
-  Peak concurrent streams: ~500K (evening peak, ~6x average)
+  Average concurrent streams (Little's law): 200M × 8 min / 1,440 min/day ≈ 1.11M
+  Peak concurrent streams: ~6.7M (evening peak, ~6× average)
 
 Egress bandwidth — THE central number:
   Average bitrate delivered per stream (mixed renditions): ~3 Mbps
-  500K concurrent streams x 3 Mbps ≈ 1.5 Tbps sustained peak egress
-  Daily egress: 200M views x 8 min x 3 Mbps / 8 ≈ 3.6 PB/day
+  6.7M concurrent streams × 3 Mbps ≈ 20 Tbps sustained peak egress
+  Daily egress: 200M views × 8 min × 60 s/min × 3 Mbps / 8 ≈ 36 PB/day
+  (treating 8 min as 8 seconds understates this by 60×)
 ```
 
 !!! abstract "Mental Model"
@@ -209,7 +211,7 @@ Ship this for an internal beta with a few hundred uploaders. Then find the actua
 ???+ question "You onboard 10,000 uploaders and traffic grows. What breaks first?"
     - **Transcode queue backlog.** One worker (or even ten) transcoding whole files sequentially can't keep pace once uploads hit dozens per second — a 10-minute 1080p source can take several minutes of CPU time to transcode even to one rendition. The queue depth grows unbounded and "time to playable" balloons from minutes to hours.
     - **One resolution stalls slow connections.** Every viewer gets the same 720p stream regardless of their bandwidth. A viewer on a congested 3-bar LTE connection rebuffers constantly; there's no lower-bitrate fallback to drop to.
-    - **Origin bandwidth exhaustion.** Every playback request hits the single object storage bucket directly. At even a few thousand concurrent viewers, you're pushing gigabits/second out of one region's storage egress — this is the 1.5 Tbps number from capacity estimation waiting to happen, and V1 has no CDN to absorb it.
+    - **Origin bandwidth exhaustion.** Every playback request hits the single object storage bucket directly. At even a few thousand concurrent viewers, you're pushing gigabits/second out of one region's storage egress — this is the ~20 Tbps number from capacity estimation waiting to happen, and V1 has no CDN to absorb it.
     - Of these, transcode backlog is usually the first to page someone (uploads visibly stuck at "processing"), but origin bandwidth is the one that will eventually take the whole platform down if traffic grows before it's fixed.
 
 ---
@@ -239,7 +241,7 @@ graph TD
 
 - **Parallel per-resolution transcode jobs.** Splitting one video into N independent jobs (one per target resolution) means the queue drains in parallel instead of serially — a 10-minute backlog for one resolution doesn't block the other three.
 - **HLS/DASH manifest.** The source is split into short segments (2–10s each) per rendition. The player fetches the manifest once, starts on a conservative bitrate, measures actual throughput per segment, and switches renditions up or down between segments — this is what "adapts to live bandwidth" means concretely. It's a client-driven decision; the server just needs every rendition's segments available at the same segment boundaries.
-- **CDN for segment delivery.** Segments are immutable once written (like a paste, once created) — ideal for aggressive edge caching. This is what keeps origin egress from becoming the 1.5 Tbps bottleneck directly; the CDN absorbs the fan-out.
+- **CDN for segment delivery.** Segments are immutable once written (like a paste, once created) — ideal for aggressive edge caching. This is what keeps origin egress from becoming the ~20 Tbps bottleneck directly; the CDN absorbs the fan-out.
 
 ---
 
@@ -356,8 +358,8 @@ Transcoding compute (dominant line item #1):
   to CDN egress below)
 
 CDN egress (dominant line item #2):
-  3.6 PB/day delivered, blended CDN egress rate ~$0.02/GB at this volume: ~$72,000/day
-  ≈ ~$2.1M/month — this dwarfs every other cost on the platform, by far
+  36 PB/day delivered, blended CDN egress rate ~$0.02/GB at this volume: ~$720,000/day
+  ≈ ~$21.6M/month — this dwarfs every other cost on the platform, by far
 
 Storage (secondary):
   274 PB/year of masters + renditions, tiered (hot for recent, cold/Glacier-class for old):
@@ -397,7 +399,7 @@ Levers:
 ## 18. Staff Engineer Extensions
 
 === "100x traffic"
-    50M concurrent streams, ~150 Tbps egress. No single CDN contract or origin footprint absorbs this — you need committed capacity across multiple CDN providers negotiated well ahead of the traffic, aggressive predictive pre-warming for anticipated hot content, and P2P-assisted delivery for the very top of the popularity curve to shave real Tbps off the CDN bill. Transcode compute also scales with upload volume, not view volume, so it grows independently — don't assume "100x traffic" means "100x transcode cost" if uploads grow slower than views.
+    ~670M concurrent streams (100× the ~6.7M peak), ~2 Pbps egress. No single CDN contract or origin footprint absorbs this — you need committed capacity across multiple CDN providers negotiated well ahead of the traffic, aggressive predictive pre-warming for anticipated hot content, and P2P-assisted delivery for the very top of the popularity curve to shave real Tbps off the CDN bill. Transcode compute also scales with upload volume, not view volume, so it grows independently — don't assume "100x traffic" means "100x transcode cost" if uploads grow slower than views.
 
 === "Multi-region"
     Uploads should land in a region near the uploader (lower upload latency, avoids one region absorbing all ingest bandwidth); masters replicate asynchronously to a durability region. Playback should always prefer the nearest CDN PoP regardless of where the master lives — that's the entire point of the CDN layer. The one place region matters for correctness, not just latency, is licensing (next).

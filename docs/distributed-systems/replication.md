@@ -71,7 +71,7 @@ Multiple nodes (often one per datacenter) each accept writes and replicate to ea
 
 No node is special. Clients (or a coordinator) write to `W` of `N` replicas and read from `R` of `N` replicas directly, relying on `R + W > N` overlap (see [Consistency Models — Quorums](consistency-models.md#quorums-r-w-n)) to surface the latest write. Replicas gossip and repair themselves (read repair, anti-entropy, hinted handoff) rather than relying on a single replication stream.
 
-- **Used by:** Amazon DynamoDB, Apache Cassandra, Riak.
+- **Used by:** original Amazon **Dynamo** (the paper), Apache Cassandra, Riak. **DynamoDB the service is not leaderless** — each partition has a leader replica that takes writes, then replicates to followers in other AZs. Do not conflate Dynamo with DynamoDB in an interview.
 - **Failure mode:** concurrent writes to the same key from different clients — resolved via LWW, version vectors, or CRDTs.
 
 ---

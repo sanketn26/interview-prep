@@ -107,7 +107,7 @@ The numbers below are the ones interviewers expect memorized to an order of magn
 | Main memory (RAM) reference | ~100 ns | 100× |
 | Compress 1 KB with Zippy | ~3 µs | 3,000× |
 | Send 1 KB over 1 Gbps network | ~10 µs | 10,000× |
-| Read 1 MB sequentially from RAM | ~10 µs | 10,000× |
+| Read 1 MB sequentially from RAM | ~100–250 µs | ≈100,000–250,000× |
 | SSD random read | ~100 µs–150 µs | ~100,000× |
 | Read 1 MB sequentially from SSD | ~1 ms | ~1,000,000× |
 | Round trip within same datacenter | ~0.5 ms | ~500,000× |
@@ -116,7 +116,7 @@ The numbers below are the ones interviewers expect memorized to an order of magn
 | Round trip cross-region (e.g. US↔EU) | ~50–150 ms | ~100,000,000× |
 
 !!! note "Interview Insight 🎯"
-    The single most useful fact on this table: **SSD random read (~100 µs) is roughly 1,000× slower than RAM, and a same-datacenter round trip (~0.5 ms) is roughly 5× slower than that.** That ordering — RAM < SSD < same-DC network < disk seek < cross-region — is what tells you whether to add a cache, a replica, or a CDN.
+    The single most useful fact on this table: **SSD random read (~100 µs) is roughly 1,000× slower than a RAM reference (~100 ns), and a same-datacenter round trip (~0.5 ms) is roughly 5× slower than that SSD read.** Interviewers usually want the ratio **RAM << SSD << same-DC RTT**. Jeff Dean's classic sequential 1 MB from RAM is ~250 µs; modern DRAM can be faster (~100–250 µs). Don't confuse that bulk sequential number with a single RAM reference.
 
 ### Little's Law: L = λW
 
@@ -237,11 +237,12 @@ Checkout flow: API gateway → auth service → inventory service → payment se
 
 ```
 Each service individually: 99.95% available (SLA on the dashboard, looks great)
+  → ~4.38 h/year downtime each  (8760 × 0.0005)
 
 Series availability:
 0.9995^5 ≈ 0.9975 = 99.75%
 
-Downtime budget spent: 8.76h/year × 5 ≈ ~22 hours/year of checkout failures,
+Downtime = 8760 × (1 − 0.9995^5) ≈ 22 hours/year of checkout failures,
 even though every single dashboard says "99.95%, green."
 ```
 

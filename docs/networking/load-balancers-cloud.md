@@ -101,15 +101,17 @@ Old (2009). Supports L4 and basic L7. Deprecated in favor of ALB/NLB.
 - HTTP APIs (use ALB instead, cheaper and simpler)
 - Request-based routing (cannot read HTTP headers)
 
-**Example: Databases behind NLB**
-```
-NLB (L4 routing)
-├─ Backend 1: postgres-1:5432 (primary)
-├─ Backend 2: postgres-2:5432 (replica)
-└─ Backend 3: postgres-3:5432 (replica)
+**Example: Databases behind NLB — do not hash primary+replicas together**
 
-Client: TCP connection to NLB:5432
-NLB: Hash(client_ip) % 3 → routes to one backend consistently
+Hashing a writer and its replicas behind one NLB sends **writes to a replica**. Postgres replicas reject or silently diverge on writes.
+
+```
+Wrong: one NLB pool {primary, replica, replica} — hash may land writes on a replica
+
+Right:
+  Writer endpoint (NLB or DNS) → primary only
+  Reader endpoint              → replicas (and maybe primary, if you want)
+  Or a role-aware proxy (PgBouncer / ProxySQL / RDS Proxy / Cloud SQL Auth Proxy)
 ```
 
 ### AWS Application Load Balancer (ALB)
@@ -335,24 +337,15 @@ If you have 1 TB/day = $6/day = $180/month extra.
 
 ### Scenario: 100k RPS, 1KB average request
 
-**AWS ALB:**
-- LCU: ~$0.0225/hour × 730 hours = $16.4/month
-- Data processed: 100k RPS × 1KB × 86400s/day × 30 days = 260 GB/day
-  = $0.006/GB × 260 GB/month = $1.56/month
-- **Total: ~$18/month**
+Math first: 100k RPS × 1 KB × 86,400 × 30 ≈ **259 TB/month** of processed bytes, not 260 GB. ALB is billed on **LCUs** (the max of new connections, active connections, processed bytes, rule evaluations) plus a small hourly ALB charge — not "$0.0225 per LCU-hour" as the only line.
 
-**AWS NLB:**
-- LCU: ~$0.006/hour × 730 hours = $4.4/month
-- Data: $0.006/GB × 260 GB/month = $1.56/month
-- **Total: ~$6/month**
+**AWS ALB (order of magnitude):** processed bytes alone are hundreds of GB/hour → **hundreds of LCUs**, so **thousands of $/month**, not ~$18. Quote current LCU prices from AWS; do not treat the hourly ALB fee as the total.
 
-**GCP Cloud LB (external):**
-- Fixed: $0.025/hour × 730 = $18.3/month
-- Requests: 100k RPS × 86400s × 30 days = 2.592B requests
-  = $0.02/M × 2592 = $51.8/month
-- **Total: ~$70/month**
+**AWS NLB:** also LCU-based (bytes + connections + flows). Same traffic is still **thousands $/month**, usually cheaper than ALB at this volume but not "six dollars."
 
-**Conclusion:** For this scenario, AWS NLB is cheapest (if throughput is the need). GCP is expensive for request-heavy workloads.
+**GCP HTTP(S) LB:** request-count + data processing; at 2.6B requests/month this is also **thousands**, not $70.
+
+Do not use fake ~$18 totals in an interview. The real point: at 100k RPS the LB **data/LCU** line dominates, and L7 costs more than L4 for the same bytes.
 
 ---
 
@@ -382,7 +375,7 @@ If you have 1 TB/day = $6/day = $180/month extra.
     2. **L7 LB (ALB)** = can read HTTP headers, route by path/hostname, slower but sufficient for most APIs
     3. **NLB for:** Gaming, databases, UDP, extreme throughput (>100k RPS where latency is critical)
     4. **ALB for:** REST APIs, microservices, websites, request-based routing
-    5. **AWS ALB cheaper per request than GCP Cloud LB** for typical workloads
+    5. **At 100k RPS, LCU/data charges dominate** — thousands $/month, not a ~$18 ALB hobby bill
     6. **Cross-zone load balancing costs** (data transfer between AZs)
     7. **Sticky sessions break when backends die** — use session store instead
     8. **Global load balancing:** GCP built-in, AWS requires Route53 + regional LBs

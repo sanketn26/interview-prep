@@ -53,7 +53,7 @@ Every other exercise on this site reduces to caching, fan-out, or a shared count
 | Location staleness shown to rider | < 5s old on the live map | A driver "on the map" 30s stale looks broken, not live |
 | Availability | 99.95% for request/match path | A down matching service is a down business, not a degraded feature |
 | Matching correctness | Exactly one active assignment per driver at any instant | Double-booking a driver is a worse failure than a slow match |
-| Scale | 100K concurrent online drivers per major city, 25K matches/sec citywide at peak surge | Drives every downstream capacity number |
+| Scale | 100K concurrent online drivers per major city, 3K matches/s citywide at peak surge | Drives every downstream capacity number |
 
 !!! tip "Interview Insight 🎯"
     Notice two *different* latency budgets: matching latency (rider-facing, "give me an answer") and location staleness (map-facing, "keep the picture live"). Conflating them leads candidates to over-engineer the matching path for freshness it doesn't need, or under-engineer the tracking path assuming match-path SLAs are enough.
@@ -75,8 +75,8 @@ Geospatial index size:
 
 Matching:
   Normal: ~500 ride requests/sec citywide
-  Rush-hour surge (concert letting out, 30K people in 10 minutes): burst to 3,000 requests/sec
-    in one ~1km² zone → we called this "25K matches/sec at peak" citywide across zones/cities combined
+  Rush-hour surge (concert letting out): burst to ~3,000 requests/sec citywide
+    (this is the NFR peak — 25K/s is location *ingest* for this city, not matches)
   Each match: 1 nearby-driver query + 1 conditional assignment write
 
 Live-tracking fan-out:
@@ -136,13 +136,17 @@ The naive option is a relational table: `drivers(id, lat, lng, updated_at)` with
 Pick **geohashing** for this design (over quadtree/S2), and say why: a geohash is a single string computed directly from `(lat, lng)` — no tree structure to maintain, so a driver's location update is an O(1) upsert keyed by geohash prefix, and "nearby drivers" becomes a set lookup on the current cell plus its 8 neighbors, not a tree traversal. The trade-off you're accepting: geohash cells are **not uniform area** (they distort near the poles and are rectangular, not circular, so a naive single-cell query can miss a nearby driver just across a cell boundary — hence always querying the 3x3 neighbor grid, not just the exact cell) and cell edges don't align with actual "distance," so a driver 50m away in an adjacent cell and one 50m away in the same cell are indistinguishable by cell alone — you still rank candidates by real haversine distance after the cell lookup narrows the candidate set. Quadtrees adapt cell size to driver density (better in sparse suburbs) and S2 cells handle Earth's curvature more precisely (better at global scale spanning many latitudes) — either is defensible; geohash wins here because updates are O(1) with no rebalancing, which matters when the write rate (25K/s) dwarfs the query rate.
 
 ```
-Hot store (Redis, or an in-memory geo-indexed service):
+Hot store (Redis) — geohash SETs, not GEOADD. One model:
   geo:{city}:{geohash6}  → SET of driver_ids currently in that ~1.2km x 0.6km cell
   driver:{driver_id}     → HASH {lat, lng, geohash6, status, heading, updated_at}
 
-Redis GEO commands map directly onto this:
-  GEOADD  drivers:{city} lng lat driver_id
-  GEOSEARCH drivers:{city} FROMLONLAT lng lat BYRADIUS 3 km ASC COUNT 20
+Location write:
+  SADD geo:{city}:{new_hash} driver_id
+  SREM geo:{city}:{old_hash} driver_id   # if the cell changed
+  HSET driver:{id} lat lng geohash6 ...
+
+Nearby:
+  SUNION of the rider's cell + 8 neighbors, then rank by haversine on HASH coords
 ```
 
 ```sql
@@ -235,19 +239,20 @@ Move driver locations out of Postgres entirely into an in-memory, geo-indexed st
 ```mermaid
 graph LR
     DriverApp -->|POST location every 4s| API[API process]
-    API -->|GEOADD driver_id lng lat| Geo[(Redis GEO / geohash grid)]
+    API -->|SADD/SREM geohash SET| Geo[(Redis geohash grid)]
     RiderApp -->|POST /rides| API
-    API -->|GEOSEARCH 3km radius| Geo
+    API -->|SUNION cell+8 neighbors| Geo
     API -->|rank + assign| RiderApp
     API -.->|async, batched| PG[(Postgres: trip records only)]
 ```
 
 ```python
 def find_nearby_drivers(pickup_lat, pickup_lng, radius_km=3):
-    return redis.geosearch(
-        "drivers:sf", longitude=pickup_lng, latitude=pickup_lat,
-        radius=radius_km, unit="km", sort="ASC", count=20
-    )  # backed by a geohash-sorted set — neighbor cells checked internally
+    cells = geohash_and_neighbors(pickup_lat, pickup_lng)  # 3×3 at geohash6
+    ids = redis.sunion(*[f"geo:sf:{c}" for c in cells])
+    drivers = [redis.hgetall(f"driver:{i}") for i in ids]
+    ranked = sorted(drivers, key=lambda d: haversine(pickup_lat, pickup_lng, d))
+    return ranked[:20]
 ```
 
 Location writes now hit an in-memory structure sized for exactly this (~4 MB of hot state per city, see capacity estimate) instead of a durable relational table. Postgres only ever sees trip records — a few writes per trip, not per ping.

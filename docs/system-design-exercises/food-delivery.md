@@ -57,7 +57,7 @@ The genuinely new problem: courier matching from ride-hailing.md assumed a drive
 | Order state durability | Every transition persisted before the next external call fires | This is a saga across 3 parties + money — losing a transition mid-flight either loses the order or double-books/double-charges |
 | Availability | 99.95% for order placement and status updates | A down ordering path is a down business during dinner rush, same as ride-hailing's request path |
 | Payment correctness | Exactly-once charge, refund on any fulfillment failure | Reuses payment-processing.md's guarantee — non-negotiable here too |
-| Scale | 500K orders/day platform-wide, 40K orders/min at dinner-rush peak in aggregate across regions | Drives every downstream capacity number |
+| Scale | 500K orders/day platform-wide, ~4K orders/min at dinner-rush peak in aggregate across regions | Drives every downstream capacity number |
 
 !!! tip "Interview Insight 🎯"
     Ride-hailing has one hard problem (geospatial matching) and payment-processing has one hard problem (exactly-once money movement). This exercise's hard problem is neither individually — it's that **all three parties must independently confirm before the platform can commit**, and any one of them can back out after the others already have. Say this out loud: it's a distributed saga with a human at each node, not just a database problem.
@@ -71,8 +71,8 @@ Orders:
   500K orders/day platform-wide
   Dinner rush (6-8pm) captures ~35% of daily volume in a 2-hour window
   500K x 0.35 / 120 min ≈ 1,460 orders/min average during rush
-  Concentrated peak (Friday night, a metro's dinner rush): ~40K orders/min platform-wide
-    across ~30 metro regions ≈ 1,300 orders/min per metro at peak
+  Concentrated peak (Friday night): ~4,000 orders/min platform-wide (≈3× rush average)
+    across ~30 metro regions ≈ 130 orders/min per metro at peak
 
 Restaurants:
   ~50,000 active restaurants platform-wide

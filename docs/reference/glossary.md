@@ -24,6 +24,7 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 |------|------------|----------|
 | **BASE** | Basically Available, Soft state, Eventually consistent — the looser guarantee model typical of AP/NoSQL systems, contrasted with ACID. | [SQL vs NoSQL](../databases/sql-vs-nosql.md) |
 | **Backoff (exponential)** | Increasing the wait time between retries exponentially (`base * 2^attempt`) to avoid hammering a recovering dependency. | [Circuit Breakers](../reliability/circuit-breakers.md) |
+| **Bloom filter** | Bit array + k hashes: "possibly in the set" or "definitely not." False positives possible; false negatives impossible. No deletion. | [Advanced Hashing](../dsa/hashing-techniques.md) |
 | **Bulkhead** | Isolating resources (thread pools, connections) per dependency so one failing dependency can't exhaust resources shared with others. | [Circuit Breakers](../reliability/circuit-breakers.md) |
 
 ### C
@@ -42,7 +43,9 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 | **Consistent hashing** | A hashing scheme mapping both keys and nodes onto a ring so that adding/removing a node remaps only ~K/N keys instead of nearly all of them. | [Consistent Hashing](../databases/consistent-hashing.md) |
 | **Consumer group** | A set of Kafka consumers that split the partitions of a topic between them, each partition owned by exactly one consumer in the group at a time. | [Kafka Deep Dive](../messaging/kafka.md) |
 | **Consumer lag** | The gap between the latest offset in a partition and the offset a consumer has committed — indicates a consumer falling behind. | [Kafka Deep Dive](../messaging/kafka.md) |
-| **CQRS** | Command Query Responsibility Segregation — separating the write model (commands) from the read model (queries), often with different data stores optimized for each. | [Architecture Patterns](../architecture-patterns/index.md) |
+| **CQRS** | Command Query Responsibility Segregation — separating the write model (commands) from the read model (queries), often with different data stores optimized for each. | [Event Sourcing & CQRS](../architecture-patterns/event-sourcing-cqrs.md) |
+| **Count-Min Sketch** | d×w counters; increment one cell per row; estimate = min of those cells. Overestimates frequency, never underestimates non-negative adds. | [Probabilistic Sketches](../dsa/probabilistic-sketches.md) |
+| **Cuckoo filter** | Compact membership: fingerprints in cuckoo buckets. Supports delete. Insert can fail when full. Not the same as cuckoo hashing (which stores full keys). | [Probabilistic Sketches](../dsa/probabilistic-sketches.md) |
 
 ### D
 
@@ -72,6 +75,7 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 |------|------------|----------|
 | **Fixed window rate limiting** | Counts requests in fixed, non-overlapping time windows (e.g. per second). Simple but allows a 2× burst at window boundaries. | [Rate Limiting](../reliability/rate-limiting.md) |
 | **Fan-out** | One incoming request triggering multiple downstream calls (e.g. one API call becoming 8 RPCs). The parent's p99 is dominated by the slowest child. | [Calculators](calculators.md) |
+| **Fenwick tree (BIT)** | 1-based array where `i ± (i & -i)` walks power-of-two ranges; point add + prefix/range sum in O(log n). | [Skip Lists & Range Trees](../dsa/skip-lists-fenwick-segment-trees.md) |
 
 ### H
 
@@ -79,7 +83,9 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 |------|------------|----------|
 | **Half-open (circuit breaker state)** | After the open timer expires, the breaker allows a small number of probe requests through — success closes the breaker, failure reopens it. | [Circuit Breakers](../reliability/circuit-breakers.md) |
 | **Hash-based sharding** | `shard = hash(key) % N` — gives even distribution but requires scatter-gather for range queries and remaps most keys on resharding. | [Database Sharding](../databases/sharding.md) |
+| **Heap (priority queue)** | Complete binary tree in an array; peek min/max in O(1), insert/extract in O(log n). The interview default for "top k." | [Heaps](../dsa/heaps.md) |
 | **Hot key / hot shard / hot partition** | A single key, shard, or partition receiving disproportionate traffic — sharding and consistent hashing don't fix this; it needs replication or key-splitting. | [Sharding](../databases/sharding.md), [Consistent Hashing](../databases/consistent-hashing.md), [Kafka](../messaging/kafka.md) |
+| **HyperLogLog** | Cardinality sketch: longest leading-zero run per bucket; ~12 KB for ~0.8% error at 16K buckets. Counts *how many distinct*, not which or how often. | [Advanced Hashing](../dsa/hashing-techniques.md) |
 
 ### I
 
@@ -87,6 +93,12 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 |------|------------|----------|
 | **Idempotency** | An operation that has the same effect whether performed once or many times — the foundation for safely retrying requests. | [Circuit Breakers](../reliability/circuit-breakers.md) |
 | **ISR (In-Sync Replicas)** | In Kafka, the set of replicas fully caught up with the partition leader; `acks=all` waits for all ISR replicas to acknowledge. | [Kafka Deep Dive](../messaging/kafka.md) |
+
+### K
+
+| Term | Definition | See also |
+|------|------------|----------|
+| **KMP** | Knuth–Morris–Pratt substring search: preprocess the pattern's LPS (failure) table so the text pointer never moves backward. O(n+m). | [String Matching](../dsa/string-matching.md) |
 
 ### L
 
@@ -98,6 +110,12 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 | **Little's Law** | `L = λW` — the average number of requests in-flight equals arrival rate times average time in the system. Turns latency into required concurrency. | [Calculators](calculators.md) |
 | **Load balancer** | A component that distributes incoming requests across multiple backend servers, at L4 (connection/transport) or L7 (HTTP-aware). | [Load Balancing](../networking/load-balancing.md) |
 | **Load shedding** | Deliberately rejecting or degrading low-priority work when a system is overloaded, to protect its ability to serve the rest. | [Circuit Breakers](../reliability/circuit-breakers.md) |
+
+### M
+
+| Term | Definition | See also |
+|------|------------|----------|
+| **MinHash** | k minimum hashes of a set's elements; matching fraction estimates Jaccard similarity without materializing the intersection. | [Probabilistic Sketches](../dsa/probabilistic-sketches.md) |
 
 ### P
 
@@ -132,7 +150,10 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 |------|------------|----------|
 | **Saga** | A sequence of local transactions across services, each with a compensating action, used instead of a distributed transaction (2PC) to keep data consistent across shards/services. | [Sagas](../architecture-patterns/sagas.md) |
 | **Sequential consistency** | All operations appear in some single total order that respects each process's own program order, though not necessarily real-time order. | [Consistency Models](../distributed-systems/consistency-models.md) |
+| **Segment tree** | Binary tree over an array; each node holds a range aggregate (sum/min/max). Point or range updates and queries in O(log n); lazy propagation for range add. | [Skip Lists & Range Trees](../dsa/skip-lists-fenwick-segment-trees.md) |
 | **Sharding** | Horizontal partitioning of data across multiple independent database instances, keyed by a shard key, to scale writes beyond a single node. | [Database Sharding](../databases/sharding.md) |
+| **Skip list** | Multi-level linked list with random node heights; expected O(log n) search/insert without rotations. Redis ZSET uses one. | [Skip Lists & Range Trees](../dsa/skip-lists-fenwick-segment-trees.md) |
+| **Sliding window (DSA)** | Expand/shrink a contiguous subarray or substring instead of re-scanning; O(n) for "longest/shortest window satisfying X." | [Sliding Window](../dsa/sliding-window.md) |
 | **Sliding window (rate limiting)** | A rate-limiting approach that avoids fixed-window boundary bursts by weighting the current and previous windows (approximate) or tracking exact timestamps (log). | [Rate Limiting](../reliability/rate-limiting.md) |
 | **SLA / SLO / SLI** | Service Level Agreement (the contract/consequence), Objective (the internal target, e.g. 99.9% availability), Indicator (the measured metric that tracks the objective). | [Calculators](calculators.md) |
 | **SOAP** | A protocol-level API style using strict XML envelopes and a machine-readable contract (WSDL) — heavier than REST, but built-in support for transactional messaging and formal security tokens. Rarely chosen new; usually inherited from an enterprise partner. | [API Architectural Styles](../architecture-patterns/api-architectural-styles.md) |
@@ -144,11 +165,13 @@ One or two sentences each, matching how the concept pages use the term. Where a 
 
 | Term | Definition | See also |
 |------|------------|----------|
+| **t-digest** | Mergeable centroid sketch that keeps extra resolution in the tails so p99/p999 stay accurate without storing every sample. | [Probabilistic Sketches](../dsa/probabilistic-sketches.md) |
 | **Tail latency** | The latency at high percentiles (p99, p999) rather than the median — usually dominated by queueing, GC pauses, and slow dependencies. | [Tail Latency](../performance/tail-latency.md) |
 | **TCC (Try-Confirm/Cancel)** | An application-level alternative to 2PC: a Try phase reserves resources tentatively (no DB locks held), Confirm makes it permanent if every participant's Try succeeded, Cancel releases reservations otherwise. | [Distributed Transactions](../architecture-patterns/distributed-transactions.md) |
 | **Term (Raft)** | A monotonically increasing logical clock in Raft; at most one leader exists per term. | [Consensus & Raft](../distributed-systems/raft.md) |
 | **Thundering herd** | Many clients/processes waking up or retrying at the same instant and overwhelming a shared resource — the general form of a cache stampede. | [Cache Stampede](../performance/cache-stampede.md) |
 | **Token bucket** | A rate-limiting algorithm where tokens refill at a fixed rate up to a capacity; each request consumes a token, allowing controlled bursts. | [Rate Limiting](../reliability/rate-limiting.md) |
+| **Trie** | Prefix tree: one node per character, shared prefixes share a path. Autocomplete and prefix search in O(length of the query). | [Tries](../dsa/tries.md) |
 | **Two-phase commit (2PC)** | An atomic-commit protocol: a coordinator collects a prepare-phase vote from every participant, then tells all to commit only if every vote was yes — blocks all participants indefinitely if the coordinator crashes between phases. | [Distributed Transactions](../architecture-patterns/distributed-transactions.md) |
 
 ### V

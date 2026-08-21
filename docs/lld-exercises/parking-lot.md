@@ -95,7 +95,7 @@ classDiagram
 
     class PricingStrategy {
         <<interface>>
-        +calculate(duration_hours)* float
+        +calculate(duration_hours, size)* float
     }
     class HourlyPricing
     class FlatRatePricing
@@ -227,6 +227,7 @@ class ParkingLot:
         self.levels = levels
         self.pricing = pricing              # injected — see Dependency Inversion
         self._active_tickets: dict[str, Ticket] = {}
+        self._by_plate: dict[str, Ticket] = {}
         self._lock = Lock()
 
     def park_vehicle(self, vehicle: Vehicle) -> Ticket | None:
@@ -235,7 +236,11 @@ class ParkingLot:
             if spot:
                 ticket = Ticket(spot=spot, vehicle=vehicle, entry_time=datetime.now())
                 with self._lock:
+                    if vehicle.license_plate in self._by_plate:
+                        spot.vacate()
+                        raise ValueError(f"{vehicle.license_plate} already has an active ticket")
                     self._active_tickets[ticket.ticket_id] = ticket
+                    self._by_plate[vehicle.license_plate] = ticket
                 return ticket
         return None                          # lot full for this vehicle's size class
 
@@ -244,6 +249,7 @@ class ParkingLot:
             if self._active_tickets.get(ticket.ticket_id) is not ticket:
                 raise ValueError(f"ticket {ticket.ticket_id!r} is not active — already exited or unknown")
             del self._active_tickets[ticket.ticket_id]
+            self._by_plate.pop(ticket.vehicle.license_plate, None)
 
         duration_hours = (datetime.now() - ticket.entry_time).total_seconds() / 3600
         fee = self.pricing.calculate(duration_hours, ticket.spot.size)

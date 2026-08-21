@@ -1,6 +1,6 @@
 ---
 title: Rate Limiting
-description: Token bucket, sliding window, fixed window — with interactive simulation and distributed rate limiting design.
+description: Token bucket, leaky bucket, sliding window, fixed window — with interactive simulation and distributed rate limiting design.
 ---
 
 # Rate Limiting
@@ -136,7 +136,23 @@ else:
 
 **Best for:** Smoothing bursty traffic while allowing controlled bursts.
 
-### 2. Fixed Window Counter
+### 2. Leaky Bucket
+
+A leaky bucket **drains at a constant rate**. Requests enter the bucket; they leave at the drain rate. Burst capacity = **bucket depth**. If the bucket is full, new requests are dropped (or queued until they would overflow).
+
+```
+Bucket depth: 20
+Drain rate: 10 req/s (constant)
+
+Burst of 50:
+  20 fill the bucket
+  30 rejected
+  Output never exceeds 10/s — the leak is the rate
+```
+
+**Token bucket vs leaky bucket:** token bucket *allows* a burst up to capacity, then limits to the refill rate. Leaky bucket *smooths* to a constant output; the burst is only how much you can queue before drop.
+
+### 3. Fixed Window Counter
 
 ```
 Window: 1 second
@@ -163,7 +179,7 @@ def allow_fixed_window(user_id: str, limit: int = 10) -> bool:
     return count <= limit
 ```
 
-### 3. Sliding Window Log
+### 4. Sliding Window Log
 
 Track exact timestamps of recent requests:
 
@@ -174,22 +190,22 @@ def allow_sliding_window(user_id: str, limit: int = 10, window_sec: int = 1) -> 
     key = f"rate_log:{user_id}"
 
     pipe = r.pipeline()
-    # Remove requests older than window
     pipe.zremrangebyscore(key, 0, now - window_sec)
-    # Count remaining requests in window
     pipe.zcard(key)
-    # Add current request
+    count = pipe.execute()[1]
+    if count >= limit:
+        return False  # rejected traffic is not ZADD'd
+    pipe = r.pipeline()
     pipe.zadd(key, {str(now): now})
     pipe.expire(key, window_sec + 1)
-    results = pipe.execute()
-
-    return results[1] < limit  # count before adding current
+    pipe.execute()
+    return True
 ```
 
 **Pros:** Accurate, no boundary spike issue
 **Cons:** Memory-intensive (stores every request timestamp)
 
-### 4. Sliding Window Counter (Approximate)
+### 5. Sliding Window Counter (Approximate)
 
 Combines accuracy with efficiency using two fixed windows:
 
@@ -234,7 +250,7 @@ def allow_distributed(user_id: str, limit: int = 100) -> bool:
     return count <= limit
 ```
 
-**Why Lua?** The INCR + EXPIRE must be atomic — otherwise two requests could both see count=0, both set EXPIRE, and both pass.
+**Why Lua?** `INCR` is already atomic — two requests cannot both "see count=0." The real race is **INCR without EXPIRE**: if the process dies after `INCR` and before `EXPIRE`, the key never expires and the counter is stuck forever. The Lua script makes INCR+EXPIRE one server-side step.
 
 ### Architecture: Rate Limiter in API Gateway
 
@@ -304,6 +320,7 @@ Headers to include in 429 response:
 | Algorithm | Burst handling | Memory | Accuracy | Complexity |
 |-----------|---------------|--------|----------|------------|
 | Token Bucket | ✅ Allows burst | Low | High | Low |
+| Leaky Bucket | Burst = depth; drain is constant | Low | High | Low |
 | Fixed Window | ❌ Boundary spike | Very Low | Medium | Very Low |
 | Sliding Window Log | N/A | High | Exact | Medium |
 | Sliding Window Counter | Approximate | Low | High | Low |

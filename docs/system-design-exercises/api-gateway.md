@@ -247,12 +247,12 @@ sequenceDiagram
     participant User as user-service
 
     Client->>GW: GET /bff/order-summary/42
-    par parallel fan-out
-        GW->>Order: GET /orders/42
+    GW->>Order: GET /orders/42
+    Order-->>GW: order details (includes user_id)
+    par parallel fan-out (only after order.user_id is known)
         GW->>Inv: GET /inventory?order=42
         GW->>User: GET /users/{order.user_id}
     end
-    Order-->>GW: order details
     Inv-->>GW: stock status
     User-->>GW: user profile
     GW->>GW: merge into one response

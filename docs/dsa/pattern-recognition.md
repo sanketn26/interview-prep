@@ -77,14 +77,22 @@ The "confirm" step matters — matching a keyword isn't enough. "Longest" appear
 | "overlapping subproblems", "optimal substructure", "longest increasing subsequence" (non-contiguous) | Dynamic Programming | [dynamic-programming.md](dynamic-programming.md) |
 | "n ≤ 20" | Backtracking / bitmask DP (exponential is acceptable) | [foundations.md](foundations.md) |
 | "n ≤ 10^5" and answer needs O(n log n) | Sorting, heaps, binary search, divide & conquer | [foundations.md](foundations.md) |
-| "n ≤ 10^7-10^8" and answer needs O(n) | Sliding window, two pointers, hashing, single pass | — |
-| "top K", "Kth largest/smallest" | Heap (priority queue) | — |
+| "n ≤ 10^7-10^8" and answer needs O(n) | Sliding window, two pointers, hashing, single pass | [sliding-window.md](sliding-window.md) |
+| "top K", "Kth largest/smallest" | Heap (priority queue) | [heaps.md](heaps.md) |
 | "topological order", "course prerequisites", "build order" | Topological Sort (DFS or Kahn's BFS) | [bfs-dfs.md](bfs-dfs.md) |
-| "group/merge connected items", "detect cycle in undirected graph" | Union-Find | — |
-| "weighted shortest path" | Dijkstra (BFS + priority queue) | [bfs-dfs.md](bfs-dfs.md) |
-| "generate all subsets/permutations", "explore then undo a choice" | Backtracking | [foundations.md](foundations.md) |
+| "group/merge connected items", "detect cycle in undirected graph" | Union-Find | [union-find.md](union-find.md) |
+| "weighted shortest path" | Dijkstra (best-first with a min-heap) | [graph-algorithms.md](graph-algorithms.md) |
+| "generate all subsets/permutations", "explore then undo a choice" | Backtracking | [backtracking.md](backtracking.md) |
 | "matrix/grid", "flood fill", "islands" | BFS or DFS on grid | [bfs-dfs.md](bfs-dfs.md) |
 | Stream of data, can't look back | Sliding window or running aggregate (O(1) space per step) | [sliding-window.md](sliding-window.md) |
+| "might this key exist" before an expensive lookup | Bloom filter | [hashing-techniques.md](hashing-techniques.md) |
+| "how many times did this key appear" in a huge stream | Count-Min Sketch | [probabilistic-sketches.md](probabilistic-sketches.md) |
+| p99 / percentile of a live stream | t-digest or HDRHistogram | [probabilistic-sketches.md](probabilistic-sketches.md) |
+| Jaccard / near-duplicate sets | MinHash | [probabilistic-sketches.md](probabilistic-sketches.md) |
+| compact membership **with delete** | Cuckoo filter (not cuckoo hashing) | [probabilistic-sketches.md](probabilistic-sketches.md) |
+| "range sum after point updates", n ≈ 10^5 | Fenwick tree | [skip-lists-fenwick-segment-trees.md](skip-lists-fenwick-segment-trees.md) |
+| "range min/max" or "range add then query" | Segment tree (lazy if range add) | [skip-lists-fenwick-segment-trees.md](skip-lists-fenwick-segment-trees.md) |
+| ordered map, no rotations, Redis ZSET-shaped | Skip list | [skip-lists-fenwick-segment-trees.md](skip-lists-fenwick-segment-trees.md) |
 
 ---
 

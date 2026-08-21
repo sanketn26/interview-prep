@@ -150,8 +150,9 @@ class EqualSplit(SplitStrategy):
         # silently under- or over-charging one arbitrary participant
         remainder = round(amount - base * n, 2)
         if remainder:
-            first = participants[0]
-            shares[first] = round(shares[first] + remainder, 2)
+            payer = kwargs.get("payer")
+            target = payer if payer in shares else participants[0]
+            shares[target] = round(shares[target] + remainder, 2)
         return shares
 
 
@@ -183,7 +184,9 @@ class Expense:
     expense_id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
     def shares(self) -> dict[User, float]:
-        return self.strategy.compute(self.amount, self.participants, **self.strategy_kwargs)
+        return self.strategy.compute(
+            self.amount, self.participants, payer=self.payer, **self.strategy_kwargs
+        )
 
 
 @dataclass
@@ -290,7 +293,7 @@ _tiebreak = itertools.count()  # breaks heap ties without comparing User objects
 
 | Case | Handling |
 |------|----------|
-| Equal split doesn't divide evenly (e.g. $10.00 / 3) | `EqualSplit` rounds each share to the cent, then the first participant absorbs the remainder — state this choice explicitly; "the payer eats the rounding" is an equally defensible alternative, just pick one and be consistent |
+| Equal split doesn't divide evenly (e.g. $10.00 / 3) | `EqualSplit` rounds each share to the cent, then the **payer** absorbs the remainder (`payer` passed through `Expense.shares()`). State this choice; first-participant is the common alternative — pick one and match the code |
 | `ExactSplit` amounts don't sum to the expense total | `compute()` raises `ValueError` before the ledger is touched — reject at validation time, never silently rescale |
 | `PercentSplit` percentages don't sum to 100% | Same: raise before touching the ledger, not after |
 | Expense split among a subset of group members, not the whole group | `Expense.participants` is independent of `Group.members` — participants just need to *be* group members, but the expense doesn't have to include all of them |

@@ -135,7 +135,8 @@ AWS                    ↔   GCP                       ↔   Azure
 IAM Roles              ↔   IAM Roles                  ↔   RBAC Roles
 IAM Policies           ↔   IAM Predefined Roles       ↔   Role Definitions
 EC2 Instance Profile   ↔   Service Account            ↔   Managed Identity
-Assume Role            ↔   Service Account Key        ↔   Managed Identity
+Assume Role            ↔   Workload Identity / SA impersonation ↔   Managed Identity
+                         (not a Service Account Key — keys are long-lived JSON files)
 STS (temporary tokens) ↔   OAuth2 tokens              ↔   JWT tokens
 ```
 

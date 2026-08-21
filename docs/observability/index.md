@@ -296,8 +296,8 @@ stats.sort_stats("cumulative")
 stats.print_stats(10)  # Top 10 functions
 
 # Output:
-#    cumtime = time spent in this function
-#    tottime = time spent + called functions
+#    tottime = exclusive (this function, not callees)
+#    cumtime = inclusive (this function + called functions)
 #
 # expensive_function:   1.05 sec (includes sleep)
 # ** operator:          0.10 sec (squaring numbers)
@@ -332,7 +332,7 @@ Answer: "Allocate profiler like tracemalloc (Python) or pprof (Go). Look for wha
 
 The most common failure is alerting on causes rather than symptoms. "CPU > 80%" pages you at 3 a.m. for something that may be entirely fine. Nobody is harmed by high CPU; users are harmed by slow or failed requests.
 
-Alert on the **four golden signals**, which are all user-visible:
+Alert on the **four golden signals** (latency, traffic, errors, **saturation**):
 
 | Signal | Question | Typical alert | SLI Example |
 |---|---|---|---|
@@ -425,7 +425,7 @@ Time: 0 ────────────────────────
 === "Staff"
     **Q: You're designing the observability system for a 50-microservice company. What do you build first?**
     
-    "I'd start with correlation IDs everywhere (non-negotiable) and a minimum instrumentation bar: every service emits request latency, error rate, and request volume. Those four golden signals feed one dashboard that on-call watches. Then I'd implement distributed tracing: the company-wide span propagation so a trace can follow a request across all 50 services. Tail-based sampling keeps the slow/failed traces that matter. Finally, I'd build the runbook: how do you go from 'p99 is high' to 'it's the checkout→payment→inventory critical path' in under 2 minutes? That's a trace dashboard plus logs with the request ID pre-filtered. Don't build everything at once — start with the 80/20: one dashboard, one trace view, and the ability to grep logs by request ID."
+    "I'd start with correlation IDs everywhere (non-negotiable) and a minimum instrumentation bar: every service emits the **four golden signals** — latency, errors, traffic (volume), and **saturation** (queues, pools, disk, not just CPU). Those feed one dashboard that on-call watches. Then I'd implement distributed tracing: the company-wide span propagation so a trace can follow a request across all 50 services. Tail-based sampling keeps the slow/failed traces that matter. Finally, I'd build the runbook: how do you go from 'p99 is high' to 'it's the checkout→payment→inventory critical path' in under 2 minutes? That's a trace dashboard plus logs with the request ID pre-filtered. Don't build everything at once — start with the 80/20: one dashboard, one trace view, and the ability to grep logs by request ID."
 
 ---
 

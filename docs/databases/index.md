@@ -136,12 +136,12 @@ The shard key choice is effectively permanent and determines all of the above. C
 
 | Page | Status |
 |------|--------|
-| [PostgreSQL Deep Dive](postgresql.md) | *Coming soon* |
-| [MongoDB Deep Dive](mongodb.md) | *Coming soon* |
-| [Cassandra Deep Dive](cassandra.md) | *Coming soon* |
-| [DynamoDB Deep Dive](dynamodb.md) | *Coming soon* |
-| [Redis Deep Dive](redis.md) | *Coming soon* |
-| [SQL Deep Dive](sql-deep-dive.md) | *Coming soon* |
+| [PostgreSQL Deep Dive](postgresql.md) | Draft / needs review |
+| [MongoDB Deep Dive](mongodb.md) | Draft / needs review |
+| [Cassandra Deep Dive](cassandra.md) | Draft / needs review |
+| [DynamoDB Deep Dive](dynamodb.md) | Draft / needs review |
+| [Redis Deep Dive](redis.md) | Draft / needs review |
+| [SQL Deep Dive](sql-deep-dive.md) | Draft / needs review |
 
 Start with [DDIA Concepts](ddia-concepts.md) — replication, partitioning, and transactions are universal. Then [indexing](indexing.md) — B-tree vs LSM explains most of what the database pages assert. Then [SQL vs NoSQL](sql-vs-nosql.md) for choosing a store. Database deep-dives explain the specific trade-offs of each system. [Sharding](sharding.md) and [consistent hashing](consistent-hashing.md) cover distributed patterns shared across systems.
 

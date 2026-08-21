@@ -35,7 +35,9 @@ Healthy                         Degraded (3 retries, no backoff)
 The database's problem was that it was overloaded. Your response quadrupled the load. **A retry is a decision to spend someone else's capacity** — and during an incident, that capacity is exactly what is scarce.
 
 !!! warning "The rule"
-    Never retry without three things: **a cap** on attempts, **exponential backoff** so attempts spread out, and **jitter** so clients do not synchronize. Missing any one recreates the storm.
+    Never retry without three things: **a cap** on attempts, **exponential backoff** so attempts spread out, and **full jitter** `U(0, exp)` as the default so clients do not synchronize. Missing any one recreates the storm.
+
+    **Attempts vs retries:** 3 retries = **4 attempts**. If every try is a full call, that is **4× load**, not 3×.
 
 ---
 
@@ -107,15 +109,17 @@ CLOSED ──── 5 failures ────→ OPEN ──── after 30s ─�
 **A bulkhead** isolates resources so image processing exhausting its 20 threads cannot starve checkout of the shared pool of 100. The name comes from ship compartments: one flooded section should not sink the vessel.
 
 !!! tip "The senior answer"
-    "We retry with exponential backoff and jitter, capped at 3 attempts, behind a circuit breaker so we stop retrying a dependency that is clearly down, with a timeout shorter than our caller's timeout." That one sentence covers what most candidates miss entirely.
+    "We retry with exponential backoff and **full jitter** `U(0, exp)`, capped at 3 retries (**4 attempts** = 4× load if every try is a full call), behind a circuit breaker so we stop retrying a dependency that is clearly down, with a **request** timeout shorter than our caller's (inner shorter). Idle timeouts are a different stack: the LB closes idle conns before the app." That one sentence covers what most candidates miss entirely.
 
 ---
 
-## Timeouts Must Decrease Down the Stack
+## Timeouts: Request Deadlines vs Idle
 
-An underrated detail: if your API has a 10 s timeout and calls a service with a 30 s timeout, the inner call keeps working on a request nobody is waiting for. You have burned a connection and a thread for 20 s of guaranteed waste.
+**Request deadlines:** if your API has a 10 s timeout and calls a service with a 30 s timeout, the inner call keeps working on a request nobody is waiting for. You have burned a connection and a thread for 20 s of guaranteed waste.
 
-**Each layer's timeout should be shorter than its caller's**, leaving room for the retries you plan to make. Timeouts that increase inward are how thread pools fill up during incidents.
+**Each layer's request timeout should be shorter than its caller's** (`client > LB > app > dependency` for remaining budget), leaving room for the retries you plan to make. Timeouts that increase inward are how thread pools fill up during incidents.
+
+**Idle timeouts are the opposite ordering at the connection layer:** the LB should close idle connections **before** the app, so the app never believes a conn the LB already dropped is still live. Do not use the request-deadline stack for idle, or the idle stack for `proxy_read_timeout`.
 
 ---
 
@@ -141,5 +145,5 @@ Working implementations live in [`examples/python/retry.py`](https://github.com/
 - **Backoff needs jitter**, or clients synchronize and spike together.
 - **Rate limiters protect you; circuit breakers protect your dependencies; bulkheads protect your other features.**
 - **Failing fast is a kindness** — it gives a struggling dependency room to recover.
-- **Timeouts must shrink as you go deeper**, or threads pile up on abandoned work.
+- **Request timeouts shrink as you go deeper** (`client > LB > app > dep`). **Idle:** LB closes first. Do not mix them.
 - **Under stress, do less.** Shed load deliberately rather than collapsing indiscriminately.

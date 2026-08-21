@@ -115,6 +115,8 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | DSA: Greedy Algorithms | Interactive | `dsa/greedy.md` — interval scheduling visualizer |
 | DSA: String Matching (KMP, Rabin-Karp) | Interactive | `dsa/string-matching.md` — KMP pointer-movement visualizer |
 | DSA: Advanced Hashing Techniques | Interactive | `dsa/hashing-techniques.md` — Bloom filter bit-array fill/query visualizer; also covers counting Bloom filters, cuckoo hashing, HyperLogLog |
+| DSA: Probabilistic Sketches | Interactive | `dsa/probabilistic-sketches.md` — Count-Min Sketch visualizer; cuckoo/quotient/XOR filters, t-digest, MinHash |
+| DSA: Skip Lists, Fenwick & Segment Trees | Interactive | `dsa/skip-lists-fenwick-segment-trees.md` — skip-list insert/search + Fenwick prefix-sum visualizers |
 | DSA: Advanced String Matching | Interactive | `dsa/advanced-string-matching.md` — Aho-Corasick trie + failure-link + multi-pattern scan visualizer; also covers Z-algorithm, suffix arrays, Boyer-Moore, Manacher's |
 | Multi-Region Architecture & Disaster Recovery | Complete | `distributed-systems/multi-region-dr.md` — RTO/RPO, the four DR tiers, hybrid cloud↔datacenter failover, failback |
 | Architecture Decision Records | Complete | `foundations/adrs.md` — format, when to write one, superseding vs. deleting |
@@ -159,6 +161,9 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Interval scheduling (greedy) | [Greedy Algorithms](dsa/greedy.md) | Interactive |
 | KMP pattern matching | [String Matching](dsa/string-matching.md) | Interactive |
 | Bloom filter bit-array fill/query | [Advanced Hashing Techniques](dsa/hashing-techniques.md) | Interactive |
+| Count-Min Sketch increment/query | [Probabilistic Sketches](dsa/probabilistic-sketches.md) | Interactive |
+| Skip list insert/search | [Skip Lists & Range Trees](dsa/skip-lists-fenwick-segment-trees.md) | Interactive |
+| Fenwick point-add / prefix sum | [Skip Lists & Range Trees](dsa/skip-lists-fenwick-segment-trees.md) | Interactive |
 | Aho-Corasick trie + failure links + scan | [Advanced String Matching](dsa/advanced-string-matching.md) | Interactive |
 
 ---
@@ -167,8 +172,9 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 
 Do **not** mass-generate these as stubs.
 
-- System-design exercises: the entire original planned list is now shipped, written to the sharper "evolves and clicks" structure piloted in `pastebin.md` (numbered bottleneck chain, predict-before-reveal `???` boxes, explicit "what stays the same" between versions). 21 exercises shipped to this bar: Pastebin, Instagram, YouTube/Netflix, Uber/Ride-Hailing, Google Drive/File Sync, Collaborative Editor, Distributed Message Queue, Maps/Navigation, Food Delivery, E-Commerce Platform, Ticket Booking, Hotel & Flight Booking, Online Auction, Search Engine, Recommendation System, Ad Serving, Metrics & Monitoring, Log Aggregation, Distributed Job Scheduler, Code Deployment/Release Orchestration, Video Calling — see `system-design-exercises/index.md`. Each was drafted by an independent agent against the two exemplar files and cross-links siblings instead of re-deriving shared mechanics (geo-indexing, sagas, CRDTs, consistent hashing, rate limiting, raft/leases); a manual quality pass across all 21 has not yet been done and would be worth doing before calling this bar-verified rather than agent-self-reported
-- Remaining ~11 LLD problems (Tic Tac Toe, Library Management, Splitwise, ATM, Vending Machine, Chess, Car Rental, Rate Limiter LLD, Logger, Notification System LLD, Pub/Sub, Task Scheduler) — see `lld-exercises/index.md` for the tiered list. These will be written to the same bar as Parking Lot / Elevator System / LRU Cache; not stubs.
+- System-design exercises: the entire original planned list is now shipped, written to the sharper "evolves and clicks" structure piloted in `pastebin.md` (numbered bottleneck chain, predict-before-reveal `???` boxes, explicit "what stays the same" between versions). 21 exercises shipped to this bar: Pastebin, Instagram, YouTube/Netflix, Uber/Ride-Hailing, Google Drive/File Sync, Collaborative Editor, Distributed Message Queue, Maps/Navigation, Food Delivery, E-Commerce Platform, Ticket Booking, Hotel & Flight Booking, Online Auction, Search Engine, Recommendation System, Ad Serving, Metrics & Monitoring, Log Aggregation, Distributed Job Scheduler, Code Deployment/Release Orchestration, Video Calling — see `system-design-exercises/index.md`. A 2026-08 content-accuracy pass fixed capacity math, CDN/PCI/outbox errors, and sibling NFR contradictions across those exercises (see [content review checklist](content-review.md)). A further prose/pedagogy pass (V1-first on every leftover dump) is still worthwhile.
+- LLD problems: **all 15 shipped** (`lld-exercises/` — Parking Lot through Task Scheduler, including Tic Tac Toe, Library, Splitwise, ATM, Vending Machine, Chess, Car Rental, Rate Limiter LLD, Logger, Notification System LLD, Pub/Sub). First-release LLD is complete.
+- SQL Deep Dive and vendor DB pages exist as **drafts** (`databases/sql-deep-dive.md`, `postgresql.md`, `mongodb.md`, `cassandra.md`, `dynamodb.md`, `redis.md`) — studyable, not first-release gold. The databases hub lists them as Draft / needs review, not missing files.
 - Security & Auth — `security/` pillar now has Authentication & Authorization, Zero Trust Architecture, Threat Modeling, OAuth2 & OIDC Deep Dive, and Session Management Deep Dive all shipped; no known gaps in first-release scope
 - Event Sourcing & CQRS — shipped (`architecture-patterns/event-sourcing-cqrs.md`); Event-Driven Architecture also now shipped (`architecture-patterns/event-driven-architecture.md`); Streams/Flink now shipped (`architecture-patterns/stream-processing.md`)
 - Distributed fundamentals — `distributed-systems/fundamentals.md` now covers Lamport/vector clocks, leader election, split-brain, distributed locks, leases, gossip protocols, Paxos vs Raft, and service discovery as first-class sections
@@ -176,7 +182,7 @@ Do **not** mass-generate these as stubs.
 - Cloud vendor catalog — shipped (`cloud/iam-managed-services.md`, vendor-mapped IAM/managed-DB/event-bus content); FinOps shipped (`cloud/finops.md`); AI-native serving shipped (`ai-native/model-serving.md` — first real content page). The rest of `ai-native/` (RAG, vector DBs, embeddings, agents, evals) is **deliberately out of scope for this site** — that content lives in a separate repo, see `ai-native/index.md`
 - Capstone project; interview-mode tabs (Learn/Practice/Hint/Interview/Solution/Staff) as a reusable UX pattern; Go example parity for retry/queue/thread-pool/producer-consumer/distributed-lock/WebSocket/gRPC/REST
 - Deeper distributed-systems topics — vector clocks, gossip protocols, Paxos vs Raft, distributed locks, leases, and service discovery all now shipped in `distributed-systems/fundamentals.md`; CRDTs now also have a dedicated page (`architecture-patterns/crdts.md`), cross-linked from `databases/ddia-concepts.md`
-- DSA visualizers (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp, Bloom filters, Aho-Corasick) — shipped, see `dsa/heaps.md`, `dsa/graph-algorithms.md`, `dsa/union-find.md`, `dsa/backtracking.md`, `dsa/sorting.md`, `dsa/tries.md`, `dsa/greedy.md`, `dsa/string-matching.md`, `dsa/hashing-techniques.md`, `dsa/advanced-string-matching.md`
+- DSA visualizers (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp, Bloom filters, Aho-Corasick, Count-Min, skip list, Fenwick) — shipped; sketches + range-query pages at `dsa/probabilistic-sketches.md`, `dsa/skip-lists-fenwick-segment-trees.md`
 - Remaining behavioural themes — all seven now shipped (hiring, tech debt, influence without authority, mentorship, managing up, saying no, ambiguity)
 - Production/observability depth — SLI/SLO & error budgets and distributed tracing basics already covered in `observability/index.md`; chaos engineering, capacity/load testing, and blameless postmortems now shipped in `observability/production-reliability-practices.md`
 - Python/Go servers (WebSocket, gRPC) beyond the core library examples
@@ -185,4 +191,4 @@ Do **not** mass-generate these as stubs.
 
 ## Needs review
 
-Re-read after each content pass: are we still opening with a problem? Does every box in a design earn its existence? Are completion checkmarks honest?
+Accuracy pass of 2026-08 is recorded in the [content review checklist](content-review.md) (factual errors, capacity math, cross-page contradictions, missing explanations). Remaining: further V1-first pedagogy on leftover architecture dumps; SQL/vendor DB deep-dives stay **Draft / needs review**; interview-mode tab UX, capstone, and Go example parity still Planned. Re-read after each content pass: are we still opening with a problem? Does every box in a design earn its existence? Are completion checkmarks honest?

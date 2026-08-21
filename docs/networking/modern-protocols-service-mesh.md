@@ -73,7 +73,7 @@ IP layer
 | **0-RTT resumption** | No (new connection = new handshake) | Yes (client caches key from prev session) |
 | **Head-of-line blocking** | Yes (lost TCP packet stalls all streams) | No (each stream independent) |
 | **Connection migration** | No (IP/port change = new connection) | Yes (client can switch networks; connection persists) |
-| **Handshake latency** | TCP: 1 RTT + TLS: 1 RTT = 2 RTT | QUIC: 0 RTT (encrypted payload in first packet) |
+| **Handshake latency** | TCP: 1 RTT + TLS: 1 RTT = 2 RTT | QUIC **first connection: 1-RTT**. **0-RTT is resumption** (replay-sensitive) |
 | **Packet loss tolerance** | One lost packet = cascading retransmits | One lost packet affects only that stream |
 
 ### When HTTP/3 Matters
@@ -97,8 +97,9 @@ HTTP/3: One loss → only affected stream pauses → page loads
 **Low latency is critical (< 100ms SLO):**
 ```
 HTTP/2: 3-4 RTT (DNS, TCP, TLS, request/response)
-QUIC: 1 RTT (TLS 0-RTT, embedded in first packet) 
-Savings: 150-300ms → user-perceptible improvement
+QUIC first connection: 1-RTT handshake (not 0-RTT)
+QUIC 0-RTT: resumption only — replay-sensitive; servers must treat 0-RTT data carefully
+Savings vs TCP+TLS 1.2: on the order of 1 RTT → user-perceptible on high-latency links
 ```
 
 ### Operational Gotchas
@@ -179,10 +180,11 @@ gRPC setup: Each call
   Network: 1 ms
   Total: ~1.01 ms per call
 
-Per 1M calls/sec:
-  REST: 150 ms overhead
-  gRPC: 10 ms overhead
-  Difference: 140 ms = cascading latency spike
+Per call, serialization is microseconds, not milliseconds. Do not multiply
+µs/call by 1M calls/sec and call it "140 ms overhead" — that product is
+*CPU-seconds per wall-second* (how many cores you burn), not added latency.
+At 1M calls/sec, 140 µs extra *serialize* work is ~140 cores of CPU, while
+each call still sees ~1 ms of network. Quote latency and CPU separately.
 ```
 
 ### When to Use gRPC
@@ -550,7 +552,7 @@ spec:
 **CUBIC (default in most Linux):**
 ```
 On packet loss:
-  Shrink window by 20% (W_new = W_old * 0.8)
+  Multiplicative decrease is **0.7** (W_new = W_old * 0.7), not 0.8
   
 Implication:
   Loss detected → immediate throughput drop → slow recovery
@@ -573,25 +575,25 @@ On packet loss:
   Reprobe bandwidth (don't get stuck)
   
 Advantage:
-  Keeps queue small (only 2-3 packets)
+  Targets inflight ≈ **BDP + a small queue** (not "2–3 packets")
   Faster recovery (reprobe continuously)
-  Better for high-latency networks (satellite, geo-distributed)
+  Better for high-BDP networks (satellite, geo-distributed)
 ```
 
 **When BBR helps:**
 ```
-Scenario: 1 Gbps network, 100 ms latT, BW product = 12.5 MB
+Scenario: 1 Gbps network, 100 ms RTT, BDP = 12.5 MB
 
 CUBIC:
-  Window opens to 12.5 MB
-  Queue fills to 8-10 MB
+  Window opens to (and past) 12.5 MB
+  Queue fills to several MB
   Latency skyrockets to 500+ ms
-  Loss → window shrinks → slow recovery
+  Loss → window × 0.7 → slow recovery
 
 BBR:
-  Measures bandwidth (1 Gbps)
-  Maintains inflight = 2-3 packets
-  Latency stays at ~100 ms
+  Measures bandwidth (1 Gbps) and min RTT
+  Keeps inflight ≈ BDP + small standing queue
+  Latency stays near the min RTT
   Reprobe continuously for higher bandwidth
 ```
 
@@ -751,11 +753,11 @@ Alert on anomalies:
 === "Foundation"
     **Q: What's the advantage of HTTP/3 over HTTP/2?**
     
-    "HTTP/3 uses QUIC (UDP-based) instead of TCP. Key advantage: no head-of-line blocking. In HTTP/2, one lost TCP packet stalls all streams. In HTTP/3, each stream is independent; one lost packet only affects that stream. Also: 0-RTT resumption (cache key from prev session, encrypted payload in first packet) and connection migration (switch networks, connection persists)."
+    "HTTP/3 uses QUIC (UDP-based) instead of TCP. Key advantage: no TCP head-of-line blocking. In HTTP/2, one lost TCP packet stalls all streams. In HTTP/3, each stream is independent; one lost packet only affects that stream. First connection is 1-RTT; 0-RTT is *resumption* and is replay-sensitive. Connection migration: switch networks, the QUIC connection persists."
     
     **Q: When should you use gRPC instead of REST?**
     
-    "gRPC for internal service-to-service (you control both ends). Benefits: 4-10× smaller payload (protobuf vs JSON), 10-100× faster serialization (no reflection), HTTP/2 multiplexing (multiple concurrent calls on one connection). REST for public APIs or browser clients. At 100k RPS across microservices, gRPC saves ~100ms latency vs REST."
+    "gRPC for internal service-to-service (you control both ends). Benefits: smaller payload (protobuf vs JSON), faster serialization, HTTP/2 multiplexing. REST for public APIs or browser clients. Serialization savings are microseconds per call — they add CPU at high RPS; they are not a 100ms latency gift on each RPC."
 
 === "Senior"
     **Q: Explain how Istio's mTLS works and why you'd use it.**
@@ -776,7 +778,7 @@ Alert on anomalies:
 ## Key Takeaways
 
 !!! success "Remember"
-    1. **HTTP/3 (QUIC):** No head-of-line blocking, 0-RTT resumption, connection migration. Matters for mobile and packet-loss networks.
+    1. **HTTP/3 (QUIC):** No TCP HOL, 1-RTT first handshake, 0-RTT resumption (replay-sensitive), connection migration. Matters for mobile and packet-loss networks.
     2. **gRPC:** 4-10× smaller payload, 10× faster serialization, HTTP/2 multiplexing. Use for internal service-to-service at scale.
     3. **Service mesh:** Moves networking concerns (mTLS, retries, timeouts, circuit breakers) from app code to infrastructure (Envoy/Linkerd sidecars).
     4. **Istio:** Feature-rich (30+ CRDs), complex, powerful. For large-scale microservices with advanced routing.

@@ -5,7 +5,7 @@ description: Pattern recognition and visual walkthroughs — not a random proble
 
 # DSA Patterns
 
-Clue → pattern. Code is Python first, Go second. Visualizers: Prev/Next via Step, Reset, Auto Play.
+Clue → pattern. Code is **Python**; a few pages (mainly DP) also show Go. **Most** pattern pages have a visualizer (Run / Reset; some add Step / Auto Play). Foundations, two pointers, binary search, and the pattern-recognition index have **no** visualizer.
 
 ---
 
@@ -62,6 +62,8 @@ This is the core of pattern recognition. Read the problem, find the clue, get th
 | "next greater element" | Monotonic stack | Amortized O(n) |
 | "detect a cycle" | Fast/slow pointers | Meets inside the cycle |
 | "might this key exist" / cardinality at huge scale | [Advanced hashing](hashing-techniques.md) | Bloom filters, cuckoo hashing, HyperLogLog trade exactness for space |
+| "how often" / p99 of a stream / set similarity | [Probabilistic sketches](probabilistic-sketches.md) | Count-Min, t-digest, MinHash, cuckoo/XOR filters |
+| "range sum/min with updates" / ordered map without rotations | [Skip lists & range trees](skip-lists-fenwick-segment-trees.md) | Skip list, Fenwick, segment tree |
 | "find many patterns" / palindrome / suffix queries | [Advanced string matching](advanced-string-matching.md) | Aho-Corasick, Z-algorithm, suffix arrays, Boyer-Moore, Manacher's |
 
 Two clarifications that recur:
@@ -158,9 +160,11 @@ Skipping to step 5 is the most common way strong programmers fail these intervie
 | [Greedy Algorithms](greedy.md) | locally optimal choice, provably global | Complete |
 | [String Matching](string-matching.md) | substring search (KMP / Rabin-Karp) | Complete |
 | [Advanced Hashing Techniques](hashing-techniques.md) | probabilistic membership / cardinality (Bloom, cuckoo, HyperLogLog) | Complete |
+| [Probabilistic Sketches](probabilistic-sketches.md) | Count-Min, t-digest, MinHash, cuckoo/quotient/XOR filters | Complete |
+| [Skip Lists, Fenwick & Segment Trees](skip-lists-fenwick-segment-trees.md) | ordered maps, point update + range query | Complete |
 | [Advanced String Matching](advanced-string-matching.md) | multi-pattern search / palindromes (Aho-Corasick, Z-algorithm, Manacher's) | Complete |
 
-Start with [foundations](foundations.md) for Big-O and the approach loop, then work the patterns in the order above — each has an animated visualizer with Step / Reset / Auto Play.
+Start with [foundations](foundations.md) for Big-O and the approach loop, then work the ~15 pattern pages in the table (foundations and this index are the bookends). Visualizers sit on most of those pages, not all — see the intro.
 
 ---
 

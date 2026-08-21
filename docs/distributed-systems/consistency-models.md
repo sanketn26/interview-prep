@@ -119,7 +119,7 @@ A user adds an item to their cart from their phone, then immediately opens the c
 | **Linearizable** | Laptop read blocks/errors until it can confirm the latest state, or is routed to the same replica that has the write | Either correct cart or an explicit error — never wrong data |
 | **Sequential** | Both devices see the add-to-cart eventually, in an order consistent with the user's actions, but laptop's *real-time* freshness isn't guaranteed | Cart converges, but "which action happened first" across devices may not match wall-clock reality |
 | **Causal** | If "add item" causally precedes "apply coupon," every replica applies them in that order | Coupon never applies before the item exists in the cart |
-| **Read-your-writes** | If routed to the replica that took the phone's write (or session-pinned), laptop sees the item immediately | Item appears instantly on second device |
+| **Read-your-writes** | Per session/device unless a version token is *shared*. Phone session-pin does not cover the laptop. During a DC partition the laptop may error or see stale data | Same-device refresh is fresh; second device is not, unless you pass a version token |
 | **Eventual (no session guarantee)** | Laptop may show an empty cart until the partition heals and replication catches up | Item "missing" for a few seconds/minutes — classic support ticket |
 
 Same operation, five different user-visible outcomes, purely a function of which consistency model backs the cart service.
@@ -140,12 +140,14 @@ Quorum-based systems (Cassandra, DynamoDB, Riak) let you *tune* the consistency 
 - **W** — number of replicas that must acknowledge a write before it succeeds
 - **R** — number of replicas a read must query before returning
 
-**The rule:** if `R + W > N`, every read set overlaps with every write set by at least one replica — guaranteeing the read sees the latest write (strong-ish consistency, modulo clock/version comparison to pick the winner). If `R + W ≤ N`, reads and writes can miss each other entirely — you're eventually consistent.
+**The rule:** if `R + W > N`, every read set overlaps with every write set by at least one replica — so a later read can see the latest *acknowledged* write (modulo clock/version comparison to pick the winner). If `R + W ≤ N`, reads and writes can miss each other entirely — you're eventually consistent.
+
+Quorum overlap is **not** linearizability. Concurrent writes can still lose updates (two overlapping quorum reads both see the pre-write value, both compute a new value, both write). See the [CAP theorem bank example](cap-theorem.md#realistic-example).
 
 ```
-N=3, W=2, R=2  → R+W=4 > 3   strong read (quorum overlap guaranteed)
+N=3, W=2, R=2  → R+W=4 > 3   quorum overlap (not linearizability)
 N=3, W=1, R=1  → R+W=2 ≤ 3   fast, but reads may miss the latest write
-N=3, W=3, R=1  → R+W=4 > 3   slow writes, fast strong reads
+N=3, W=3, R=1  → R+W=4 > 3   slow writes, fast overlapping reads
 ```
 
 This is the mechanism that lets one system offer both `ONE` (fast, eventual) and `QUORUM` (slower, strong-ish) consistency per query — the model isn't fixed at the database level, it's chosen per operation.
@@ -252,7 +254,7 @@ Symptom: user reports "my write disappeared" or "I see old data"
     1. Consistency is a spectrum, not a binary — linearizable, sequential, causal, session guarantees, and eventual each promise something different.
     2. Session guarantees (read-your-writes, monotonic reads/writes) solve most real user complaints without paying for full strong consistency.
     3. CAP tells you C vs A during a partition; consistency models tell you *which* C, and PACELC reminds you there's a latency cost even without a partition.
-    4. Quorum math (`R + W > N`) lets you tune consistency per-operation rather than per-database.
+    4. Quorum math (`R + W > N`) gives read/write overlap, not linearizability — concurrent writes can still lose updates.
     5. Pick the weakest model that keeps your invariants safe — every step toward "stronger" costs latency and availability.
 
 **Previous:** [CAP Theorem](cap-theorem.md) | **Next:** [Replication](replication.md)

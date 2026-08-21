@@ -25,22 +25,12 @@ Every concept has three levels of understanding. Switch between them based on co
 
 ## Interview Modes
 
-Each concept page supports multiple modes:
+The full Learn / Interview / Hint / Solution / Staff **tab switcher is not wired** on concept pages — see [Project Status](project-status.md). Study like this instead:
 
-=== "Learn"
-    Full explanation with all three levels. Read this first.
-
-=== "Interview"
-    How you'd explain it in an interview. Practice speaking it aloud.
-
-=== "Hint"
-    Nudges without full answers. Use after attempting exercises.
-
-=== "Solution"
-    Complete reference answers. Use after your own attempt.
-
-=== "Staff"
-    Staff Engineer lens: organizational constraints, multi-year evolution, cost, compliance.
+- **Learn** — the page as written is the default (three-level model: intuition → engineering → production).
+- **Hint** — exercises use `???` hint blocks; try before revealing.
+- **Solution** — design / LLD exercises have a worked solution after you attempt it.
+- **Staff** — some pages have Staff Q&A or seniority tabs (especially behavioural stories); **not** every concept page.
 
 ---
 
@@ -99,6 +89,15 @@ For each system design exercise:
 | "all combinations / subsets" | Backtracking |
 | "minimum possible maximum" | Binary Search on Answer |
 | "overlapping subproblems" | Dynamic Programming |
+| "same component / merge groups / undirected cycle" | Union-Find |
+| "locally optimal / interval scheduling / greedy choice" | Greedy |
+| "substring search / pattern in text" | KMP (or Rabin-Karp) |
+| "prefix / autocomplete" | Trie |
+| "how often in a stream" / p99 / set similarity | Count-Min / t-digest / MinHash |
+| "range sum/min with updates" | Fenwick or segment tree |
+| "ordered map, Redis ZSET" | Skip list |
+
+Full clue table: [DSA Patterns](dsa/index.md) and [Pattern Recognition](dsa/pattern-recognition.md).
 
 ---
 
@@ -108,7 +107,7 @@ For each system design exercise:
 2. Apply **STAR + Reflection**: Situation → Task → Action → Result → What I Learned
 3. Calibrate to seniority level (see differentiation guide)
 4. Record yourself and listen back — clarity is a skill
-5. Have **10 core stories** that can be adapted to different questions
+5. Have **6 load-bearing stories** that can be adapted to different questions (see [Behavioural](behavioural/index.md))
 
 ---
 

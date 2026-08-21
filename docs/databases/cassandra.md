@@ -110,7 +110,7 @@ Cassandra's secret: **tunable consistency via quorum**.
 Replication Factor = 3
 
 Write with consistency level QUORUM:
-  quorum = 3 / 2 + 1 = 2
+  quorum = ⌊3/2⌋ + 1 = 2
   → Write waits for ACK from 2 of 3 nodes
   → Fast (doesn't wait for all replicas)
   → Durable (majority has data)
@@ -161,13 +161,14 @@ CREATE TABLE users (
   created_at timestamp
 );
 
--- Create an index for email queries
+-- Secondary index on email: scatter-gather across partitions unless you
+-- also restrict by partition key. Prefer a table keyed by email for lookups.
 CREATE INDEX ON users(email);
 
 -- Query by primary key (fast)
 SELECT * FROM users WHERE user_id = '123e4567...';
 
--- Query by indexed column (fast)
+-- Query by secondary index alone (scatter-gather — not "fast")
 SELECT * FROM users WHERE email = 'alice@example.com';
 
 -- Query without index (error or slow)
@@ -339,9 +340,12 @@ BEGIN BATCH
 APPLY BATCH;
 ```
 
-Cassandra **batches are not atomic** (unlike transactions). Each statement executes independently. Use batches for:
-- **Atomic updates to same partition**: guaranteed to be applied in order
-- **Related updates to multiple partitions**: not atomic, use carefully
+Cassandra batches are not one thing:
+- **Single-partition batches** are atomic and isolated (the right tool for related updates to the same partition).
+- **Logged multi-partition batches** are atomic (all apply or none) but **not** isolated — concurrent readers can see a partial batch.
+- **Unlogged batches** are a performance grouping only — no atomicity.
+
+Don't use a multi-partition batch as a substitute for a transaction.
 
 ### Latency Trade-offs
 
@@ -431,7 +435,7 @@ nodetool flush
 
 - **Peer-to-peer: no leader, no election**. Availability is built-in.
 - **Consistent hashing: adding nodes doesn't reshuffle all data**. Scaling is incremental.
-- **Quorum consistency: W + R > N guarantees strong reads**. Tune for your latency needs.
+- **Quorum overlap (W + R > N) is not linearizability.** It makes a later quorum read *likely* to see a completed quorum write, but concurrent writes can still lose updates and you do not get a single real-time order. Tune W/R for your latency; don't call it "strong" without that caveat. See [CAP](../distributed-systems/cap-theorem.md).
 - **LSM writes are fast**: append-only sequential I/O. Read amplification requires compaction.
 - **Query flexibility is your tradeoff**: design your schema around queries, not data normalization.
 - **Hinted handoff: keeps data durable during failures**. Nodes catch up automatically.

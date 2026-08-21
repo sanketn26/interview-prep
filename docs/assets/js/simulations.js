@@ -1554,21 +1554,22 @@ class SlidingWindowViz {
     this.container = document.getElementById(containerId);
     this.arr = [];
     this.left = 0; this.right = -1;
-    this.target = 0;
+    this.target = null;
     this.running = false;
     this.delay = 500;
   }
 
   init(arr, target) {
     this.arr = arr;
-    this.target = target;
+    this.target = (target === undefined || target === null) ? null : target;
     this.left = 0; this.right = -1;
     this.running = false;
     this.render();
-    this._log("Array ready. Target sum: " + target, "info");
+    if (this.target != null) this._log("Array ready. Target sum: " + this.target, "info");
+    else this._log("Array ready. Fixed-window max sum (no target).", "info");
   }
 
-  reset() { this.init(this.arr.length ? this.arr : [3, 1, 2, 5, 8, 2, 6, 1, 4, 9, 3], this.target || 11); }
+  reset() { this.init(this.arr.length ? this.arr : [3, 1, 2, 5, 8, 2, 6, 1, 4, 9, 3], this.target); }
 
   pause() { this.running = false; }
 
@@ -1588,7 +1589,8 @@ class SlidingWindowViz {
     const info = document.getElementById("sw-info");
     if (info) {
       const windowSum = this.arr.slice(this.left, this.right + 1).reduce((a, b) => a + b, 0);
-      info.textContent = `Window [${this.left}..${this.right}]  Sum=${windowSum}  Target=${this.target}` +
+      const targetBit = this.target != null ? `  Target=${this.target}` : "";
+      info.textContent = `Window [${this.left}..${this.right}]  Sum=${windowSum}` + targetBit +
         (result !== null ? `  ✓ Found: [${result}]` : "");
     }
   }
@@ -3020,6 +3022,322 @@ class KmpViz {
   }
 }
 
+// ── DSA: Count-Min Sketch ─────────────────────────────────────
+class CountMinSketchViz {
+  constructor(gridId, logId) {
+    this.gridId = gridId;
+    this.logId = logId;
+    this.d = 3;
+    this.w = 8;
+    this.delay = 180;
+    this.reset();
+  }
+
+  reset() {
+    this.generation = (this.generation || 0) + 1;
+    this.running = false;
+    this.table = Array.from({ length: this.d }, () => Array(this.w).fill(0));
+    this.trueCount = {};
+    this.adds = 0;
+    this.highlight = [];
+    this.render();
+    setStat("cms-adds", 0);
+    setStat("cms-est", "—");
+    setStat("cms-true", "—");
+    log(this.logId, `Reset: ${this.d} rows × ${this.w} counters. Estimate = min across rows.`, "info");
+  }
+
+  _idx(word, row) {
+    let h = (row + 1) * 2654435761;
+    for (let i = 0; i < word.length; i++) h = Math.imul(h ^ word.charCodeAt(i), 1597334677);
+    return Math.abs(h) % this.w;
+  }
+
+  async add(word) {
+    if (this.running || !word) return;
+    this.running = true;
+    const generation = this.generation;
+    word = word.toLowerCase().trim();
+    this.trueCount[word] = (this.trueCount[word] || 0) + 1;
+    this.adds++;
+    const cols = [];
+    for (let r = 0; r < this.d; r++) cols.push(this._idx(word, r));
+    log(this.logId, `Add "${word}" → columns [${cols.join(", ")}]`, "info");
+    for (let r = 0; r < this.d; r++) {
+      this.highlight = [[r, cols[r]]];
+      this.render();
+      await sleep(this.delay);
+      if (generation !== this.generation) return;
+      this.table[r][cols[r]]++;
+      this.render();
+    }
+    this.highlight = [];
+    this.render();
+    setStat("cms-adds", this.adds);
+    log(this.logId, `"${word}" true count = ${this.trueCount[word]}`, "ok");
+    this.running = false;
+  }
+
+  async query(word) {
+    if (this.running || !word) return;
+    this.running = true;
+    word = word.toLowerCase().trim();
+    const cols = [];
+    const vals = [];
+    for (let r = 0; r < this.d; r++) {
+      cols.push(this._idx(word, r));
+      vals.push(this.table[r][cols[r]]);
+    }
+    log(this.logId, `Query "${word}" → cells ${vals.join(", ")}`, "info");
+    for (let r = 0; r < this.d; r++) {
+      this.highlight = [[r, cols[r]]];
+      this.render();
+      await sleep(this.delay);
+    }
+    const est = Math.min(...vals);
+    const truth = this.trueCount[word] || 0;
+    setStat("cms-est", est);
+    setStat("cms-true", truth);
+    this.highlight = [];
+    this.render();
+    if (est === truth) log(this.logId, `estimate=${est} equals true count (no extra collisions on the min cell)`, "ok");
+    else if (truth === 0 && est > 0) log(this.logId, `estimate=${est} but never added — overestimate from collisions`, "warn");
+    else log(this.logId, `estimate=${est} ≥ true ${truth} (Count-Min never underestimates non-negative adds)`, "warn");
+    this.running = false;
+  }
+
+  render() {
+    const el = document.getElementById(this.gridId);
+    if (!el) return;
+    el.innerHTML = "";
+    this.table.forEach((row, r) => {
+      const line = document.createElement("div");
+      line.style.display = "flex";
+      line.style.gap = "4px";
+      line.style.marginBottom = "4px";
+      const lab = document.createElement("span");
+      lab.style.cssText = "width:48px;color:#90caf9;font-size:0.75rem;line-height:28px";
+      lab.textContent = "row " + r;
+      line.appendChild(lab);
+      row.forEach((v, c) => {
+        const cell = document.createElement("div");
+        cell.className = "dsa-cell";
+        cell.style.width = "32px";
+        cell.style.height = "28px";
+        cell.style.fontSize = "0.75rem";
+        cell.textContent = v;
+        if (this.highlight.some(([hr, hc]) => hr === r && hc === c)) cell.classList.add("current");
+        else if (v) cell.classList.add("optimal");
+        line.appendChild(cell);
+      });
+      el.appendChild(line);
+    });
+  }
+}
+
+// ── DSA: Skip list ────────────────────────────────────────────
+class SkipListViz {
+  constructor(viewId, logId) {
+    this.viewId = viewId;
+    this.logId = logId;
+    this.maxLevel = 4;
+    this.reset();
+  }
+
+  reset() {
+    this.level = 1;
+    this.head = { key: -Infinity, forward: Array(this.maxLevel).fill(null) };
+    this.size = 0;
+    this.highlight = new Set();
+    this.render();
+    setStat("skip-n", 0);
+    setStat("skip-lvl", 0);
+    log(this.logId, "Empty skip list. Insert keys; height is a coin flip (p=0.5).", "info");
+  }
+
+  _randomLevel() {
+    let lvl = 1;
+    while (Math.random() < 0.5 && lvl < this.maxLevel) lvl++;
+    return lvl;
+  }
+
+  _path(key) {
+    const update = Array(this.maxLevel);
+    const visited = [];
+    let cur = this.head;
+    for (let i = this.level - 1; i >= 0; i--) {
+      while (cur.forward[i] && cur.forward[i].key < key) {
+        cur = cur.forward[i];
+        visited.push(cur.key);
+      }
+      update[i] = cur;
+    }
+    return { update, visited, next: cur.forward[0] };
+  }
+
+  insert(key) {
+    if (!Number.isFinite(key)) return;
+    const { update } = this._path(key);
+    if (update[0].forward[0] && update[0].forward[0].key === key) {
+      log(this.logId, `${key} already present`, "warn");
+      return;
+    }
+    const lvl = this._randomLevel();
+    if (lvl > this.level) {
+      for (let i = this.level; i < lvl; i++) update[i] = this.head;
+      this.level = lvl;
+    }
+    const node = { key, forward: Array(lvl).fill(null) };
+    for (let i = 0; i < lvl; i++) {
+      node.forward[i] = update[i].forward[i];
+      update[i].forward[i] = node;
+    }
+    this.size++;
+    this.highlight = new Set([key]);
+    this.render();
+    setStat("skip-n", this.size);
+    setStat("skip-lvl", this.level);
+    log(this.logId, `Insert ${key} at height ${lvl}`, "ok");
+  }
+
+  search(key) {
+    if (!Number.isFinite(key)) return;
+    const { visited, next } = this._path(key);
+    const hit = next && next.key === key;
+    this.highlight = new Set(visited.concat(hit ? [key] : []));
+    this.render();
+    log(this.logId, hit ? `Found ${key}. Path touched [${visited.join(" → ") || "HEAD"}]` : `${key} not found. Path [${visited.join(" → ") || "HEAD"}]`, hit ? "ok" : "err");
+  }
+
+  render() {
+    const el = document.getElementById(this.viewId);
+    if (!el) return;
+    const rows = [];
+    for (let i = this.level - 1; i >= 0; i--) {
+      const keys = [];
+      let cur = this.head.forward[i];
+      while (cur) {
+        keys.push(cur.key);
+        cur = cur.forward[i];
+      }
+      const cells = keys.map((k) => {
+        const on = this.highlight.has(k);
+        const bg = on ? "#e65100" : "#1a237e";
+        return `<span style="background:${bg};color:#fff;padding:2px 8px;border-radius:4px;margin-right:6px">${k}</span>`;
+      });
+      rows.push(`<div><span style="color:#90caf9;display:inline-block;width:2.5rem">L${i}</span> HEAD ${cells.join("— ") || "(empty)"} — NIL</div>`);
+    }
+    el.innerHTML = rows.join("");
+  }
+}
+
+// ── DSA: Fenwick tree ─────────────────────────────────────────
+class FenwickViz {
+  constructor() {
+    this.n = 8;
+    this.base = [3, 2, -1, 6, 5, 4, 2, 3];
+    this.reset();
+  }
+
+  reset() {
+    this.arr = this.base.slice();
+    this.bit = Array(this.n + 1).fill(0);
+    for (let i = 1; i <= this.n; i++) this._addSilent(i, this.arr[i - 1]);
+    this.hiArr = new Set();
+    this.hiBit = new Set();
+    this.render();
+    setStat("fw-pref", "—");
+    setStat("fw-range", "—");
+    log("fw-log", "Array restored. bit[i] stores a power-of-two range ending at i (1-based).", "info");
+  }
+
+  _addSilent(i, delta) {
+    while (i <= this.n) {
+      this.bit[i] += delta;
+      i += i & -i;
+    }
+  }
+
+  add(i, delta) {
+    this.arr[i - 1] += delta;
+    this.hiArr = new Set([i]);
+    this.hiBit = new Set();
+    let x = i;
+    while (x <= this.n) {
+      this.bit[x] += delta;
+      this.hiBit.add(x);
+      x += x & -x;
+    }
+    this.render();
+    log("fw-log", `add(${i}, ${delta}) touched bit indexes {${[...this.hiBit].join(", ")}}`, "ok");
+  }
+
+  prefix(i) {
+    this.hiArr = new Set();
+    this.hiBit = new Set();
+    let s = 0, x = i;
+    while (x > 0) {
+      s += this.bit[x];
+      this.hiBit.add(x);
+      x -= x & -x;
+    }
+    this.render();
+    setStat("fw-pref", s);
+    log("fw-log", `prefix(${i}) = ${s} via bits {${[...this.hiBit].join(", ")}}`, "ok");
+    return s;
+  }
+
+  range(l, r) {
+    const left = l > 1 ? this._prefixQuiet(l - 1) : 0;
+    const right = this._prefixQuiet(r);
+    setStat("fw-range", right - left);
+    this.hiArr = new Set();
+    this.hiBit = new Set();
+    let x = r;
+    while (x > 0) { this.hiBit.add(x); x -= x & -x; }
+    this.render();
+    log("fw-log", `range[${l},${r}] = prefix(${r}) - prefix(${l - 1}) = ${right - left}`, "ok");
+  }
+
+  _prefixQuiet(i) {
+    let s = 0;
+    while (i > 0) {
+      s += this.bit[i];
+      i -= i & -i;
+    }
+    return s;
+  }
+
+  render() {
+    const paint = (elId, values, oneBased, hi) => {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      el.innerHTML = "";
+      const lab = document.createElement("span");
+      lab.style.cssText = "color:#90caf9;font-size:0.75rem;margin-right:8px";
+      lab.textContent = oneBased ? "bit[]" : "a[]";
+      el.appendChild(lab);
+      values.forEach((v, idx) => {
+        const i = oneBased ? idx : idx + 1;
+        if (oneBased && idx === 0) return;
+        const cell = document.createElement("div");
+        cell.className = "dsa-cell";
+        cell.style.width = "40px";
+        cell.style.fontSize = "0.75rem";
+        cell.innerHTML = `<div style="font-size:0.6rem;opacity:.7">${oneBased ? idx : i}</div>${v}`;
+        if (hi.has(oneBased ? idx : i)) cell.classList.add("current");
+        el.appendChild(cell);
+      });
+      el.style.display = "flex";
+      el.style.flexWrap = "wrap";
+      el.style.alignItems = "center";
+      el.style.gap = "4px";
+    };
+    paint("fw-arr", this.arr, false, this.hiArr);
+    paint("fw-bit", this.bit, true, this.hiBit);
+  }
+}
+
 // ── Auto-init ─────────────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("ch-ring")) {
@@ -3036,7 +3354,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if (document.getElementById("sw-array")) {
     window._sw = new SlidingWindowViz("sw-array");
-    window._sw.init([3, 1, 2, 5, 8, 2, 6, 1, 4, 9, 3], 11);
+    window._sw.init([3, 1, 2, 5, 8, 2, 6, 1, 4, 9, 3]);
   }
   if (document.getElementById("graph-canvas")) {
     window._gv = new GraphViz("graph-canvas", "graph-log");
@@ -3068,6 +3386,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("kmp-strip")) window._kmp = new KmpViz("kmp-strip", "kmp-log");
   if (document.getElementById("bloom-bits")) window._bloom = new BloomFilterViz("bloom-bits", "bloom-log");
   if (document.getElementById("ac-canvas")) window._ac = new AhoCorasickViz("ac-canvas", "ac-strip", "ac-log");
+  if (document.getElementById("cms-grid")) window._cms = new CountMinSketchViz("cms-grid", "cms-log");
+  if (document.getElementById("skip-view")) window._skip = new SkipListViz("skip-view", "skip-log");
+  if (document.getElementById("fw-arr")) window._fenwick = new FenwickViz();
 });
 
 // Expose constructors for tests / playgrounds
@@ -3077,4 +3398,5 @@ window.AcademySims = {
   SagaSim, TailLatencySim, DnsSim, TcpSim, K8sSim, CapacityCalc, MathCalc,
   SlidingWindowViz, GraphViz, DpViz, FrameworkWalkthrough,
   HeapViz, DijkstraViz, UnionFindViz, NQueensViz, SortViz, TrieViz, GreedyViz, KmpViz,
+  CountMinSketchViz, SkipListViz, FenwickViz,
 };

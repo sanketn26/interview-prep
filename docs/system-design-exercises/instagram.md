@@ -79,8 +79,9 @@ Media size per upload (photo path):
 
 Storage:
   2.5M photos/day × 4 MB ≈ 10 TB/day ≈ 3.65 PB/year (photos alone)
-  Stories: 7.5M/day × 4 MB × (24h retention, but keep 1 extra day as a soft-delete buffer)
-    ≈ 30TB live at any time — orders of magnitude smaller than the permanent feed store,
+  Stories: 7.5M/day × 4 MB ≈ 30 TB/day ingested
+    Live window: 24h retention + 1 extra day soft-delete buffer ≈ 60 TB resident
+    — still orders of magnitude smaller than the permanent feed store,
     because it self-deletes; this is the one place TTL actively SAVES you storage budget
   Compare: Pastebin's exercise landed at 3.65 TB/year total. Photos alone are 1000x that.
 
@@ -392,7 +393,7 @@ Object storage — derived variants (~1PB/year, high-access, keep in Standard): 
 CDN egress (15B media views/day, ~95% cache hit → 5% × ~200KB origin fallback,
   ~750TB/month from origin; CDN edge delivery billed separately, dominant line):     ~$60,000–90,000/month (CDN delivery is the single biggest line item)
 Processing compute (resize fleet + GPU transcode pool):                              ~$15,000/month
-Stories store (TTL-native KV, ~30TB live working set, high churn):                   ~$4,000/month
+Stories store (TTL-native KV, ~60TB live working set, high churn):                   ~$8,000/month
 Postgres (metadata only, small rows, same shape as Pastebin's):                      ~$1,500/month primary + replicas
 Total (rough order of magnitude):                                                    ~$150,000–180,000/month
 ```

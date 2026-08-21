@@ -172,9 +172,11 @@ High lag indicates:
 
 Each partition has one **leader** and N-1 **followers** (replicas). The **ISR** is the set of replicas fully caught up with the leader.
 
-- `acks=all` (strongest): producer waits for all ISR replicas to acknowledge
-- `acks=1`: only leader acknowledges (risk: leader dies before replication = data loss)
+- `acks=all` (strongest): producer waits for **every current ISR member** to acknowledge — not `min.insync.replicas` replicas. `min.insync.replicas` is a floor: if `|ISR| < min.insync.replicas`, the produce fails (`NotEnoughReplicas`)
+- `acks=1`: only the leader acknowledges (independent of `min.insync.replicas`; risk: leader dies before replication = data loss)
 - `acks=0`: fire and forget (highest throughput, data loss possible)
+
+Consumers **default** to fetching from the leader. Since KIP-392 they can fetch from the **closest replica** (`replica.selector.class` / `client.rack`) — "always from the leader" is the old default, not a hard rule.
 
 ---
 
@@ -306,7 +308,7 @@ Key metrics:
     1. Partitions are the unit of parallelism — more partitions = more consumers can run in parallel
     2. Each partition is consumed by exactly one consumer per group at a time
     3. Ordering is guaranteed only within a partition — use partition keys for related messages
-    4. Consumer lag = production rate - consumption rate; high lag = consumer falling behind
+    4. Consumer lag = latest_offset − committed_offset. The rate difference (produce − consume) is d(lag)/dt, not lag itself. High lag = consumer behind.
     5. Rebalances stop consumption — minimize by using cooperative rebalancing, tuning `max.poll.interval.ms`
     6. Hot partitions require application-level fixes, not just Kafka configuration
 

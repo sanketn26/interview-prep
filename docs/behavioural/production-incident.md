@@ -70,7 +70,7 @@ flowchart TD
 1. Assess severity (how many users affected? What's the business impact?)
 2. Page necessary people
 3. Start a timeline document / incident channel
-4. Do NOT make changes without understanding root cause first
+4. Do not make *random* changes; mitigate with a reversible action (rollback, flag, shed load), then RCA in the post-mortem. Prioritize mitigation while the fire is burning.
 
 **Debugging order (METTLE):**
 1. **M**etrics — CPU, memory, latency, error rate, request volume

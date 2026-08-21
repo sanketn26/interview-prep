@@ -17,7 +17,7 @@ prerequisites:
 "Why is this slow?" is the most common production question, and the answer is almost never "the algorithm is O(n²)." It's almost always one of:
 
 1. **Thread exhaustion** — waiting for a thread that never becomes available
-2. **Goroutine leak** — spawning 10 million goroutines that never exit, each consuming 2KB
+2. **Goroutine leak** — goroutines that **never return** (blocked forever). Unbounded spawn is a different bug (load), not automatically a leak.
 3. **Unbounded allocation** — every request allocates a map with 100k entries
 4. **Synchronous logging** — each request waits for disk I/O to complete
 5. **Lock contention** — a shared mutex that 1,000 goroutines are fighting over
@@ -158,10 +158,10 @@ func subscribe(eventChan chan Event) {
     }
 }
 
-// If this function is called repeatedly, goroutines accumulate
-// Week 1: 1 million requests → 1 million goroutines ✓
-// Week 2: 10 million requests → 10 million goroutines (20 GB ram)
-// Week 3: OOM kill
+// Unbounded spawn is not the same as a leak.
+// If each goroutine *returns*, you have a load/memory spike, then they go away.
+// A leak is a goroutine that *never returns* (blocked on a chan/mutex/context).
+// This example is unbounded spawn; it becomes a leak only if process() never exits.
 
 // GOOD: Reuse goroutines with worker pool
 func subscribe(eventChan chan Event) {
@@ -341,11 +341,11 @@ import _ "net/http/pprof"
 // Profile with pprof to see GC frequency
 
 // Option 1: Reduce allocation rate (best fix)
-// Option 2: Tune GOGC (trade-off)
-os.Setenv("GOGC", "50")  // GC more frequently, shorter pauses
+// Option 2: Tune GOGC *before* start, or call debug.SetGCPercent at runtime.
+// os.Setenv("GOGC", "50") after the process has started does NOT retune GC.
+debug.SetGCPercent(50)  // this is what actually changes the running process
 
-// Option 3: Use GOMEMLIMIT (Go 1.19+)
-debug.SetGCPercent(50)  // Alternative to GOGC env var
+// Option 3: GOMEMLIMIT (Go 1.19+) as a soft heap cap, with SetMemoryLimit
 ```
 
 ---
@@ -414,7 +414,8 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 ### Antipattern 3: Goroutine Per Request (Without Pooling)
 
 ```go
-// BAD: Unbounded goroutine creation
+// BAD: Unbounded goroutine creation (this is a load bound, not a leak
+// unless the goroutine never returns)
 func handleRequest(w http.ResponseWriter, r *http.Request) {
     go func() {  // New goroutine for each request!
         // Process
@@ -422,6 +423,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 }
 // 1 million concurrent requests = 1 million goroutines = 2-4 GB memory
 // Context switching thrashing if > cores × 4
+// Leak = those goroutines *never exit*. Spawn-per-request that finishes is "too many", not "leaked".
 
 // GOOD: HTTP server already pools goroutines internally
 // Go's net/http reuses goroutines (connection pooling)
@@ -528,7 +530,7 @@ If you log the user_id (high cardinality):
 **How to manage:**
 1. **Sampling:** Log only 1-in-100 requests
 2. **Structured logging:** Use fields, not string formatting
-3. **Avoid high-cardinality:** Don't log user_id, request_id, or other unbounded values
+3. **Avoid high-cardinality on metrics**, not logs: `request_id` belongs in **logs** (correlation). Do not put `request_id` / `user_id` on Prometheus labels. Logging the request ID is required for observability.
 4. **Use stderr for errors only:** Info/debug to async log file
 
 ```go
@@ -555,22 +557,24 @@ if rand.Intn(100) == 0 {  // Sample 1-in-100
 // Problem: Goroutine migrates between cores, flushing CPU cache
 // Solution: Pin goroutine to a core
 
-import "golang.org/x/sys/unix"
+import (
+    "runtime"
+    "golang.org/x/sys/unix"
+)
 
 func pinToCPU(cpuID int) {
+    runtime.LockOSThread()  // required: affinity is per OS thread, not per goroutine
     var cpuSet unix.CPUSet
     cpuSet.Set(cpuID)
-    unix.SchedSetaffinity(0, &cpuSet)  // Bind current goroutine to cpuID
+    unix.SchedSetaffinity(0, &cpuSet)  // bind the locked OS thread
 }
 
 func main() {
-    // Each worker goroutine handles a shard
+    // Each worker goroutine handles a shard — must stay on that OS thread
     for i := 0; i < runtime.NumCPU(); i++ {
         go func(cpu int) {
             pinToCPU(cpu)
-            // This goroutine runs on CPU `cpu` only
-            // Cache stays hot, no migration overhead
-            worker()
+            worker()  // never unlock the OS thread if you want the pin to stick
         }(i)
     }
 }
@@ -749,7 +753,7 @@ func BenchmarkJSONMarshal(b *testing.B) {
 === "Staff"
     **Q: Design a high-performance request-processing system that must hit <5ms p99 latency at 100k RPS.**
     
-    "Start with async logging (batch and flush every 10ms, not on critical path). Bound goroutines (worker pool, not goroutine-per-request). Profile to remove allocations (pre-allocate buffers, use sync.Pool for frequently-created objects). Tune GC (GOGC, or reduce allocation rate). Bind workers to CPU cores (affinity). Use memory-mapped files if reading large data (not heap allocation). Pre-serialize common responses (avoid JSON marshaling per-request). Circuit-breaker to downstream to fail-fast (don't queue unbounded requests). Monitor goroutine count, context switches, and GC pause times. Most importantly: identify which resource saturates first at 100k RPS (thread pool, CPU, memory?), and tune there. Usually it's thread exhaustion from blocking I/O; fix by adding a timeout and circuit breaker."
+    "Start with async logging (batch and flush every 10ms, not on critical path). Bound goroutines (worker pool, not unbounded spawn — spawn ≠ leak; leak = never returns). Profile to remove allocations. Tune GC with debug.SetGCPercent (os.Setenv(\"GOGC\") after start does not retune). Bind workers with runtime.LockOSThread() plus affinity. Log request_id for correlation; keep it off metric labels. Circuit-breaker to downstream to fail-fast. Identify which resource saturates first at 100k RPS and tune there."
 
 ---
 
@@ -761,7 +765,7 @@ func BenchmarkJSONMarshal(b *testing.B) {
     3. **Goroutine leaks silently drain memory.** Monitor runtime.NumGoroutine(); rising = leak.
     4. **Unbounded allocations destroy performance.** Bound channels, caches, maps. Use LRU eviction.
     5. **Synchronous logging blocks the critical path.** Use async logging with batching.
-    6. **High-cardinality logging explodes storage/parsing cost.** Avoid user_id, request_id in logs.
+    6. **High-cardinality is a metrics problem.** Put `request_id` in logs (correlation); never as a metric label.
     7. **GC pauses cause latency spikes.** Reduce allocation rate or tune GOGC; measure pause times.
     8. **Reflection in hot path is slow.** Use code-gen (easyjson, protobuf) for serialization.
     9. **Mutex contention kills throughput.** Use atomic operations or sharding for hot counters.

@@ -93,7 +93,7 @@ def effectively_once(msg, handler, ack, seen: set):
 True exactly-once *delivery* is impossible across a network (it reduces to the two-generals problem). What systems actually sell as "exactly-once" is at-least-once delivery plus deduplication — **the guarantee lives in your handler, not in the broker.** This is the same [idempotency](../distributed-systems/index.md) argument from distributed systems, arriving from a different direction.
 
 !!! warning "The follow-up you should expect"
-    Say "we use at-least-once" and a good interviewer immediately asks "so what happens when this message arrives twice?" Have the dedupe key ready: a business identifier like `order_id`, not a broker-generated message ID that changes on redelivery.
+    Say "we use at-least-once" and a good interviewer immediately asks "so what happens when this message arrives twice?" Have the dedupe key ready: a **business identifier** like `order_id`. Do not use a queue delivery tag that changes on redelivery (SQS / RabbitMQ). Kafka **offsets do not change** on redelivery — the same record is still at the same offset; the consumer simply reads it again.
 
 ---
 
@@ -136,6 +136,6 @@ The practical rule: **over-provision partitions early.** They are cheap; re-part
 - **A queue converts failure into delay** — and an unmonitored backlog is an undetected outage.
 - **Queue vs log is about replay**, not performance. Logs keep messages; queues discard them.
 - **Exactly-once delivery does not exist.** At-least-once + idempotent handler is the real answer.
-- **Dedupe on a business key**, not a broker message ID.
+- **Dedupe on a business key**, not a queue delivery tag. Kafka offsets are stable; SQS/RabbitMQ redelivery IDs are not.
 - **Partitions cap consumer parallelism.** Extra consumers sit idle.
 - **Always ask "what is consumer lag?"** — it is the health metric for every async system.

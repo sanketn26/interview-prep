@@ -102,7 +102,7 @@ If Endpoints is empty, the Service still has an IP. Packets go to a black hole o
 | **Readiness** | Should it receive traffic *right now*? | Remove from Endpoints; **do not** restart |
 
 !!! warning "Production Trap"
-    Liveness that calls the database: when the DB is slow, kubelet kills every pod. You turn a dependency blip into a full restart storm. Liveness = "is *this process* deadlocked?" (local HTTP `/live` that does not fan out). Readiness = "can I do useful work?" (optionally shallow checks). Startup = give JVM/migration time so liveness does not murder a slow boot.
+    Liveness that calls the database: when the DB is slow, kubelet kills every pod. You turn a dependency blip into a full restart storm. **Liveness = is this process wedged?** (local HTTP `/live`, no Redis/DB). **Readiness = can I take traffic?** Check a dependency on readiness **only if the instance is useless without it** — a required payment DB yes; an optional cache no (degrade). Startup = give JVM/migration time so liveness does not murder a slow boot.
 
 ---
 
@@ -309,7 +309,7 @@ Symptom: Ingress 502, Deployment 3/3
 !!! success "Remember"
     1. The path is **Ingress → Service → Endpoints → Pod**. Empty Endpoints is the usual ghost outage
     2. `Running` is not `Ready`; `Ready` is not "dependencies are up"
-    3. Liveness restarts; readiness only removes traffic — do not confuse them
+    3. Liveness restarts the process; readiness only removes traffic. Do not ping Redis on liveness. Dependencies on readiness only if the instance is useless without them.
     4. `describe` + `logs --previous` + `endpoints` beat guessing
     5. Requests schedule; limits kill or throttle — set both on purpose
 

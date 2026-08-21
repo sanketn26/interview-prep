@@ -5,7 +5,7 @@ description: A complete guided system design exercise — a Redis/Memcached-styl
 
 # Design: Distributed Cache
 
-**Difficulty:** Intermediate | **Time:** 60–75 minutes
+**Difficulty:** Foundation / Senior | **Time:** 60–75 minutes
 
 !!! note "Instructions"
     **Cover the solution sections** and work through each step yourself first. Use "Hint" tabs if stuck. Practice explaining out loud — the way you communicate matters as much as the solution.

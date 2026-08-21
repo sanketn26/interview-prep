@@ -229,6 +229,8 @@ Coins `[1, 3, 4]`, amount `6`. Each cell is `dp[amount]`. `∞` = not yet makeab
 
 **Legend:** index under cell = amount. Green = finite value. Orange = just relaxed. Blue = `dp[0]`.
 
+The visualizer may nest **amount-outer** (for each amount, try every coin). The unbounded-knapsack / coin-change code on this page is **coins-outer, amount-inner**. Loop order is what distinguishes 0/1 (capacity inner, descending so each item is used at most once) from unbounded (amount inner, ascending so a coin can be reused).
+
 ```python
 def coin_change(coins: list[int], amount: int) -> int:
     inf = amount + 1

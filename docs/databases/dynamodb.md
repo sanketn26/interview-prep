@@ -102,13 +102,18 @@ CREATE TABLE users (
 -- Primary key query (fast, no GSI needed)
 SELECT * FROM users WHERE user_id = 'alice';
 
--- Query by email (need GSI)
+-- Query by email (need GSI). Query requires *equality* on the GSI partition key.
 CREATE GLOBAL SECONDARY INDEX ON users(email);
 SELECT * FROM users WHERE email = 'alice@example.com';
 
--- Query by created_at (need GSI)
-CREATE GLOBAL SECONDARY INDEX ON users(created_at);
-SELECT * FROM users WHERE created_at > '2024-01-01';
+-- Time-range is NOT a Query if created_at is the GSI partition key.
+-- `WHERE created_at > ...` with no equality PK is a Scan.
+-- Pattern: bucket as PK, created_at as SK (watch the hot "today" partition).
+GSI: pk = created_at_day (e.g. '2024-01-15'), sk = created_at
+SELECT * FROM users
+ WHERE created_at_day = '2024-01-15'
+   AND created_at > '2024-01-15T12:00:00Z';
+-- All new writes land in today's bucket — that partition can hotspot.
 ```
 
 ### GSI Cost
@@ -127,7 +132,7 @@ Total cost = main table + all GSIs
 Write a user:
   Main table: 1 WCU
   GSI-1 (email): 1 WCU
-  GSI-2 (created_at): 1 WCU
+  GSI-2 (created_at_day + created_at): 1 WCU
   → 3 WCU total
 ```
 
@@ -160,12 +165,12 @@ You pay for reserved capacity (even if unused):
 ```
 Allocated: 1000 RCU, 500 WCU per second
 
-Cost: $0.47/month per 100 RCU + $0.94/month per 100 WCU
-      (rough pricing; varies by region)
+Cost: ~$0.09 per RCU-month + ~$0.47 per WCU-month
+      (approximate us-east-1 list prices; dated — check current)
 
-1000 RCU: ~$47/month
-500 WCU: ~$47/month
-Total: ~$94/month
+1000 RCU: ~$90/month
+500 WCU: ~$235/month
+Total: ~$325/month
 
 If you exceed capacity:
   → Requests are throttled (HTTP 400 ProvisionedThroughputExceededException)
@@ -204,11 +209,11 @@ If traffic spikes:
 
 | Workload | Provisioned | On-Demand |
 |---|---|---|
-| Steady 10K RCU/sec | $470/month | ~$216/day (10K reads/sec × 86,400 sec/day = 864M reads/day ÷ 1M × $0.25 ≈ $216/day, ~$6,480/month) |
+| Steady 10K RCU/sec | ~$900/month (10K × $0.09) | ~$216/day (10K reads/sec × 86,400 sec/day = 864M reads/day ÷ 1M × $0.25 ≈ $216/day, ~$6,480/month) |
 | Spiky (0-100K RCU/sec) | Over-provision (pay for 100K) | Auto-scale (pay per request) |
 | Dev/prototype | On-demand (cheap) | On-demand (cheap) |
 
-This is the concrete reason on-demand's per-request pricing crosses over to being *more* expensive than provisioned once traffic is steady and predictable — on-demand's premium buys you not having to forecast capacity, and it's worth paying only while that uncertainty is real. At 10K RCU/sec sustained, provisioned is roughly 14x cheaper; on-demand only wins when traffic is genuinely spiky or unpredictable enough that over-provisioning for the peak would cost even more.
+This is the concrete reason on-demand's per-request pricing crosses over to being *more* expensive than provisioned once traffic is steady and predictable — on-demand's premium buys you not having to forecast capacity, and it's worth paying only while that uncertainty is real. At 10K RCU/sec sustained, provisioned is roughly 7× cheaper ($900 vs ~$6,480/month). On-demand wins when traffic is spiky enough that provisioning for peak costs more than on-demand at average (crossover ~7× peak/average at these list prices).
 
 ---
 
@@ -425,7 +430,7 @@ Read from nearest region → always fast
 | Scenario | Answer |
 |---|---|
 | "How do we prevent hot partitions?" | "Monitor by partition key. If one key gets > 30% of traffic: distribute writes across multiple sub-keys (user_123#0 through #99), cache hot reads in Redis, or enable DynamoDB adaptive capacity." |
-| "When should we use provisioned vs on-demand?" | "Provisioned: steady, predictable traffic (save money). On-demand: spiky or unpredictable. Measure your peak/average ratio — if > 5×, on-demand is cheaper." |
+| "When should we use provisioned vs on-demand?" | "Provisioned: steady, predictable traffic (save money). On-demand: spiky or unpredictable. Measure peak/average — crossover is ~7× at these list prices (provisioned for peak vs on-demand at average)." |
 | "Can we do complex queries?" | "Not really. Query by partition key + sort key only (or GSI). Complex filtering (multiple columns) requires ExpressionAttribute. No JOINs. If you need that, consider Postgres." |
 | "GSI capacity — how much do we need?" | "Same as main table for the same throughput. Writes flow to both. If GSI falls behind (lag), queries might return stale data. Monitor with metrics." |
 | "How do we sync DynamoDB to ES for search?" | "DynamoDB Streams → Lambda → ES. Every write triggers Lambda, which updates ES. Lag depends on Lambda cold start (typically < 1 second)." |
@@ -437,7 +442,7 @@ Read from nearest region → always fast
 - **Partition key is fundamental**: determines which partition stores data. Choose carefully (avoid hotkeys).
 - **GSI costs extra**: each GSI is a separate table with its own capacity. Write goes to main table + all GSIs.
 - **Provisioned vs On-Demand**: provisioned is cheap at steady scale; on-demand is cheap for spiky/prototype.
-- **Hot partitions can't be solved in the app**: distribute key writes across sub-keys or cache hot reads.
+- **Hot partitions can't be solved by buying more table RCU**: you must split the key (salting/suffixes) or cache hot reads.
 - **Transactions are 2× cost**: use only when needed (multi-item atomicity).
 - **Streams + Lambda: powerful event-driven pattern**. Use for real-time sync to ES, caches, analytics.
 - **TTL is cheap**: auto-delete items without write cost.

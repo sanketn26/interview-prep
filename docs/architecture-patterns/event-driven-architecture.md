@@ -37,12 +37,17 @@ def place_order(order):
     event_bus.publish("OrderPlaced", order)
     # order_service is done. It doesn't know or care who's listening.
 
-# Elsewhere, entirely independently:
-inventory_service.on("OrderPlaced", lambda e: reserve(e.items))
-payment_service.on("OrderPlaced", lambda e: charge(e.total))
+# Fine for reactions that can be eventually consistent:
 notification_service.on("OrderPlaced", lambda e: send_confirmation(e))
 fraud_service.on("OrderPlaced", lambda e: score(e))          # added later, zero changes to order_service
 loyalty_service.on("OrderPlaced", lambda e: award_points(e))  # added later, zero changes to order_service
+
+# ANTIPATTERN for money: charging on OrderPlaced races inventory and can
+# capture payment for stock you never reserved (or charge after a reserve
+# that later fails). Charge only after inventory is reserved — an
+# orchestrated saga, not a free-floating OrderPlaced handler.
+#   inventory_service.on("OrderPlaced", reserve)          # still a choreography choice
+#   payment_service.on("StockReserved", charge)           # or a single orchestrator
 ```
 
 **The trade being made**: `order_service` no longer knows what happens after it publishes. That's the entire point — and it's also the entire cost. You've bought independent deployability and the ability to add new reactions without touching the source. You've paid for it with the one thing that made the request/response version easy to reason about: **you can no longer read the code and see the whole flow.**

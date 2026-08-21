@@ -230,7 +230,8 @@ def word_ladder(begin_word: str, end_word: str, word_list: set[str]) -> int:
                     visited.add(next_word)
                     queue.append((next_word, steps + 1))
 
-    return 0  # O(N × L × 26) where N=word list size, L=word length
+    return 0  # Time closer to O(N · L² · 26): each of N words, L positions, 26 letters;
+              # word[:i]+c+word[i+1:] copies O(L) characters. Space: O(N) visited.
 ```
 
 ### Course Schedule (Cycle Detection / Topological Sort)

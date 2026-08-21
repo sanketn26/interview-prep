@@ -58,7 +58,7 @@ This split is the entire architecture. Every version below is either improving c
 | Freshness — new item | Discoverable within minutes of upload, not next day's batch job | An item invisible for 24h has already lost its "new" momentum |
 | Freshness — user action | A click/watch 5–10 minutes ago should influence the *next* request | Stale personalization reads as "the app doesn't know me" |
 | Availability | 99.9% — always return *something*, never a blank/error surface | A broken recommender is worse than a mediocre one; fall back, don't fail |
-| Scale | 500M items catalog, 200M DAU, tens of thousands of recs requests/sec at peak | Drives the candidate-gen vs. full-rank decision from Section 1 |
+| Scale | 50M items catalog, 200M DAU, tens of thousands of recs requests/sec at peak | Drives the candidate-gen vs. full-rank decision from Section 1 |
 | Throughput of the ranking stage | Must score ~200–500 candidates per request within the latency budget | Ranking cost is per-candidate × candidates/request × requests/sec |
 
 !!! tip "Interview Insight 🎯"
