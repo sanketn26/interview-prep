@@ -98,16 +98,16 @@ storage_per_year_tb    43.8
 
 A runnable version, with Little's Law pool sizing and tail amplification, lives in [`examples/python/capacity.py`](https://github.com/sanketn26/interview-prep/blob/main/examples/python/capacity.py).
 
-Now the architecture is no longer a matter of taste. **1.4M reads/sec** means no single database serves reads — you need caching and fan-out. **13.9K writes/sec** is high but survivable on a sharded cluster. **43.8 TB/year** does not fit on one disk, so sharding is mandatory rather than optional. You did not choose those conclusions; the numbers did.
+Now the architecture is no longer a matter of taste. **1.4M reads/sec** is enough to challenge a conventional primary-database read path — benchmark the actual workload before assuming you need caching and fan-out, but budget for the possibility. **13.9K writes/sec** is high but survivable on a sharded cluster. **43.8 TB/year** will not remain sufficient for a naive single-disk design; the right next step depends on access patterns, retention, and query behavior, and may include partitioning, multiple volumes, tiering, or object storage rather than sharding by default. You did not choose those pressures; the numbers did — but the numbers name a bottleneck, not a mechanism.
 
 !!! warning "The peak multiplier is where designs die"
     Averaging 4.6K writes/sec sounds comfortable. But traffic concentrates — a 3× peak is conservative, and event-driven spikes (a World Cup goal, a celebrity post) can hit 10×. Designing for the average means designing for an outage.
 
 ---
 
-## Numbers Worth Memorizing
+## Order-of-Magnitude Anchors — Benchmark Before Design
 
-You cannot estimate without a few anchors. These are the ones that actually come up:
+You cannot estimate without a few anchors. These are the ones that actually come up — but they are starting points for a rough estimate, not numbers to design against blindly. Real capacity depends on query complexity, index use, row size, CPU, memory, contention, and network — benchmark the actual workload before a number here becomes an architectural decision.
 
 | Operation | Time | What it means in practice |
 |-----------|------|---------------------------|
@@ -140,7 +140,7 @@ A strong candidate's first five minutes contain almost no architecture:
 1. **Clarify the actual product.** "Is this read-heavy? Who are the users? What is out of scope?"
 2. **Name the constraint that matters.** Latency budget, consistency requirement, or cost ceiling — pick the one that will drive trade-offs.
 3. **Estimate.** Out loud, with round numbers.
-4. **State the bottleneck.** "At 1.4M reads/sec, the database is the problem, so the design is really about the read path."
+4. **State the bottleneck.** "At 1.4M reads/sec, the conventional read path is under pressure, so the design is really about the read path" — not "the database can't do this," which asserts a mechanism before benchmarking.
 5. *Then* draw.
 
 Steps 1–4 are what separates senior from mid-level. Most candidates skip straight to 5.
@@ -174,7 +174,7 @@ Think you know system design? Try answering these without Googling — expand ea
     First figure out *which* resource is saturated — CPU, IO, or connections — because the fix is different for each. Cheapest lever first: add a read replica and route reads there, or add a cache to absorb repeat reads. If writes are the bottleneck, that's harder — vertical scaling buys time, but the real fix is sharding or moving to an async write path (queue + batch). The trap is reaching for sharding before confirming the bottleneck isn't just a missing index or an N+1 query.
 
 ??? question "3. How do you decide between vertical and horizontal scaling?"
-    Vertical scaling (bigger machine) is simpler — no distributed-systems tax — but it hits a ceiling and creates a single point of failure. Horizontal scaling (more machines) has no ceiling but requires the workload to be partitionable and the app to be stateless. In practice: vertical scale first because it's free of complexity, and only go horizontal once you hit the ceiling or need redundancy anyway. Stateful services (databases) resist horizontal scaling far more than stateless app servers do.
+    Vertical scaling (bigger machine) is simpler — no distributed-systems tax — but it hits a ceiling and creates a single point of failure. Horizontal scaling (more machines) can substantially increase capacity when the workload is partitionable, but it isn't ceiling-free either: coordination overhead, metadata, hot keys, network bandwidth, consistency requirements, and control-plane cost all eventually become the new limiting factor. In practice: vertical scale first because it's free of complexity, and only go horizontal once you hit the ceiling or need redundancy anyway. Stateful services (databases) resist horizontal scaling far more than stateless app servers do.
 
 ??? question "4. What's the tradeoff between strong and eventual consistency?"
     Strong consistency means every read sees the latest write, at the cost of latency and availability during a partition — you may have to block or reject a read to guarantee that. Eventual consistency lets reads return stale data but stays fast and available, converging "eventually." The decision is per-field, not per-system: an account balance needs strong consistency, a "like" count usually doesn't. Picking eventual consistency without saying which staleness window is tolerable is a red flag in an interview.

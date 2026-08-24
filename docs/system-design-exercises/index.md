@@ -7,10 +7,14 @@ description: Guided designs. Architecture is revealed only after you have earned
 
 Work each exercise with the solution covered. V1 is always the simplest useful system. A component that does not kill a named bottleneck does not belong.
 
+!!! tip "Going past the checklist"
+    Every exercise ends with a Self-Assessment checklist — good for confirming you covered the material. A few flagship exercises ([URL shortener](url-shortener.md), [Rate limiter](rate-limiter.md), [Payment processing](payment-processing.md), [WhatsApp](whatsapp.md)) also carry a **Five-Level Self-Assessment** (Explain → Predict → Diagnose → Design → Defend) — a harder bar than "did I cover it," testing whether you can reason about the design under a new scenario, not just recall it. Apply the same five questions to any other exercise here once you've worked through it: state the core mechanism in one sentence, predict what breaks under a named change in load, diagnose a symptom back to its likely cause, extend the design to a new requirement, and defend your choice against the next-most-obvious alternative.
+
 ## First release
 
 | Exercise | Level | Status |
 |----------|-------|--------|
+| [Architectural subtraction](architectural-subtraction.md) | Senior / Staff | Complete |
 | [URL shortener](url-shortener.md) | Foundation | Complete |
 | [Rate limiter](rate-limiter.md) | Foundation / Senior | Complete |
 | [Payment processing](payment-processing.md) | Senior / Staff | Complete |
@@ -44,6 +48,7 @@ Work each exercise with the solution covered. V1 is always the simplest useful s
 | [Distributed Job Scheduler](distributed-job-scheduler.md) | Staff | Complete |
 | [Code Deployment / Release Orchestration](deployment-orchestration.md) | Staff | Complete |
 | [Video Calling](video-calling.md) | Staff | Complete |
+| [Capstone: The Scaling Journey (1K → 100M)](capstone-scaling-journey.md) | Staff | Complete |
 
 ## Planned
 

@@ -1,0 +1,78 @@
+name: labs-sharding
+
+services:
+  coordinator:
+    image: citusdata/citus:12.1
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: app_pass
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "appuser"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  worker1:
+    image: citusdata/citus:12.1
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: app_pass
+      POSTGRES_DB: appdb
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "appuser"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  worker2:
+    image: citusdata/citus:12.1
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: app_pass
+      POSTGRES_DB: appdb
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "appuser"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  worker3:
+    image: citusdata/citus:12.1
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: app_pass
+      POSTGRES_DB: appdb
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "appuser"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Runs once: waits for coordinator + all workers, then wires the cluster
+  # together with SELECT citus_add_node(...). This is the "shard count"
+  # control from the sim brought to life — add/remove services below and
+  # re-run this to change the cluster shape.
+  cluster-init:
+    image: citusdata/citus:12.1
+    depends_on:
+      coordinator:
+        condition: service_healthy
+      worker1:
+        condition: service_healthy
+      worker2:
+        condition: service_healthy
+      worker3:
+        condition: service_healthy
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        set -e
+        for w in worker1 worker2 worker3; do
+          psql -h coordinator -U appuser -d appdb -c "SELECT citus_add_node('$$w', 5432);"
+        done
+        psql -h coordinator -U appuser -d appdb -c "SELECT * FROM citus_get_active_worker_nodes();"
+    environment:
+      PGPASSWORD: app_pass

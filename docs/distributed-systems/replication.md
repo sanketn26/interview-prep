@@ -76,6 +76,41 @@ No node is special. Clients (or a coordinator) write to `W` of `N` replicas and 
 
 ---
 
+## Interactive Simulation
+
+Dial replication factor and read/write quorum, then kill nodes and inject latency. Watch **successful writes** collapse before **availability** does — quorum failures show up as write errors long before the cluster looks "down."
+
+<div class="sim-container">
+  <div class="sim-title">Quorum Replication</div>
+  <div class="sim-controls">
+    <button class="sim-btn" onclick="window._repl && window._repl.reset()">Reset</button>
+    <button class="sim-btn success" onclick="window._repl && window._repl.run()">Traffic</button>
+    <button class="sim-btn" onclick="window._repl && window._repl.pause()">Pause</button>
+    <button class="sim-btn" onclick="window._repl && window._repl.cycleRF()">RF: 3→5→3</button>
+    <button class="sim-btn" onclick="window._repl && window._repl.cycleQuorum()">Quorum: strict→weak</button>
+    <button class="sim-btn danger" onclick="window._repl && window._repl.killNode()">Kill node</button>
+    <button class="sim-btn" onclick="window._repl && window._repl.healNode()">Heal node</button>
+    <button class="sim-btn" onclick="window._repl && window._repl.latencySpike()">Latency spike</button>
+  </div>
+  <canvas id="repl-canvas" class="sim-canvas" style="width:100%;height:240px;"></canvas>
+  <div class="sim-stats">
+    <div class="sim-stat"><div class="sim-stat-label">RF (N)</div><div class="sim-stat-value" id="repl-n">3</div></div>
+    <div class="sim-stat"><div class="sim-stat-label">W / R quorum</div><div class="sim-stat-value" id="repl-wr">2 / 2</div></div>
+    <div class="sim-stat"><div class="sim-stat-label">Nodes up</div><div class="sim-stat-value" id="repl-up">3/3</div></div>
+    <div class="sim-stat"><div class="sim-stat-label">Availability</div><div class="sim-stat-value" id="repl-avail">100%</div></div>
+    <div class="sim-stat"><div class="sim-stat-label">Write success</div><div class="sim-stat-value" id="repl-wok">—</div></div>
+    <div class="sim-stat"><div class="sim-stat-label">Stale reads</div><div class="sim-stat-value" id="repl-stale">0</div></div>
+  </div>
+  <div class="sim-log" id="repl-log"></div>
+</div>
+
+Kill enough nodes that `up < W` and writes start failing outright — that's the quorum, not the cluster, running out of room. With `R + W > N` (strict quorum), stale reads stay near zero even under latency spikes; drop to `R=1` (weak quorum) and the same node kills produce many more stale reads instead of failed ones — the trade-off is failure mode, not just a number going up or down.
+
+!!! tip "Run it yourself"
+    Two real environments pair with this simulator: [`labs/postgres-replication`](https://github.com/sanketn26/interview-prep/blob/main/labs/postgres-replication) — a real primary + 2 streaming replicas where you flip sync/async live and run an actual `pg_promote()` failover — and [`labs/redis-cluster`](https://github.com/sanketn26/interview-prep/blob/main/labs/redis-cluster) — a real 3-Sentinel quorum that elects a new master after you kill the old one.
+
+---
+
 ## How It Works Internally
 
 ### Synchronous vs Asynchronous Replication

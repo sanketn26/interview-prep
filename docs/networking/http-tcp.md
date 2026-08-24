@@ -23,6 +23,20 @@ This page is the path: **browser → DNS → TCP → TLS → HTTP → LB → bac
 !!! tip "Mental Model"
     IP is the postcard address. UDP is dropping the postcard in a mailbox. TCP is a phone call: you both agree you are talking (handshake), you number every sentence (seq), you repeat yourself if the other person says "what?" (ACK / retransmit), and you hang up politely (FIN) or slam the phone (RST). HTTP is the *conversation* you have once the call is up. HTTP/2 is several conversations on one call. HTTP/3 is the same conversations, but the "call" is QUIC over UDP so a lost packet does not mute every other sentence.
 
+## Abstraction Levels
+
+=== "Mental Model"
+    IP addresses a host, TCP turns unreliable packets into a reliable ordered byte stream, TLS encrypts it, and HTTP is the request/response conversation riding on top.
+
+=== "Interview Simplification"
+    "HTTP/2 multiplexes requests over one TCP connection; HTTP/3/QUIC fixes head-of-line blocking by moving to UDP with independent per-stream delivery." Accurate enough to state directly.
+
+=== "Production Reality"
+    HTTP/2's multiplexing removes *application-level* HOL blocking (no more one-request-per-connection queuing) but a single lost TCP packet still stalls every stream on that connection — that's *transport-level* HOL blocking, and it's what QUIC actually fixes by giving each stream independent loss recovery. QUIC doesn't eliminate every connection-level effect, though — shared congestion control still couples streams' throughput even when their delivery is independent.
+
+=== "Where This Stops Being True"
+    Middleboxes (corporate proxies, some ISPs, restrictive firewalls) can throttle or block UDP outright, which is what QUIC needs — so HTTP/3 isn't a universal win until a client can reliably fall back to HTTP/2 over TCP. Real deployments negotiate this per-connection; assuming HTTP/3 "just works" for every client is the mistake to catch here.
+
 ---
 
 ## The Pieces, Without Mythology

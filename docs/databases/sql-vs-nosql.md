@@ -37,6 +37,20 @@ The model you pick shapes how painful every future query, migration, and scale-o
 !!! info "BASE vs ACID is a per-product choice, not a per-family one"
     It's tempting to say "relational is ACID, everything else is BASE" — but that's a claim about specific *products*, not about the data *model* itself, and several products break the pattern. **MongoDB** supports multi-document ACID transactions (since 4.0, single replica set; 4.2+, cross-shard). **Google Firestore/Spanner** offer strongly consistent, serializable transactions by design, not eventual consistency. **DynamoDB** offers `TransactWriteItems` for cross-item ACID operations alongside its default eventually-consistent reads. **TimescaleDB** — see the Time-Series section below — is literally PostgreSQL, and fully ACID. What's actually true is narrower: **wide-column stores at Cassandra/Bigtable/HBase's original design point, and key-value stores optimized for horizontal scale over strict consistency, tend toward BASE** — basically available, soft state, eventually consistent — as an explicit trade for horizontal scale and availability under partition (see [CAP theorem](../distributed-systems/cap-theorem.md)). Document, graph, and time-series products vary widely by vendor: know the specific product's actual guarantee before claiming "NoSQL means eventual consistency" in an interview — that phrase is a red flag for an interviewer who knows Spanner or MongoDB transactions exist.
 
+## Abstraction Levels
+
+=== "Mental Model"
+    Each database family optimizes its storage/index layout for one native access pattern — relations, aggregates, key lookups, time-ordered slices, graph traversal, or time-windowed metrics.
+
+=== "Interview Simplification"
+    "Use Postgres unless you have a specific, named reason not to" is a defensible default answer — most workloads at most companies fit comfortably on a well-tuned relational database, and it keeps transactions and joins available for free.
+
+=== "Production Reality"
+    A single "1.4M reads/sec" or "43.8 TB/year" figure never picks the database by itself — the actual ceiling depends on query complexity, index design, row size, working-set-vs-memory ratio, and consistency requirements (see [Foundations](../foundations/index.md#order-of-magnitude-anchors-benchmark-before-design)). BASE vs. ACID is a per-product choice, not a per-family one (see the note above) — know the specific product's guarantee, not the family's reputation.
+
+=== "Where This Stops Being True"
+    Once a workload genuinely needs two access patterns that fight each other in the same store — e.g., high-cardinality graph traversal *and* strict transactional consistency *and* massive time-series ingest — no single family serves all of it well, and the honest answer becomes "we run more than one database," each earning its place the same way any component does: by eliminating a bottleneck the others can't.
+
 ---
 
 ## The Six Families

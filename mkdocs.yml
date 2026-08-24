@@ -215,6 +215,7 @@ nav:
   - Practice:
     - Design Exercises:
       - system-design-exercises/index.md
+      - Architectural Subtraction: system-design-exercises/architectural-subtraction.md
       - URL Shortener: system-design-exercises/url-shortener.md
       - Rate Limiter: system-design-exercises/rate-limiter.md
       - Distributed Cache: system-design-exercises/distributed-cache.md
@@ -248,6 +249,7 @@ nav:
       - Distributed Job Scheduler: system-design-exercises/distributed-job-scheduler.md
       - Code Deployment / Release Orchestration: system-design-exercises/deployment-orchestration.md
       - Video Calling: system-design-exercises/video-calling.md
+      - "Capstone: The Scaling Journey": system-design-exercises/capstone-scaling-journey.md
     - LLD Problems:
       - lld-exercises/index.md
       - Parking Lot: lld-exercises/parking-lot.md

@@ -18,8 +18,8 @@ prerequisites:
 
 In 2000, Eric Brewer observed that distributed systems face an unavoidable tension. You cannot simultaneously guarantee all three of:
 
-- **Consistency** — every read returns the most recent write
-- **Availability** — every request gets a non-error response
+- **Consistency** — a single-copy / linearizable view: every operation appears to occur on one up-to-date copy of the data, respecting real-time ordering. (This is a much stronger guarantee than "eventually correct" — see [Consistency Models](consistency-models.md) for the weaker variants: causal, read-your-writes, sequential.)
+- **Availability** — every request sent to a non-failing node eventually receives a response, even though that response may not reflect the latest write
 - **Partition Tolerance** — the system keeps operating even when network messages are lost/delayed between nodes
 
 The CAP theorem formalizes this: **in the presence of a network partition, you must choose between consistency and availability.**
@@ -31,6 +31,20 @@ The CAP theorem formalizes this: **in the presence of a network partition, you m
     - If it accepts → Available but inconsistent
     - If it rejects → Consistent but unavailable
     - Partition Tolerance is not a choice — networks fail. The real choice is C vs A during a partition.
+
+## Abstraction Levels
+
+=== "Mental Model"
+    Pick two of Consistency, Availability, Partition Tolerance — and since networks fail, Partition Tolerance isn't optional, so it's really C vs. A during a partition.
+
+=== "Interview Simplification"
+    "MongoDB is CP, Cassandra is AP" — fine as a fast first answer, and the table below gives you the defaults to name. But be ready to go one level deeper if asked "why," because the honest answer is per-configuration, not per-database.
+
+=== "Production Reality"
+    CP/AP is a property of a specific operation under a specific configuration, not a fixed database identity — see [How Real Databases Behave](#how-real-databases-behave). Replication mode (sync/async) controls durability and latency; partition behavior is actually decided by quorum/consensus and fencing policy. Two systems both labeled "CP" can still differ in exactly which reads are guaranteed linearizable.
+
+=== "Where This Stops Being True"
+    Real outages are rarely a clean, total partition — they're partial, asymmetric (A can reach B but not vice versa), or a slow/flaky link rather than a severed one. CAP's binary framing is a useful teaching model; production incident response usually looks more like [Consistency Models](consistency-models.md)'s spectrum of guarantees than a single C-vs-A toggle.
 
 ---
 
@@ -50,11 +64,13 @@ graph TD
 
 ## CAP Categories
 
-| Category | Guarantee | Real Systems | Use When |
+| Category | Guarantee | Systems commonly configured this way | Use When |
 |----------|-----------|--------------|----------|
-| **CP** | Consistent + Partition Tolerant | ZooKeeper, etcd, HBase, MongoDB (default) | Financial data, config, coordination |
-| **AP** | Available + Partition Tolerant | Cassandra, CouchDB, DynamoDB (eventual) | Shopping carts, social feeds, DNS |
+| **CP** | Consistent + Partition Tolerant | ZooKeeper, etcd, HBase, MongoDB (default config) | Financial data, config, coordination |
+| **AP** | Available + Partition Tolerant | Cassandra, CouchDB, DynamoDB (eventual mode) | Shopping carts, social feeds, DNS |
 | **CA** | Consistent + Available | Single-node RDBMS | Not a distributed system — partitions aren't tolerated |
+
+CP/AP here describes the behavior of a specific operation under a specific configuration during a partition — not a database's permanent identity. Every row above except CA is tunable per the table in [How Real Databases Behave](#how-real-databases-behave) below.
 
 !!! warning "Production Trap"
     "CA" systems don't truly exist in distributed systems. Any distributed system must tolerate network partitions — otherwise a partition causes complete system failure. CA means "single node" in practice.

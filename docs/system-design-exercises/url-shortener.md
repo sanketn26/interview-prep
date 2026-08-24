@@ -379,3 +379,13 @@ Cost per redirect:
 - [ ] Can I walk through what happens when Redis goes down?
 - [ ] Can I estimate the cost within 2× accuracy?
 - [ ] Can I design the analytics feature without impacting redirect latency?
+
+---
+
+## Five-Level Self-Assessment
+
+1. **Explain:** What problem does the short-code counter + base62 approach solve that a random hash doesn't?
+2. **Predict:** Traffic doubles while Redis capacity stays fixed. What happens, and what's the cheapest fix?
+3. **Diagnose:** 404 rate on redirects spikes 20× overnight with no deploy. What's the likely cause?
+4. **Design:** Add per-URL click analytics without adding latency to the redirect's hot path.
+5. **Defend:** Why is fan-out-on-write for analytics preferable to querying an analytics DB synchronously on every redirect?

@@ -71,6 +71,49 @@ Write path (WHEN does the DB get the write, relative to the cache?)
 
 ---
 
+## Abstraction Levels
+
+=== "Mental Model"
+    A cache absorbs repeat reads of hot data so the database only sees the misses — hit rate is the whole game.
+
+=== "Interview Simplification"
+    "Add a cache in front of the database, cache-aside, LRU eviction, short TTL." A reasonable default answer that covers most read-heavy workloads.
+
+=== "Production Reality"
+    Hit rate is a function of four things fighting each other: how hot the request rate actually is, how big the working set is relative to cache size, how long the TTL holds an entry, and how much headroom the database has for the misses that get through. Get the working-set/cache-size ratio wrong and no TTL tuning saves you — the cache is thrashing, not caching. See the simulator below to feel that trade-off directly.
+
+=== "Where This Stops Being True"
+    A cache trades a slow, unreliable win (average-case latency) for a new failure mode: a cold cache, mass expiry, or a dependency outage below the cache can turn "the cache is helping" into "the cache is now the reason the database just got hit with 100% of traffic at once" (see [Cache Stampede](cache-stampede.md)). The cache is not free insurance — it's a component with its own capacity limits and its own way of failing.
+
+## Interactive Simulation
+
+Turn the dials until hit rate collapses — then watch DB QPS spike as a direct consequence, not a coincidence.
+
+<div class="sim-container">
+  <div class="sim-title">Cache Capacity</div>
+  <div class="sim-controls">
+    <button class="sim-btn" onclick="window._cachecap && window._cachecap.reset()">Reset</button>
+    <button class="sim-btn success" onclick="window._cachecap && window._cachecap.run()">Traffic</button>
+    <button class="sim-btn" onclick="window._cachecap && window._cachecap.pause()">Pause</button>
+    <button class="sim-btn" onclick="window._cachecap && window._cachecap.cycleWorkingSet()">Working set: small→large</button>
+    <button class="sim-btn" onclick="window._cachecap && window._cachecap.cycleCacheSize()">Cache size: large→small</button>
+    <button class="sim-btn" onclick="window._cachecap && window._cachecap.cycleTTL()">TTL: long→short</button>
+    <button class="sim-btn danger" onclick="window._cachecap && window._cachecap.expireAll()">Expire all (mass TTL hit)</button>
+  </div>
+  <canvas id="cachecap-canvas" class="sim-canvas" style="width:100%;height:240px;"></canvas>
+  <div class="sim-stats">
+    <div class="sim-stat"><div class="sim-stat-label">Hit rate</div><div class="sim-stat-value" id="cachecap-hit">—</div></div>
+    <div class="sim-stat"><div class="sim-stat-label">DB QPS</div><div class="sim-stat-value" id="cachecap-dbqps">0</div></div>
+    <div class="sim-stat"><div class="sim-stat-label">Working set / cache</div><div class="sim-stat-value" id="cachecap-ratio">—</div></div>
+    <div class="sim-stat"><div class="sim-stat-label">Stampede size</div><div class="sim-stat-value" id="cachecap-stampede">0</div></div>
+  </div>
+  <div class="sim-log" id="cachecap-log"></div>
+</div>
+
+The lesson: DB QPS isn't a smooth function of hit rate — it's the *miss* rate times the request rate, so a small drop in hit rate at high traffic is a large, sudden jump in DB load. **Expire all** shows the extreme case: every key misses at once, and "DB QPS" for that instant equals total request rate, which is exactly what a stampede is.
+
+---
+
 ## Architecture
 
 ```mermaid

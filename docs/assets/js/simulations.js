@@ -503,6 +503,7 @@ class ShardingSimulator {
     this.n = 4;
     this.counts = Array(4).fill(0);
     this.hot = false;
+    this.skewed = false;
     this.writes = 0;
     log(this.logId, "4 hash shards, even keys. Inject a hot key to see one shard melt while others idle.", "info");
     this.render();
@@ -515,13 +516,25 @@ class ShardingSimulator {
       for (let i = 0; i < 24; i++) {
         let s;
         if (this.hot && Math.random() < 0.7) s = 0;
-        else s = rand(0, this.n - 1);
+        else if (this.skewed) {
+          // Pareto-ish customer distribution: shard 0 gets ~45%, not one key at 70%.
+          const r = Math.random();
+          s = r < 0.45 ? 0 : rand(1, this.n - 1);
+        } else s = rand(0, this.n - 1);
         this.counts[s]++;
         this.writes++;
       }
       this.render();
     }, 250);
     log(this.logId, "Write load on", "ok");
+  }
+
+  cycleDistribution() {
+    this.skewed = !this.skewed;
+    log(this.logId, this.skewed
+      ? "Skewed customer traffic: no single hot key, but the top customer segment still lands ~45% on one shard. No alarm trips, but balance still degrades."
+      : "Uniform traffic restored.", this.skewed ? "warn" : "info");
+    this.render();
   }
 
   pause() { this.stop(); log(this.logId, "Paused", "warn"); }
@@ -552,7 +565,7 @@ class ShardingSimulator {
     setStat("shard-n", this.n);
     const max = Math.max(1, ...this.counts);
     const hotIdx = this.counts.indexOf(Math.max(...this.counts));
-    setStat("shard-hot", this.hot ? `S${hotIdx}` : "—");
+    setStat("shard-hot", (this.hot || this.skewed) ? `S${hotIdx}` : "—");
     setStat("shard-w", this.writes);
     const sized = sizeCanvas(this.canvas, 240);
     if (!sized) return;
@@ -562,7 +575,7 @@ class ShardingSimulator {
     this.counts.forEach((c, i) => {
       const h = (c / max) * (H - 60);
       const x = 10 + i * bw + 8;
-      ctx.fillStyle = this.hot && i === 0 ? "#c62828" : "#1565c0";
+      ctx.fillStyle = this.hot && i === 0 ? "#c62828" : (this.skewed && i === 0 ? "#f57f17" : "#1565c0");
       ctx.fillRect(x, H - 28 - h, bw - 16, h);
       ctx.fillStyle = "#ddd";
       ctx.font = "11px monospace";
@@ -570,6 +583,258 @@ class ShardingSimulator {
       ctx.fillText(`S${i}`, x + (bw - 16) / 2, H - 12);
       ctx.fillText(fmt(c), x + (bw - 16) / 2, H - 34 - h);
     });
+  }
+}
+
+// ── Quorum replication ────────────────────────────────────────
+
+class ReplicationSimulator {
+  constructor(canvasId, logId) {
+    this.canvas = document.getElementById(canvasId);
+    this.logId = logId;
+    this.reset();
+  }
+
+  reset() {
+    this.stop();
+    this.n = 3;
+    this.nodes = Array(this.n).fill(true);
+    this.strict = true;
+    this.latencySpiking = false;
+    this.writesOk = 0;
+    this.writesFail = 0;
+    this.staleReads = 0;
+    log(this.logId, "N=3 replicas, strict quorum (W=2, R=2, R+W>N). Kill a node, then watch writes fail once up-nodes < W.", "info");
+    this.render();
+  }
+
+  quorum() {
+    if (this.strict) {
+      const q = Math.floor(this.n / 2) + 1;
+      return { w: q, r: q };
+    }
+    return { w: 1, r: 1 };
+  }
+
+  upCount() { return this.nodes.filter(Boolean).length; }
+
+  run() {
+    if (this.running) return;
+    this.running = true;
+    this.interval = setInterval(() => {
+      const { w, r } = this.quorum();
+      const up = this.upCount();
+      for (let i = 0; i < 6; i++) {
+        if (up >= w) this.writesOk++;
+        else this.writesFail++;
+        // Stale read: possible whenever the read quorum can be satisfied
+        // without touching a node that has the latest write (r + w <= n),
+        // and more likely mid-latency-spike when replication lags.
+        const staleChance = (r + w <= this.n ? 0.35 : 0.03) * (this.latencySpiking ? 2.5 : 1);
+        if (up > 0 && Math.random() < staleChance) this.staleReads++;
+      }
+      this.render();
+    }, 250);
+    log(this.logId, "Traffic on", "ok");
+  }
+
+  pause() { this.stop(); log(this.logId, "Paused", "warn"); }
+  stop() { this.running = false; clearInterval(this.interval); }
+
+  cycleRF() {
+    this.n = this.n === 3 ? 5 : 3;
+    this.nodes = Array(this.n).fill(true);
+    log(this.logId, `Replication factor set to ${this.n}. Quorum size follows N — more replicas means a bigger quorum to satisfy, not just more durability.`, "warn");
+    this.render();
+  }
+
+  cycleQuorum() {
+    this.strict = !this.strict;
+    const { w, r } = this.quorum();
+    log(this.logId, this.strict
+      ? `Strict quorum: W=${w}, R=${r}, R+W>N=${this.n} — reads are guaranteed to overlap the latest write.`
+      : `Weak quorum: W=1, R=1 — fastest and most available, but reads and writes no longer provably overlap.`, this.strict ? "ok" : "err");
+    this.render();
+  }
+
+  killNode() {
+    const idx = this.nodes.findIndex(Boolean);
+    if (idx === -1) { log(this.logId, "All nodes already down.", "err"); return; }
+    this.nodes[idx] = false;
+    const up = this.upCount();
+    const { w } = this.quorum();
+    log(this.logId, up < w
+      ? `Node ${idx} killed. Only ${up}/${this.n} up — below W=${w}. Writes now fail, not just slow down.`
+      : `Node ${idx} killed. ${up}/${this.n} still up, quorum W=${w} still reachable.`, up < w ? "err" : "warn");
+    this.render();
+  }
+
+  healNode() {
+    const idx = this.nodes.findIndex(v => !v);
+    if (idx === -1) { log(this.logId, "All nodes already up.", "info"); return; }
+    this.nodes[idx] = true;
+    log(this.logId, `Node ${idx} healed and caught up (repair/anti-entropy, simulated).`, "ok");
+    this.render();
+  }
+
+  latencySpike() {
+    this.latencySpiking = !this.latencySpiking;
+    log(this.logId, this.latencySpiking
+      ? "Network latency spike injected — replication lags, staleness window widens."
+      : "Latency spike cleared.", this.latencySpiking ? "warn" : "info");
+    this.render();
+  }
+
+  render() {
+    const { w, r } = this.quorum();
+    const up = this.upCount();
+    setStat("repl-n", this.n);
+    setStat("repl-wr", `${w} / ${r}`);
+    setStat("repl-up", `${up}/${this.n}`);
+    setStat("repl-avail", up >= w ? "100%" : "0% (writes)");
+    const total = this.writesOk + this.writesFail;
+    setStat("repl-wok", total ? `${Math.round((this.writesOk / total) * 100)}%` : "—");
+    setStat("repl-stale", this.staleReads);
+
+    const sized = sizeCanvas(this.canvas, 240);
+    if (!sized) return;
+    const { ctx, W, H } = sized;
+    clearCanvas(ctx, W, H);
+    const cx = W / 2, cy = H / 2, radius = Math.min(W, H) / 2 - 40;
+    ctx.strokeStyle = "#333";
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.stroke();
+    this.nodes.forEach((isUp, i) => {
+      const angle = (i / this.n) * Math.PI * 2 - Math.PI / 2;
+      const x = cx + radius * Math.cos(angle);
+      const y = cy + radius * Math.sin(angle);
+      ctx.beginPath();
+      ctx.arc(x, y, 18, 0, Math.PI * 2);
+      ctx.fillStyle = isUp ? (this.latencySpiking ? "#f57f17" : "#2e7d32") : "#c62828";
+      ctx.fill();
+      ctx.fillStyle = "#fff";
+      ctx.font = "11px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(`N${i}`, x, y);
+    });
+    ctx.fillStyle = "#ddd";
+    ctx.font = "12px monospace";
+    ctx.textAlign = "center";
+    ctx.fillText(`W=${w}  R=${r}  N=${this.n}`, cx, cy);
+  }
+}
+
+// ── Cache capacity ─────────────────────────────────────────────
+
+class CacheCapacitySimulator {
+  constructor(canvasId, logId) {
+    this.canvas = document.getElementById(canvasId);
+    this.logId = logId;
+    this.reset();
+  }
+
+  reset() {
+    this.stop();
+    // Sizes are in "keys"; workingSet is how many distinct hot keys the
+    // request stream draws from, cacheSize is how many keys the cache holds.
+    this.workingSetSteps = [200, 800, 3000];
+    this.cacheSizeSteps = [1000, 400, 150];
+    this.wsIdx = 0;
+    this.csIdx = 0;
+    this.ttlSteps = ["long", "medium", "short"];
+    this.ttlIdx = 0;
+    this.requests = 0;
+    this.hits = 0;
+    this.dbQps = 0;
+    this.stampede = 0;
+    this.history = [];
+    log(this.logId, "Working set 200 keys, cache holds 1000 — everything fits, hit rate near 100%.", "info");
+    this.render();
+  }
+
+  workingSet() { return this.workingSetSteps[this.wsIdx]; }
+  cacheSize() { return this.cacheSizeSteps[this.csIdx]; }
+  ttlFactor() { return { long: 1.0, medium: 0.85, short: 0.6 }[this.ttlSteps[this.ttlIdx]]; }
+
+  run() {
+    if (this.running) return;
+    this.running = true;
+    this.interval = setInterval(() => {
+      const ws = this.workingSet(), cs = this.cacheSize();
+      // Fraction of the working set that fits in the cache, discounted by TTL churn.
+      const fitFraction = Math.min(1, cs / ws) * this.ttlFactor();
+      const batch = 40;
+      let hitsThisTick = 0;
+      for (let i = 0; i < batch; i++) {
+        this.requests++;
+        if (Math.random() < fitFraction) { this.hits++; hitsThisTick++; }
+      }
+      const misses = batch - hitsThisTick;
+      this.dbQps = misses * 4; // scale to a per-second-ish reading
+      this.history.push(this.dbQps);
+      if (this.history.length > 40) this.history.shift();
+      this.render();
+    }, 250);
+    log(this.logId, "Traffic on", "ok");
+  }
+
+  pause() { this.stop(); log(this.logId, "Paused", "warn"); }
+  stop() { this.running = false; clearInterval(this.interval); }
+
+  cycleWorkingSet() {
+    this.wsIdx = (this.wsIdx + 1) % this.workingSetSteps.length;
+    log(this.logId, `Working set now ${fmt(this.workingSet())} distinct hot keys.`, "warn");
+    this.render();
+  }
+
+  cycleCacheSize() {
+    this.csIdx = (this.csIdx + 1) % this.cacheSizeSteps.length;
+    log(this.logId, `Cache now holds ${fmt(this.cacheSize())} keys. Once this drops below the working set, hit rate falls off a cliff, not a slope.`, "warn");
+    this.render();
+  }
+
+  cycleTTL() {
+    this.ttlIdx = (this.ttlIdx + 1) % this.ttlSteps.length;
+    log(this.logId, `TTL set to ${this.ttlSteps[this.ttlIdx]}. Shorter TTL means more churn even for keys that would otherwise still fit.`, "warn");
+    this.render();
+  }
+
+  expireAll() {
+    this.stampede = 40;
+    this.dbQps = 160;
+    this.history.push(this.dbQps);
+    if (this.history.length > 40) this.history.shift();
+    log(this.logId, "Mass TTL expiry — every request in this tick misses at once. This is what a stampede looks like: DB QPS spikes to ~request rate, not to the miss rate you'd predict from steady-state hit rate.", "err");
+    this.render();
+    setTimeout(() => { this.stampede = 0; this.render(); }, 1200);
+  }
+
+  render() {
+    const ws = this.workingSet(), cs = this.cacheSize();
+    const hitRate = this.requests ? this.hits / this.requests : 1;
+    setStat("cachecap-hit", `${Math.round(hitRate * 100)}%`);
+    setStat("cachecap-dbqps", this.dbQps);
+    setStat("cachecap-ratio", `${fmt(ws)} / ${fmt(cs)}`);
+    setStat("cachecap-stampede", this.stampede);
+
+    const sized = sizeCanvas(this.canvas, 240);
+    if (!sized) return;
+    const { ctx, W, H } = sized;
+    clearCanvas(ctx, W, H);
+    const max = Math.max(160, ...this.history, 1);
+    const bw = (W - 20) / 40;
+    this.history.forEach((v, i) => {
+      const h = (v / max) * (H - 40);
+      const x = 10 + i * bw;
+      ctx.fillStyle = v > 100 ? "#c62828" : v > 30 ? "#f57f17" : "#1565c0";
+      ctx.fillRect(x, H - 20 - h, Math.max(2, bw - 2), h);
+    });
+    ctx.fillStyle = "#ddd";
+    ctx.font = "11px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText("DB QPS over time →", 10, 16);
   }
 }
 
@@ -3360,6 +3625,8 @@ document.addEventListener("DOMContentLoaded", () => {
     window._gv = new GraphViz("graph-canvas", "graph-log");
   }
   if (document.getElementById("shard-canvas")) window._shard = new ShardingSimulator("shard-canvas", "shard-log");
+  if (document.getElementById("repl-canvas")) window._repl = new ReplicationSimulator("repl-canvas", "repl-log");
+  if (document.getElementById("cachecap-canvas")) window._cachecap = new CacheCapacitySimulator("cachecap-canvas", "cachecap-log");
   if (document.getElementById("lb-canvas")) window._lb = new LoadBalancerSim("lb-canvas", "lb-log");
   if (document.getElementById("retry-canvas")) window._retry = new RetryStormSim("retry-canvas", "retry-log");
   if (document.getElementById("cb-canvas")) window._cb = new CircuitBreakerSim("cb-canvas", "cb-log");
@@ -3394,7 +3661,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // Expose constructors for tests / playgrounds
 window.AcademySims = {
   ConsistentHashingRing, KafkaSimulator, CacheStampedeSimulator, RateLimiterSimulator,
-  ShardingSimulator, LoadBalancerSim, RetryStormSim, CircuitBreakerSim, RaftSim,
+  ShardingSimulator, ReplicationSimulator, CacheCapacitySimulator, LoadBalancerSim, RetryStormSim, CircuitBreakerSim, RaftSim,
   SagaSim, TailLatencySim, DnsSim, TcpSim, K8sSim, CapacityCalc, MathCalc,
   SlidingWindowViz, GraphViz, DpViz, FrameworkWalkthrough,
   HeapViz, DijkstraViz, UnionFindViz, NQueensViz, SortViz, TrieViz, GreedyViz, KmpViz,

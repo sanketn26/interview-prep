@@ -444,3 +444,13 @@ Lever: do not persist typing indicators; sample presence; compress history; tier
 - [ ] I can walk Redis-down, Kafka-down, and 20-minute replica lag
 - [ ] I did not put media bytes in the message table
 - [ ] I can explain multi-device catch-up with `after_seq`
+
+---
+
+## Five-Level Self-Assessment
+
+1. **Explain:** What problem does persisting a message before ACKing it solve that ACK-then-persist doesn't?
+2. **Predict:** A group with 50,000 members gets a message. What happens under fan-out-on-write, and at what group size does that stop being the right choice?
+3. **Diagnose:** One user's messages are arriving out of order on their second device but not their first. What's the likely cause?
+4. **Design:** Add read receipts without adding a write to the hot message-send path for every recipient.
+5. **Defend:** Why is sender-key-based group encryption preferable to encrypting each group message separately per recipient?

@@ -44,6 +44,27 @@ Consumer Group "order-processor":
 
 ---
 
+## Abstraction Levels
+
+=== "Mental Model"
+    A distributed, ordered log split into partitions. Producers append; consumers read at their own pace, tracked by an offset. Ordering exists only within a partition.
+
+=== "Interview Simplification"
+    "Kafka gives you ordering, at-least-once delivery, and horizontal scale via partitions and consumer groups. Exactly-once is available if producer and consumer are both configured for it." True enough to state under time pressure — but say "within Kafka" if pressed on exactly-once (see below).
+
+=== "Production Reality"
+    Ordering is per-partition, not global — a naive partition key or a repartition changes which messages land together. "Exactly-once" is three separable layers — idempotent producer (dedupes retried appends), Kafka transactions (atomic consume-produce-commit *inside Kafka*), and everything downstream of Kafka (a DB write, an email, a payment) still needs its own idempotency, because Kafka cannot make an external side effect exactly-once by itself. Rebalancing also isn't one behavior: eager rebalancing stops the whole group; cooperative/incremental rebalancing (2.4+) only reassigns the partitions that actually moved.
+
+=== "Where This Stops Being True"
+    The moment your consumer does async or multi-threaded processing, retries, or writes to a dead-letter queue and replays later — Kafka's per-partition log order no longer implies your *processing* order. At that point ordering is a property you have to re-establish in your consumer, not something Kafka is still guaranteeing for you.
+
+See [Exactly-Once Semantics](kafka-internals-pulsar-comparison.md) and [Ordering Guarantees](#ordering-guarantees) below for the full detail behind each claim above.
+
+!!! tip "Run it yourself"
+    The simulator above shows the mechanism; a 3-broker Kafka cluster you can actually kill lives in [`labs/kafka`](https://github.com/sanketn26/interview-prep/blob/main/labs/kafka) — create a real topic, kill a real broker, and watch a real leader election and consumer-group rebalance.
+
+---
+
 ## Architecture
 
 ```mermaid

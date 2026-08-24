@@ -567,3 +567,13 @@ Dashboards:
 - [ ] Can I explain the transactional outbox pattern and why it's needed?
 - [ ] Can I describe what happens when the database fails after the PSP charge succeeds?
 - [ ] Can I explain why we never store raw card numbers?
+
+---
+
+## Five-Level Self-Assessment
+
+1. **Explain:** What problem does an idempotency key solve that a database unique constraint alone doesn't?
+2. **Predict:** The PSP's API starts timing out (not erroring — timing out) on 10% of requests. What happens to your retry logic, and where does it go wrong if retries aren't idempotent?
+3. **Diagnose:** A customer is charged twice for one order, with no retry visible in your logs. What's the likely cause?
+4. **Design:** Add support for partial refunds without breaking the existing full-refund idempotency guarantees.
+5. **Defend:** Why is the transactional outbox pattern preferable to "just call the PSP inside the same DB transaction"?

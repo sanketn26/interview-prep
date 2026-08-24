@@ -35,6 +35,20 @@ Timeouts, backoff, jitter, then a **circuit breaker** — not as decoration, as 
 
     `timeout bounds the wait` · `retry is a loan` · `breaker is the credit limit` · `bulkhead is the room`
 
+## Abstraction Levels
+
+=== "Mental Model"
+    Retry a failed call, with backoff and jitter so retries don't sync up into their own wave; a circuit breaker stops retrying entirely once a dependency is clearly down.
+
+=== "Interview Simplification"
+    "Add exponential backoff with jitter, cap retry count, add a circuit breaker." Correct and sufficient as a first answer.
+
+=== "Production Reality"
+    Retries multiply load on the callee — 3 retries at 1000 rps is up to 4000 rps hitting a dependency that was already failing, which is how a partial outage becomes a total one (see the simulator below). The fix isn't just backoff — it's also *retry budgets* (cap total retries as a fraction of traffic, cluster-wide, not per-request) and making sure retries are only issued for genuinely retryable failures (idempotent operations, not e.g. a payment charge with an unknown outcome).
+
+=== "Where This Stops Being True"
+    A circuit breaker protects a *dependency* from *your* traffic; it does nothing for correctness if the calls it's guarding aren't idempotent — an open-then-half-open cycle can still double-execute a non-idempotent operation on the probe. Past a certain fan-out (many services each retrying independently into a shared downstream), even individually well-behaved retry budgets can still add up to an overload the downstream never sees coming — that requires load shedding or backpressure at the shared dependency itself, not just discipline at each caller.
+
 ---
 
 ## Naive System → What Breaks

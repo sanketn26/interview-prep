@@ -1,0 +1,59 @@
+name: labs-pg-replication
+
+services:
+  primary:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: app_pass
+      POSTGRES_DB: appdb
+    # Starts fully async. The README walks you through flipping replica1 to
+    # a synchronous standby live (ALTER SYSTEM + reload) once it's caught
+    # up — turning it on before any standby exists would deadlock the
+    # primary's own startup (it would wait forever for an ACK from a
+    # standby that can't exist until the primary finishes starting).
+    command: >
+      postgres
+      -c wal_level=replica
+      -c max_wal_senders=10
+    volumes:
+      - ./init-primary.sh:/docker-entrypoint-initdb.d/init-primary.sh:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "appuser"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  replica1:
+    image: postgres:16
+    hostname: replica1
+    depends_on:
+      primary:
+        condition: service_healthy
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      PRIMARY_HOST: primary
+      APP_NAME: replica1
+    entrypoint: ["/replica-entrypoint.sh"]
+    volumes:
+      - ./replica-entrypoint.sh:/replica-entrypoint.sh:ro
+    ports:
+      - "5433:5432"
+
+  replica2:
+    image: postgres:16
+    hostname: replica2
+    depends_on:
+      primary:
+        condition: service_healthy
+    environment:
+      PGDATA: /var/lib/postgresql/data
+      PRIMARY_HOST: primary
+      APP_NAME: replica2
+    entrypoint: ["/replica-entrypoint.sh"]
+    volumes:
+      - ./replica-entrypoint.sh:/replica-entrypoint.sh:ro
+    ports:
+      - "5434:5432"

@@ -10,9 +10,11 @@ Simulations live on the **host concept page**, next to the failure they illustra
 | Simulation | What you learn | Host |
 |------------|----------------|------|
 | Consistent hashing ring | Add/remove a node; only a slice remaps | [Consistent hashing](../databases/consistent-hashing.md) |
+| Quorum replication | RF, W/R quorum, kill/heal nodes, latency spike → availability, write success, staleness | [Replication](../distributed-systems/replication.md) |
 | Database sharding | Hash shards, 70% hot key, reshard cost | [Sharding](../databases/sharding.md) |
 | Kafka partitions & groups | Parallelism = partitions; extra consumers idle; kill → rebalance | [Kafka](../messaging/kafka.md) |
 | Cache stampede | Hot key expires; lock / jitter / SWR | [Cache stampede](../performance/cache-stampede.md) |
+| Cache capacity | Working set vs. cache size vs. TTL → hit rate, DB QPS, stampede size | [Cache strategies](../performance/cache-strategies.md) |
 | Rate limiter | Token bucket vs windows; burst → reject | [Rate limiting](../reliability/rate-limiting.md) |
 | Load balancer | RR / weighted / least-conn / hash; dead backend | [Load balancing](../networking/load-balancing.md) |
 | Retry storm | 1000 rps × 3 retries = you DDoS yourself | [Circuit breakers](../reliability/circuit-breakers.md) |
@@ -25,7 +27,7 @@ Simulations live on the **host concept page**, next to the failure they illustra
 | K8s request flow | Ingress → Service → Endpoints → Pod | [Kubernetes](../kubernetes/index.md) |
 | Capacity calculator | DAU → QPS, miss rate, storage, RF | [Requirements](../foundations/requirements-estimation.md) · [Calculators](../reference/calculators.md) |
 
-**15 priority simulations** above. **16 DSA visualizers** on pattern pages (not every DSA page has one):
+**17 priority simulations** above. **16 DSA visualizers** on pattern pages (not every DSA page has one):
 
 | Visualizer | Host |
 |------------|------|
@@ -50,3 +52,6 @@ Foundations, two pointers, binary search, and the pattern-recognition index have
 
 !!! note "How to use a sim"
     Predict the log line **before** you click Kill / Fail / Hot key. If the screen surprises you, the mental model is wrong — re-read the host page.
+
+!!! tip "Beyond the canvas: real environments"
+    Four of the simulations above have a real-process counterpart in [`labs/`](https://github.com/sanketn26/interview-prep/blob/main/labs) — Docker Compose stacks where you kill an actual Kafka broker, Postgres replica, or Redis Sentinel instead of a canvas node. The simulator teaches the mechanism in 30 seconds; the lab is the next step once you want to see the real timing and edge cases.

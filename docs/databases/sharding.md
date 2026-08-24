@@ -84,7 +84,7 @@ graph TD
 
 ## Interactive Simulation
 
-Four hash shards. Run write load, then **Hot key 70%** — consistent hashing cannot save a celebrity `user_id`. Add a shard to see modular hash remap everything; **Reshard** simulates the even cutover you wish you had.
+Four hash shards. Run write load, then **Hot key 70%** — consistent hashing cannot save a celebrity `user_id`. Toggle **Traffic: uniform → skewed** to see a milder, more realistic customer-distribution imbalance (a Pareto-ish spread across customers, not one celebrity key) — notice it degrades shard balance without ever tripping the single-hot-key alarm. Add a shard to see modular hash remap everything; **Reshard** simulates the even cutover you wish you had.
 
 <div class="sim-container">
   <div class="sim-title">Database Sharding</div>
@@ -93,6 +93,7 @@ Four hash shards. Run write load, then **Hot key 70%** — consistent hashing ca
     <button class="sim-btn success" onclick="window._shard && window._shard.run()">Write load</button>
     <button class="sim-btn" onclick="window._shard && window._shard.pause()">Pause</button>
     <button class="sim-btn" onclick="window._shard && window._shard.addShard()">Add shard</button>
+    <button class="sim-btn" onclick="window._shard && window._shard.cycleDistribution()">Traffic: uniform→skewed</button>
     <button class="sim-btn danger" onclick="window._shard && window._shard.hotKey()">Hot key 70%</button>
     <button class="sim-btn" onclick="window._shard && window._shard.reshard()">Reshard</button>
   </div>
@@ -104,6 +105,9 @@ Four hash shards. Run write load, then **Hot key 70%** — consistent hashing ca
   </div>
   <div class="sim-log" id="shard-log"></div>
 </div>
+
+!!! tip "Run it yourself"
+    A real sharded Postgres cluster (Citus — 1 coordinator + 3 workers) lives in [`labs/sharding-citus`](https://github.com/sanketn26/interview-prep/blob/main/labs/sharding-citus) — distribute a real table, query `pg_dist_shard_placement` to see actual shard balance, and reproduce a real hot shard with `docker stats` showing one container doing all the work.
 
 ---
 

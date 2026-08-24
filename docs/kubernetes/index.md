@@ -25,6 +25,20 @@ This page is a field guide: the objects, the path, the probes, then a diagnosis 
 !!! tip "Mental Model"
     A **Pod** is a rented room (one or more containers, one network namespace, one IP). A **Deployment** is the hotel manager that keeps N rooms occupied. A **Service** is the front-desk phone number (stable virtual IP) — it does **not** run your app. **Endpoints / EndpointSlice** is the current list of room numbers that are *Ready*. **Ingress** is the street address and the bouncer (HTTP routing / TLS). If the phone list is empty, calling the front desk fails even if rooms exist.
 
+## Abstraction Levels
+
+=== "Mental Model"
+    A Deployment keeps N pods running; a Service gives them a stable address; Ingress routes external HTTP to that Service; probes decide whether a pod counts as "ready" to receive traffic at all.
+
+=== "Interview Simplification"
+    "Kubernetes handles scheduling, self-healing, and rolling updates — set requests/limits and readiness/liveness probes and it manages the rest." True as far as it goes, and enough for most interview answers.
+
+=== "Production Reality"
+    "3/3 Ready" in the Deployment can coexist with zero working requests — the failure is usually in a hop the Deployment status doesn't cover: a Service with no matching Endpoints (label selector typo), a readiness probe that passes before the app can actually serve, or a liveness probe that hits a slow dependency and kills healthy pods under load. `kubectl` diagnosis means walking Client → Ingress → Service → Endpoints → Pod and checking each hop individually, not trusting the top-level status.
+
+=== "Where This Stops Being True"
+    Kubernetes' self-healing assumes failures are legible to it — a crashed process, a failed probe. It does nothing for a pod that's alive, ready, and silently returning wrong answers (a logic bug, a bad config rollout, a corrupted cache) — that's an application-observability problem, not something the scheduler or probes can catch.
+
 ---
 
 ## The Objects That Matter

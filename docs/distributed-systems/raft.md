@@ -33,6 +33,20 @@ This is **consensus**: one history, despite crashes and delayed packets. Raft is
 
     `leader = sequencer` · `term = epoch` · `majority-of-current-term-entries = commit` · `timeout = election`
 
+## Abstraction Levels
+
+=== "Mental Model"
+    A leader sequences writes into a log; a majority must persist an entry before it's committed; a new leader can never forget a committed entry.
+
+=== "Interview Simplification"
+    "Raft gives you strongly consistent, linearizable reads and writes as long as a majority of nodes are up." True for the common configuration — enough for most interview answers.
+
+=== "Production Reality"
+    Plain reads served by the leader without a fresh heartbeat/lease check are *not* automatically linearizable — a leader can be partitioned-off and not yet know it, and would otherwise serve stale reads while believing it's still leader. Real implementations add a read-index or lease mechanism specifically to close that gap. Log compaction, snapshotting, and membership changes (adding/removing nodes) are also real operational surfaces Raft's core algorithm doesn't make free.
+
+=== "Where This Stops Being True"
+    Raft assumes crash-fault (not Byzantine) failures — a node can stop or lag, but not lie. It also assumes bounded-enough clock/timeout behavior for election timeouts to work; on a badly misbehaving network (not down, just erratic), you can get livelock — repeated elections with no leader converging — until randomized timeouts happen to separate far enough. Neither assumption holds in adversarial or extremely pathological network environments.
+
 ---
 
 ## Naive System → What Breaks

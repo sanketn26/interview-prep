@@ -1,0 +1,79 @@
+name: labs-redis-sentinel
+
+x-sentinel-conf: &sentinel-conf |
+  port 26379
+  sentinel resolve-hostnames yes
+  sentinel announce-hostnames yes
+  sentinel monitor mymaster redis-master 6379 2
+  sentinel down-after-milliseconds mymaster 5000
+  sentinel failover-timeout mymaster 10000
+  sentinel parallel-syncs mymaster 1
+
+services:
+  redis-master:
+    image: redis:7
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis-replica1:
+    image: redis:7
+    command: redis-server --replicaof redis-master 6379 --appendonly yes
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    ports:
+      - "6380:6379"
+
+  redis-replica2:
+    image: redis:7
+    command: redis-server --replicaof redis-master 6379 --appendonly yes
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    ports:
+      - "6381:6379"
+
+  sentinel1:
+    image: redis:7
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    command: >
+      sh -c "printf '%s' \"$$SENTINEL_CONF\" > /tmp/sentinel.conf &&
+             redis-server /tmp/sentinel.conf --sentinel"
+    environment:
+      SENTINEL_CONF: *sentinel-conf
+    ports:
+      - "26379:26379"
+
+  sentinel2:
+    image: redis:7
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    command: >
+      sh -c "printf '%s' \"$$SENTINEL_CONF\" > /tmp/sentinel.conf &&
+             redis-server /tmp/sentinel.conf --sentinel"
+    environment:
+      SENTINEL_CONF: *sentinel-conf
+    ports:
+      - "26380:26379"
+
+  sentinel3:
+    image: redis:7
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    command: >
+      sh -c "printf '%s' \"$$SENTINEL_CONF\" > /tmp/sentinel.conf &&
+             redis-server /tmp/sentinel.conf --sentinel"
+    environment:
+      SENTINEL_CONF: *sentinel-conf
+    ports:
+      - "26381:26379"

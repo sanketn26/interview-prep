@@ -439,3 +439,13 @@ Cost lever: local slices drop Redis QPS from 200K to ~20K
 - [ ] I know why app clocks and `INCR`+`EXPIRE` are racy
 - [ ] I can describe a hot-key mitigation that is not “bigger Redis”
 - [ ] I can say when a global quota is the wrong product requirement
+
+---
+
+## Five-Level Self-Assessment
+
+1. **Explain:** What problem does the token bucket algorithm solve that fixed-window doesn't?
+2. **Predict:** A single tenant starts sending 50× their normal traffic. What happens to other tenants sharing the same Redis instance?
+3. **Diagnose:** Deny rate for one endpoint class jumps to 100% right after a deploy, with no traffic change. What's the likely cause?
+4. **Design:** Add a per-tenant override (some tenants get higher limits) without a redeploy for every limit change.
+5. **Defend:** Why is fail-open the right default for a read endpoint but fail-closed the right default for a payment endpoint?

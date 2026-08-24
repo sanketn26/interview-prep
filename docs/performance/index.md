@@ -99,6 +99,22 @@ The unifying lesson: **caching is a consistency decision disguised as a performa
 
 ---
 
+## Solving High Read Load — Compared, Not Catalogued
+
+A cache is not the only answer to "reads are the bottleneck," and reaching for it by reflex skips a real decision. Five mechanisms solve the same named problem in different ways — the senior skill is picking between them against the actual constraint, not knowing that all five exist.
+
+| Mechanism | Latency win | Consistency cost | Complexity added | New failure mode | Cost |
+|---|---|---|---|---|---|
+| **Cache** (Redis/Memcached in front of DB) | Largest — sub-ms on hit | Two copies of the truth; staleness window you must define | A new component to run, monitor, and invalidate correctly | Stampede on mass expiry; cache becomes a single point of failure with good latency | Memory-bound, cheap per GB, but another thing on call |
+| **Read replica** | Moderate — still a DB round trip, but off the write path | Replication lag; a user can fail to see their own recent write | Routing logic (which reads go to replica vs. primary) | Replica lag spikes under primary write load, silently serving staler data than usual | Linear in replica count; each replica is a full DB copy |
+| **Denormalization** | Moderate — avoids a join/aggregation at read time | Write-time cost: every write must also update the denormalized copy, and those can drift out of sync | Write path gets more complex; every denormalized field is a new place to have a bug | A missed write path (new code that forgets to update the copy) silently corrupts reads with no error | Storage grows with duplication, but no new runtime component |
+| **Precomputation** (materialized views, batch-computed feeds) | Largest for expensive aggregations — read becomes a lookup | Freshness is bounded by computation cadence, not real-time | A scheduling/pipeline component (cron, stream job) that must be monitored for lag/failure | Silent staleness if the pipeline fails and nobody notices — the read still "works," just with old data | Compute cost shifts from read time to a scheduled job; cheap if reads vastly outnumber recomputes |
+| **Partitioning / sharding** | Improves *throughput* more than any single read's latency | None inherently — but enables per-shard scaling, which often *is* paired with relaxed cross-shard consistency | The largest jump — cross-shard queries, rebalancing, hot-shard risk | A hot shard reproduces the exact bottleneck you were trying to fix, now isolated to one shard | Operational complexity rises sharply; usually the last resort, not the first |
+
+None of these are mutually exclusive, and none is free. The most common mistake is reaching for a cache because it has the biggest latency win, without checking whether the actual constraint is staleness tolerance (denormalization/precomputation might be safer), write amplification (a replica might be simpler), or throughput at a scale a single DB genuinely can't reach (only then is sharding justified). Name the constraint first, then pick from this table — not the other way around.
+
+---
+
 ## Pages in This Section
 
 | Page | Status |
