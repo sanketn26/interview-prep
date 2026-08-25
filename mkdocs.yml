@@ -291,6 +291,18 @@ nav:
       - Advanced String Matching: dsa/advanced-string-matching.md
     - Simulations:
       - playgrounds/index.md
+    - Labs:
+      - labs/index.md
+      - Kafka Cluster: labs/kafka.md
+      - Postgres Replication: labs/postgres-replication.md
+      - Redis Sentinel: labs/redis-cluster.md
+      - Sharded Postgres (Citus): labs/sharding-citus.md
+      - etcd Cluster: labs/etcd-cluster.md
+      - Rate Limiter Races: labs/rate-limiter.md
+      - Retry Storm: labs/retry-storm.md
+      - Load Balancer Algorithms: labs/load-balancer.md
+      - Kubernetes (kind): labs/kubernetes-kind.md
+      - Terraform + Docker: labs/terraform-docker.md
   - Behavioural:
     - behavioural/index.md
     - Framework: behavioural/framework.md

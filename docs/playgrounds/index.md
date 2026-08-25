@@ -54,4 +54,4 @@ Foundations, two pointers, binary search, and the pattern-recognition index have
     Predict the log line **before** you click Kill / Fail / Hot key. If the screen surprises you, the mental model is wrong — re-read the host page.
 
 !!! tip "Beyond the canvas: real environments"
-    Four of the simulations above have a real-process counterpart in [`labs/`](https://github.com/sanketn26/interview-prep/blob/main/labs) — Docker Compose stacks where you kill an actual Kafka broker, Postgres replica, or Redis Sentinel instead of a canvas node. The simulator teaches the mechanism in 30 seconds; the lab is the next step once you want to see the real timing and edge cases.
+    Several of the simulations above have a real-process counterpart in [Labs](../labs/index.md) — Docker Compose (and one Terraform) environments where you kill an actual Kafka broker, Postgres replica, or Redis Sentinel instead of a canvas node. The simulator teaches the mechanism in 30 seconds; the lab is the next step once you want to see the real timing and edge cases.
