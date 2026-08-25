@@ -105,6 +105,9 @@ If Endpoints is empty, the Service still has an IP. Packets go to a black hole o
 
 **Try:** Fail readiness, then Send request. The pod is still "there." The Service will not send it work.
 
+!!! tip "Run it yourself"
+    [`labs/kubernetes-kind`](https://github.com/sanketn26/interview-prep/blob/main/labs/kubernetes-kind) is a real 3-node cluster with a real ingress controller — break a Service selector and watch a stale keepalive connection survive it for a request or two before failing cleanly, or break a readiness probe mid-rollout and watch Kubernetes correctly refuse to finish replacing your working pods with broken ones.
+
 ---
 
 ## Probes — Three Different Questions

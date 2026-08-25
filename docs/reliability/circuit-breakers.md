@@ -187,6 +187,9 @@ Trip the breaker with 80% failures, then heal. Then run the retry-storm view: sl
   <div class="sim-log" id="retry-log"></div>
 </div>
 
+!!! tip "Run it yourself"
+    [`labs/retry-storm`](https://github.com/sanketn26/interview-prep/blob/main/labs/retry-storm) reproduces this page's opening scenario for real: Toxiproxy injects a downstream timeout in front of a real backend, and you measure the amplification directly — 10 client requests become roughly 40 real backend hits, not an assumed number.
+
 ---
 
 ## Failure Modes

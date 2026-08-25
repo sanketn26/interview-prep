@@ -84,6 +84,9 @@ graph LR
 
 **Try:** Inject a burst of 200 requests. Observe how token bucket handles it vs fixed window.
 
+!!! tip "Run it yourself"
+    [`labs/rate-limiter`](https://github.com/sanketn26/interview-prep/blob/main/labs/rate-limiter) reproduces two real races with plain `redis-cli`: a naive `INCR`+`EXPIRE` counter whose window never actually closes under continuous traffic, and a check-then-act limiter that lets 20 requests through a limit of 5 under real concurrency — then fixes both with one atomic Lua script.
+
 ---
 
 ## Algorithms

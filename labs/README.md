@@ -5,8 +5,10 @@ Docker Compose environments for the topics that benefit from a real process to k
 ## Requirements
 
 - Docker and Docker Compose v2 (`docker compose version` should work)
+- [`labs/kubernetes-kind`](kubernetes-kind/) additionally needs `kind` and `kubectl` (`brew install kind kubectl`)
+- [`labs/terraform-docker`](terraform-docker/) additionally needs Terraform (`brew install hashicorp/tap/terraform`)
 - A few GB of free RAM if you run more than one lab at a time — these are not lightweight
-- Nothing here is meant to stay running; every lab ends with `docker compose down -v`
+- Nothing here is meant to stay running; every lab ends with `docker compose down -v` (or `kind delete cluster` for the K8s lab)
 
 ## Labs
 
@@ -16,6 +18,12 @@ Docker Compose environments for the topics that benefit from a real process to k
 | [Postgres replication](postgres-replication/) | [Replication](../docs/distributed-systems/replication.md) | Flip sync/async live, watch a sync write hang when its standby is down, cause a real split-brain with `pg_promote()` |
 | [Redis Sentinel](redis-cluster/) | [Replication](../docs/distributed-systems/replication.md), [Quorum Replication simulator](../docs/playgrounds/index.md) | Watch a 3-node quorum vote a new master in after killing the old one, and watch it reconfigure the old master as a replica automatically |
 | [Sharded Postgres (Citus)](sharding-citus/) | [Sharding](../docs/databases/sharding.md) | Query `pg_dist_shard_placement` to see real shard balance, watch a cross-shard query plan fan out, reproduce a real hot shard |
+| [etcd cluster](etcd-cluster/) | [Raft](../docs/distributed-systems/raft.md), [CAP Theorem](../docs/distributed-systems/cap-theorem.md) | Kill a minority (writes keep working) vs. a majority (writes refuse, not corrupt) of a real Raft quorum; watch `--consistency=serializable` succeed without quorum while `linearizable` fails |
+| [Rate limiter races](rate-limiter/) | [Rate Limiting](../docs/reliability/rate-limiting.md) | Reproduce a real TOCTOU race that lets 20 requests through a limit of 5, and a real "TTL never expires" bug — then fix both with one atomic Lua script |
+| [Retry storm](retry-storm/) | [Circuit Breakers](../docs/reliability/circuit-breakers.md) | Inject a real fault with Toxiproxy and measure retry amplification directly: 10 client requests become ~40 real backend hits |
+| [Load balancer algorithms](load-balancer/) | [Load Balancing](../docs/networking/load-balancing.md) | Swap round robin / weighted / least-connections on a real nginx `upstream` block and watch the distribution actually change; watch a dead backend get routed around with zero client-visible errors |
+| [Kubernetes (kind)](kubernetes-kind/) | [Kubernetes](../docs/kubernetes/index.md) | A real 3-node cluster: break a Service selector and watch a stale keepalive connection survive it briefly before failing; break a readiness probe and watch a rollout correctly refuse to finish |
+| [Terraform + Docker](terraform-docker/) | [Infrastructure as Code](../docs/cloud/infrastructure-as-code.md), [Terraform](../docs/cloud/terraform.md) | Real `plan`/`apply`/`destroy` against real containers (no cloud account): prove idempotency, trigger real drift detection, and watch a real `-/+` forced replacement |
 
 ## How to use one
 

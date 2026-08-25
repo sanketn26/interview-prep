@@ -2,14 +2,14 @@
 title: Terraform
 description: State, plan/apply, modules, and drift — why "click delete in the console" is how Terraform outages actually start.
 prerequisites:
-  - Docker (helpful context, not required)
+  - Infrastructure as Code
 ---
 
 # Terraform
 
-**Prerequisites:** none strictly required.
+**Prerequisites:** [Infrastructure as Code](infrastructure-as-code.md) — the concepts (declarative vs. imperative, idempotency, drift) this page assumes.
 
-[← Docker](docker.md) | [Next: CI/CD →](cicd.md)
+[← Infrastructure as Code](infrastructure-as-code.md) | [Next: CI/CD →](cicd.md)
 
 ---
 
@@ -39,6 +39,9 @@ flowchart LR
 - **`plan`** — a dry run. Read it like a code review: `+` create, `~` update in place, `-/+` destroy-and-recreate. **`-/+` is the line that causes outages** — it means the resource can't be updated, only replaced, which for a database means data loss unless you've planned for it.
 - **`apply`** — executes the plan. Never `apply` without having read the `plan` output first; `-auto-approve` in a human's terminal is how "add a tag" becomes "recreate the load balancer."
 - **`destroy`** — tears down everything Terraform manages in that state. One command, entire environment — treat it with the same caution as `DROP DATABASE`.
+
+!!! tip "Run it yourself"
+    [`labs/terraform-docker`](https://github.com/sanketn26/interview-prep/blob/main/labs/terraform-docker) runs this exact workflow against real Docker containers instead of a cloud account — `init`/`plan`/`apply`, a real drift-detection cycle, a real `-/+` forced-replacement plan, and scaling a `count` up without touching existing resources.
 
 ---
 
@@ -166,4 +169,4 @@ Drift is reality diverging from state — someone (or some other automation) cha
     5. Manual "just this once" console changes get reverted by the next `apply` unless the config is updated same-day
     6. Modules are the reuse mechanism — they also enforce the org's defaults if the platform team owns them
 
-**Previous:** [Docker](docker.md) | **Next:** [CI/CD](cicd.md)
+**Previous:** [Infrastructure as Code](infrastructure-as-code.md) | **Next:** [CI/CD](cicd.md)

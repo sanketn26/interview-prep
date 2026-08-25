@@ -9,7 +9,7 @@ prerequisites:
 
 **Prerequisites:** none strictly required — helpful to have seen a `Dockerfile` before.
 
-[← Cloud](index.md) | [Next: Terraform →](terraform.md)
+[← Cloud](index.md) | [Next: Infrastructure as Code →](infrastructure-as-code.md)
 
 ---
 
@@ -190,4 +190,4 @@ The writable layer survives `docker stop` / `docker start` — the same containe
     6. Never bake secrets into a layer — `docker history` remembers everything
     7. Pin to a digest in production; `:latest` is not a version
 
-**Previous:** [Cloud](index.md) | **Next:** [Terraform](terraform.md)
+**Previous:** [Cloud](index.md) | **Next:** [Infrastructure as Code](infrastructure-as-code.md)

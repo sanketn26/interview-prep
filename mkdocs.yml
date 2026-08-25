@@ -195,6 +195,7 @@ nav:
       - cloud/index.md
       - Cloud Provider Comparison: cloud/providers.md
       - Docker: cloud/docker.md
+      - Infrastructure as Code: cloud/infrastructure-as-code.md
       - Terraform: cloud/terraform.md
       - CI/CD: cloud/cicd.md
       - Deployment Strategies: cloud/deployment-strategies.md

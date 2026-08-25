@@ -101,6 +101,9 @@ Three nodes. Change the algorithm. Kill N0. Watch new requests skip it and in-fl
 
 **Try:** Run → Kill N0. Then switch to consistent hash and add a node — only a slice of keys should move, unlike round robin which immediately reshuffles everyone.
 
+!!! tip "Run it yourself"
+    [`labs/load-balancer`](https://github.com/sanketn26/interview-prep/blob/main/labs/load-balancer) is a real nginx `upstream` block in front of three real backends (one deliberately slow) — swap round robin for weighted or least-connections by editing config and reloading, kill a backend and watch nginx route around it with zero client-visible errors, and measure how `least_conn` actually treats the slow backend differently under concurrent load.
+
 ---
 
 ## Algorithms

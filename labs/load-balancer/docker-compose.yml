@@ -1,0 +1,57 @@
+name: labs-load-balancer
+
+services:
+  backend1:
+    image: python:3.12-slim
+    command: ["python", "/app/backend.py"]
+    environment:
+      BACKEND_ID: backend1
+    volumes:
+      - ./backend.py:/app/backend.py:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  backend2:
+    image: python:3.12-slim
+    command: ["python", "/app/backend.py"]
+    environment:
+      BACKEND_ID: backend2
+    volumes:
+      - ./backend.py:/app/backend.py:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  backend3:
+    image: python:3.12-slim
+    command: ["python", "/app/backend.py"]
+    environment:
+      BACKEND_ID: backend3
+      # This backend is deliberately slow — pairs with the least_conn exercise.
+      SLEEP_MS: "300"
+    volumes:
+      - ./backend.py:/app/backend.py:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  lb:
+    image: nginx:1.27
+    depends_on:
+      backend1:
+        condition: service_healthy
+      backend2:
+        condition: service_healthy
+      backend3:
+        condition: service_healthy
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "8080:80"

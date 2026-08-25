@@ -30,6 +30,7 @@ Four questions map to four pages:
 | Question | Page |
 |----------|------|
 | How does my code become a runnable, portable artifact? | [Docker](docker.md) |
+| What's the general idea behind "infrastructure defined as text," before any specific tool? | [Infrastructure as Code](infrastructure-as-code.md) |
 | How does the infrastructure that artifact runs on get created, and stay reproducible? | [Terraform](terraform.md) |
 | How does a commit turn into a running artifact, automatically and safely? | [CI/CD](cicd.md) |
 | How does a new version reach users without an outage? | [Deployment Strategies](deployment-strategies.md) |
@@ -46,6 +47,7 @@ Four questions map to four pages:
 |------|--------|
 | [Cloud Provider Comparison](providers.md) | **NEW** — AWS/GCP/Azure mental models; VPC & Auth as foundations; service mappings across providers |
 | [Docker](docker.md) | Images vs. containers, layer caching, multi-stage builds, networking, volumes |
+| [Infrastructure as Code](infrastructure-as-code.md) | Declarative vs. imperative, idempotency, the reconciliation loop, tool landscape |
 | [Terraform](terraform.md) | State, plan/apply, modules, drift, blast radius |
 | [CI/CD](cicd.md) | Pipeline stages, artifact promotion, GitOps, security gates |
 | [Deployment Strategies](deployment-strategies.md) | Rolling, blue-green, canary, and 12 more — with the failure each one buys you out of |
