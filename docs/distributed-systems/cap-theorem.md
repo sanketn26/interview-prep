@@ -38,7 +38,7 @@ The CAP theorem formalizes this: **in the presence of a network partition, you m
     Pick two of Consistency, Availability, Partition Tolerance — and since networks fail, Partition Tolerance isn't optional, so it's really C vs. A during a partition.
 
 === "Interview Simplification"
-    "MongoDB is CP, Cassandra is AP" — fine as a fast first answer, and the table below gives you the defaults to name. But be ready to go one level deeper if asked "why," because the honest answer is per-configuration, not per-database.
+    Typical interview shorthand: "MongoDB is CP, Cassandra is AP." Fine as a fast first answer for common configurations. Be ready to go one level deeper if asked "why," because the honest answer is per-configuration — topology, election, and read/write concern — not a permanent product identity.
 
 === "Production Reality"
     CP/AP is a property of a specific operation under a specific configuration, not a fixed database identity — see [How Real Databases Behave](#how-real-databases-behave). Replication mode (sync/async) controls durability and latency; partition behavior is actually decided by quorum/consensus and fencing policy. Two systems both labeled "CP" can still differ in exactly which reads are guaranteed linearizable.
@@ -64,11 +64,13 @@ graph TD
 
 ## CAP Categories
 
-| Category | Guarantee | Systems commonly configured this way | Use When |
-|----------|-----------|--------------|----------|
-| **CP** | Consistent + Partition Tolerant | ZooKeeper, etcd, HBase, MongoDB (default config) | Financial data, config, coordination |
-| **AP** | Available + Partition Tolerant | Cassandra, CouchDB, DynamoDB (eventual mode) | Shopping carts, social feeds, DNS |
-| **CA** | Consistent + Available | Single-node RDBMS | Not a distributed system — partitions aren't tolerated |
+Typical interview shorthand — not a permanent product identity. The same database can look CP-like or AP-like depending on topology and consistency settings.
+
+| Category | Guarantee | Systems commonly configured this way | Depends on | Use When |
+|----------|-----------|--------------|----------|----------|
+| **CP** | Consistent + Partition Tolerant | ZooKeeper, etcd, HBase, MongoDB (often CP-like) | Topology, election, read/write concern, quorum/fencing | Financial data, config, coordination |
+| **AP** | Available + Partition Tolerant | Cassandra, CouchDB, DynamoDB (eventual mode) | Replication factor + chosen consistency level | Shopping carts, social feeds, DNS |
+| **CA** | Consistent + Available | Single-node RDBMS | Not a distributed system — partitions aren't tolerated | Single-node only |
 
 CP/AP here describes the behavior of a specific operation under a specific configuration during a partition — not a database's permanent identity. Every row above except CA is tunable per the table in [How Real Databases Behave](#how-real-databases-behave) below.
 
@@ -81,17 +83,17 @@ CP/AP here describes the behavior of a specific operation under a specific confi
 
 "CP" and "AP" are configuration defaults, not fixed identities — most of these systems let you dial the trade-off per-query. What matters in an interview is knowing the *default*, *why* it was chosen, and — critically — that what actually determines partition behavior is topology, quorum/fencing policy, and which reads/writes are allowed during a partition, **not** replication mode alone. Sync vs. async replication changes acknowledgement durability and latency; it doesn't by itself decide what happens when nodes can't reach each other.
 
-| Database | Default | Mechanism | Can you change it? |
-|---|---|---|---|
-| **MongoDB** | CP-leaning | Single primary per shard via replica-set election (Raft-like); writes go to primary. Primary reads are consistent *relative to that primary*, but not linearizable unless you also set `readConcern: linearizable`, which adds a majority-read round trip | `readPreference: secondaryPreferred` trades consistency for availability/latency on reads; `readConcern`/`writeConcern` levels are the real CP/AP-ish knobs, not "primary vs secondary" alone |
-| **Cassandra** | AP | Leaderless, any replica accepts writes; tunable consistency levels (`ONE`, `QUORUM`, `ALL`) | Yes, per-query — `QUORUM` reads+writes narrows the staleness window at the cost of latency; `ONE` is fully AP. `QUORUM` is not the same guarantee as a consensus-backed CP system — it narrows staleness, it doesn't provide linearizability |
-| **PostgreSQL** (with replicas) | CP for the primary's own reads/writes; replica behavior depends entirely on topology | Single writer (primary). Synchronous replication blocks the write until a standby acks — this controls **durability and latency**, not partition behavior by itself | Whether the system stays *available* during a partition depends on your failover policy: automatic failover needs a fencing/quorum mechanism (e.g. Patroni + etcd) to avoid two primaries after a split; without one, a naive setup can produce split-brain, which is worse than either CP or AP |
-| **Redis** (Cluster/Sentinel) | AP in practice | Asynchronous replication by default; a failed-over replica can be missing the last few writes | `WAIT N timeout` makes the *client* wait for N replicas to ack before treating a write as durable — it reduces the data-loss window on failover, it does **not** make Redis linearizable or turn the cluster into a CP system; split-brain during a partition is still possible without proper fencing |
-| **DynamoDB** | AP (tunable) | Eventually consistent reads by default; `ConsistentRead: true` opts a single read into strong consistency *within a region* | Yes — per-request, not global; cross-region behavior (Global Tables) is still eventually consistent regardless of this flag |
-| **etcd / ZooKeeper** | CP | Raft/ZAB consensus — a write only commits after a majority quorum acks; a minority partition can't elect a leader or commit new writes | Writes: no — quorum commit isn't optional, that's the entire point of a coordination service. Reads: yes — etcd defaults to `linearizable` reads (a quorum round trip, so it also blocks without a majority); opting into `--consistency=serializable` skips quorum for lower cost at the price of possibly-stale data. ZooKeeper's ordinary read is local-and-possibly-stale by default, and `sync()` before a read forces it to catch up to the leader first |
+| Database | Typical interview shorthand | Depends on | Mechanism | Can you change it? |
+|---|---|---|---|---|
+| **MongoDB** | Often CP-like | Topology, replica-set election, `readConcern` / `writeConcern` | Single primary per shard via replica-set election (Raft-like); writes go to primary. Primary reads are consistent *relative to that primary*, but not linearizable unless you also set `readConcern: linearizable`, which adds a majority-read round trip | `readPreference: secondaryPreferred` trades consistency for availability/latency on reads; `readConcern`/`writeConcern` levels are the real CP/AP-ish knobs, not "primary vs secondary" alone |
+| **Cassandra** | Often AP-like | Replication factor + chosen consistency level (`ONE`, `QUORUM`, `ALL`) | Leaderless, any replica accepts writes; tunable consistency levels | Yes, per-query — `QUORUM` reads+writes narrows the staleness window at the cost of latency; `ONE` is fully AP. `QUORUM` is not the same guarantee as a consensus-backed CP system — it narrows staleness, it doesn't provide linearizability |
+| **PostgreSQL** (with replicas) | Often CP-like on the primary | Topology, failover/fencing policy, sync vs async replication | Single writer (primary). Synchronous replication blocks the write until a standby acks — this controls **durability and latency**, not partition behavior by itself | Whether the system stays *available* during a partition depends on your failover policy: automatic failover needs a fencing/quorum mechanism (e.g. Patroni + etcd) to avoid two primaries after a split; without one, a naive setup can produce split-brain, which is worse than either CP or AP |
+| **Redis** (Cluster/Sentinel) | Topology-dependent | Replication, failover, quorum/fencing | Asynchronous replication by default; a failed-over replica can be missing the last few writes | `WAIT N timeout` makes the *client* wait for N replicas to ack before treating a write as durable — it reduces the data-loss window on failover, it does **not** make Redis linearizable or turn the cluster into a CP system; split-brain during a partition is still possible without proper fencing |
+| **DynamoDB** | Often AP-like by default | Per-request `ConsistentRead`; Global Tables remain eventually consistent | Eventually consistent reads by default; `ConsistentRead: true` opts a single read into strong consistency *within a region* | Yes — per-request, not global; cross-region behavior (Global Tables) is still eventually consistent regardless of this flag |
+| **etcd / ZooKeeper** | Often CP-like | Quorum membership; read consistency mode | Raft/ZAB consensus — a write only commits after a majority quorum acks; a minority partition can't elect a leader or commit new writes | Writes: no — quorum commit isn't optional, that's the entire point of a coordination service. Reads: yes — etcd defaults to `linearizable` reads (a quorum round trip, so it also blocks without a majority); opting into `--consistency=serializable` skips quorum for lower cost at the price of possibly-stale data. ZooKeeper's ordinary read is local-and-possibly-stale by default, and `sync()` before a read forces it to catch up to the leader first |
 
 !!! note "Interview Insight 🎯"
-    Naming "MongoDB is CP, Cassandra is AP" is table stakes. The senior answer separates two different things that are easy to conflate: **replication mode** (sync/async) controls durability and latency, while **partition behavior** (what happens when nodes can't talk to each other) is actually determined by consensus/quorum and fencing — whether a minority side can still accept writes, and whether something prevents two nodes from both believing they're primary. "We use synchronous replication" answers a durability question; it doesn't by itself answer "are we CP or AP," which is why a system with synchronous replication but no fencing can still split-brain during a partition.
+    Typical interview shorthand — "MongoDB is CP, Cassandra is AP" — is table stakes for common configurations. The senior answer treats that as shorthand, not identity, and separates two different things that are easy to conflate: **replication mode** (sync/async) controls durability and latency, while **partition behavior** (what happens when nodes can't talk to each other) is actually determined by consensus/quorum and fencing — whether a minority side can still accept writes, and whether something prevents two nodes from both believing they're primary. "We use synchronous replication" answers a durability question; it doesn't by itself answer "are we CP or AP," which is why a system with synchronous replication but no fencing can still split-brain during a partition.
 
 !!! tip "Run it yourself"
     The etcd row above is checkable, not just quotable: [`labs/etcd-cluster`](https://github.com/sanketn26/interview-prep/blob/main/labs/etcd-cluster) is a real 3-node Raft cluster where you kill a minority (writes keep working), kill a majority (writes refuse with a clean timeout, never corrupt), and run the exact `--consistency=serializable` vs. `--consistency=linearizable` comparison this table describes.
@@ -152,13 +154,15 @@ CAP only covers the partition case. **PACELC** extends it:
 > **If Partition (P):** choose Availability (A) or Consistency (C).
 > **Else (E) — no partition:** choose Latency (L) or Consistency (C).
 
-| System | Partition behavior | Normal behavior |
-|--------|--------------------|-----------------|
-| DynamoDB | Available (AP) | Low Latency (EL) |
-| Cassandra | Available (AP) | Low Latency (EL) |
-| MongoDB | Consistent (CP) | Low Latency (EL) |
-| Spanner | Consistent (CP) | Consistent (EC) |
-| HBase | Consistent (CP) | Consistent (EC) |
+Typical interview shorthand / common configuration — not a fixed product identity:
+
+| System | Typical interview shorthand (partition) | Typical interview shorthand (normal) | Depends on |
+|--------|-----------------------------------------|--------------------------------------|------------|
+| DynamoDB | Often available (AP-like) | Often low latency (EL) | Per-request `ConsistentRead`; Global Tables stay eventually consistent |
+| Cassandra | Often available (AP-like) | Often low latency (EL) | Replication + chosen consistency level |
+| MongoDB | Often consistent (CP-like) | Often low latency (EL) | Topology, election, read/write concern |
+| Spanner | Typically consistent (CP-like) | Typically consistent (EC) | TrueTime / consensus configuration |
+| HBase | Typically consistent (CP-like) | Typically consistent (EC) | Region-server / ZooKeeper topology |
 
 !!! note "Interview Insight 🎯"
     PACELC is more useful in real design conversations than CAP alone because most distributed systems don't experience partitions often — the latency vs consistency trade-off (the "EL" part) dominates daily operation.
@@ -301,9 +305,9 @@ Symptom: User sees stale data after a write
     "I start with the data: what happens if two nodes accept conflicting writes and we can't reconcile them? For financial transactions — unacceptable, CP. For a shopping cart — a merge strategy handles it, AP is fine. I also consider access patterns: how frequently do partitions actually occur in our infrastructure? If we're single-region with good networking, partitions are rare, so the 'EL' part of PACELC (latency vs consistency during normal operation) matters more than the partition case."
 
 === "Staff"
-    **Q: We're migrating from a CP system (PostgreSQL) to a globally distributed AP system (Cassandra) to reduce latency in APAC. What are the organizational and engineering risks?**
+    **Q: We're migrating from a typically CP-like system (PostgreSQL) to a globally distributed, often AP-like system (Cassandra) to reduce latency in APAC. What are the organizational and engineering risks?**
 
-    "First, I'd challenge the premise — why do we need global writes? Read replicas might get us 80% of the latency win without the consistency complexity. If we do proceed: we need to audit every write path for conflict sensitivity, design conflict resolution upfront (LWW is dangerous for inventory), ensure the application can handle 'eventual' — meaning UI, notifications, billing. Operationally, the team needs Cassandra expertise and tooling. I'd also set SLOs for read-your-writes guarantees and measure violation rates from day one. And plan the migration incrementally — start with non-critical writes."
+    "First, I'd challenge the premise — and the labels. PostgreSQL-with-replicas and Cassandra are not permanently CP and AP; both depend on topology and consistency settings. Why do we need global writes? Read replicas might get us 80% of the latency win without the consistency complexity. If we do proceed: we need to audit every write path for conflict sensitivity, design conflict resolution upfront (LWW is dangerous for inventory), ensure the application can handle 'eventual' — meaning UI, notifications, billing. Operationally, the team needs Cassandra expertise and tooling. I'd also set SLOs for read-your-writes guarantees and measure violation rates from day one. And plan the migration incrementally — start with non-critical writes."
 
 ---
 

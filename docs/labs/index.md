@@ -39,7 +39,16 @@ git clone https://github.com/sanketn26/interview-prep
 cd interview-prep/labs/<name>
 ```
 
-Then follow that lab's `README.md` — a numbered sequence of exercises. Predict the outcome before running each command, the same discipline the [Playgrounds](../playgrounds/index.md) page asks for. Tear down when done; nothing here is designed to be left running.
+Then follow that lab's `README.md` — a numbered sequence of exercises. Tear down when done; nothing here is designed to be left running.
+
+**Lab cycle (every exercise):** **predict → run → compare → explain.**
+
+1. **Predict** the log line, error, or metric before you run the command.
+2. **Run** it.
+3. **Compare** the actual output to the prediction.
+4. **Explain** any gap in your own words; if you were surprised, re-read the paired concept page before the next step.
+
+This is the same discipline the [Playgrounds](../playgrounds/index.md) page asks for, applied to a real process.
 
 ## A note on what these are for
 

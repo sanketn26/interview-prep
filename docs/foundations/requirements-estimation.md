@@ -164,7 +164,7 @@ Estimates, not accounting. Being within 2–3× is a pass. Being off by 100× (f
 
 ## Interactive Explainer
 
-Change DAU, peak, payload, RF, and hit rate. Flags fire when the physics stops fitting a "single primary + app."
+Change DAU, peak, payload, RF, and hit rate. Flags fire when a naive single-primary layout is no longer a safe default — they name a bottleneck, not a mandatory mechanism.
 
 <div class="sim-container">
   <div class="sim-title">Capacity Calculator</div>

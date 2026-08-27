@@ -40,7 +40,7 @@ That asymmetry — the queue's correctness bugs are invisible until a consumer's
 ## 3. Functional Requirements
 
 - Producers publish messages to a named topic, optionally with a partition key
-- Topics are split into partitions; messages within a partition are strictly ordered
+- Topics are split into partitions; the log within a partition is an ordered append sequence
 - Consumers join a named consumer group; partitions are distributed across the group's members
 - Consumers track progress via a committed offset per partition, per group
 - Messages are retained for a configurable period (or size), independent of whether they've been consumed
@@ -50,7 +50,7 @@ That asymmetry — the queue's correctness bugs are invisible until a consumer's
 
 | Property | Requirement | Reasoning |
 |----------|-------------|-----------|
-| Ordering | Strict order **within a partition**; no guarantee across partitions | Global order would serialize all writes onto one partition — kills throughput. This is the trade every real system like this makes. |
+| Ordering | Ordered append/log sequence **within a partition**; no global order across partitions | Global order would serialize all writes onto one partition — kills throughput. Log order is not an automatic consumer-processing or end-to-end side-effect guarantee. |
 | Durability | Zero message loss for any message acknowledged with `acks=all`, surviving loss of any *one* broker | The queue is the durability contract other systems build on; a silent drop is worse than a visible error |
 | Replication factor | RF=3 by default for durability-critical topics | Tolerates one broker failure without data loss (needs 2 of 3 to survive) |
 | Throughput | 1M messages/sec sustained across the cluster | Realistic for a shared platform backing multiple services |

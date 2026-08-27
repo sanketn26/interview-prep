@@ -42,10 +42,10 @@ See [Replication](../distributed-systems/replication.md) and [Consensus & Raft](
 | **Relational (SQL)** | ACID transactions, joins, mature tooling, strong schema guarantees | Vertical scaling limits; sharding is manual and painful | Transactional data with relationships — orders, payments, users |
 | **Key-Value (e.g. DynamoDB, Redis)** | Extremely fast point lookups; scales horizontally with ease | No joins, limited query patterns beyond the key | Sessions, caching, feature flags, simple lookups |
 | **Document (e.g. MongoDB)** | Flexible schema; natural fit for nested/object data | Weaker cross-document transactions historically; denormalization duplicates data | Content management, catalogs, semi-structured data that changes shape |
-| **Wide-column (e.g. Cassandra, HBase)** | Massive write throughput; tunable consistency; good for time-series | Query patterns must be designed upfront (no ad-hoc joins); eventual consistency by default | High-write telemetry, time-series, systems needing AP over CP |
+| **Wide-column (e.g. Cassandra, HBase)** | Massive write throughput; tunable consistency; good for time-series | Query patterns must be designed upfront (no ad-hoc joins); eventual consistency by default | High-write telemetry, time-series, workloads that can use an often AP-like consistency level — not a permanent CAP identity |
 | **Graph (e.g. Neo4j)** | Efficient traversal of deeply connected data | Not built for high-volume simple lookups; smaller ecosystem | Social graphs, recommendation engines, fraud-ring detection |
 
-See [SQL vs NoSQL](../databases/sql-vs-nosql.md) for the full decision framework, and [CAP Theorem](../distributed-systems/cap-theorem.md) for why most NoSQL stores default AP.
+See [SQL vs NoSQL](../databases/sql-vs-nosql.md) for the full decision framework, and [CAP Theorem](../distributed-systems/cap-theorem.md) for why CP/AP is typical interview shorthand for a configuration, not a product identity.
 
 ---
 
@@ -71,7 +71,7 @@ See [Cache Strategies](../performance/cache-strategies.md) for implementation de
 |----------|------|------|----------|
 | **Point-to-point queue** | Each message consumed by exactly one worker; natural load distribution | Not designed for multiple independent consumers needing the same message | Task/job processing — one unit of work, one worker |
 | **Pub/Sub (topic)** | Multiple independent consumers/services all receive every message | Requires each consumer to manage its own offset/ack; fan-out increases downstream load | Event broadcasting — order placed, user signed up, multiple services react |
-| **Kafka (log-based, hybrid)** | Combines both: partitions give queue-like parallelism, consumer groups give pub/sub fan-out, and the log is replayable | Ordering only within a partition; operational complexity (partitions, rebalancing, ISR) | High-throughput event streaming where replay and multiple consumer groups both matter — see [Kafka Deep Dive](../messaging/kafka.md) |
+| **Kafka (log-based, hybrid)** | Combines both: partitions give queue-like parallelism, consumer groups give pub/sub fan-out, and the log is replayable | Log order only within a partition; consumer processing and downstream side effects are not automatic; operational complexity (partitions, rebalancing, ISR) | High-throughput event streaming where replay and multiple consumer groups both matter — see [Kafka Deep Dive](../messaging/kafka.md) |
 
 ### Delivery Guarantees
 
@@ -79,7 +79,7 @@ See [Cache Strategies](../performance/cache-strategies.md) for implementation de
 |----------|------|------|----------|
 | **At-most-once** | Fastest, simplest (fire and forget) | Messages can be silently lost | Metrics/telemetry where occasional loss is fine |
 | **At-least-once** | No message loss | Consumers must handle duplicates (need idempotency) | The default for most systems — pair with idempotent writes |
-| **Exactly-once** | No loss, no duplicates from the app's point of view | Significant complexity (idempotent producers + transactional consumers); throughput cost | Financial ledger entries, billing — where duplicates or loss are both unacceptable |
+| **Exactly-once** | Kafka-centric consume/process/produce can coordinate offsets, output records, and Streams state atomically | Not a universal end-to-end guarantee: external DB/API/email/payment side effects still need their own idempotency; throughput cost | Kafka-internal pipelines where duplicates inside Kafka are unacceptable — still pair with idempotent sinks at the edges |
 
 See [Message Queue Patterns](../messaging/patterns.md) and [Kafka Deep Dive](../messaging/kafka.md).
 
