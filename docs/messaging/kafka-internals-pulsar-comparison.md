@@ -19,7 +19,7 @@ prerequisites:
 You know Kafka works. But when you're designing a system, you need to know:
 
 1. **How does Kafka actually guarantee order and durability?** (answer: in-sync replicas + leader)
-2. **What breaks during a rebalance?** (answer: processing stops, latency spikes)
+2. **What breaks during a rebalance?** (answer: eager rebalances stop group consumption; cooperative rebalancing reduces that disruption; latency still spikes for moved partitions)
 3. **Can you get exactly-once semantics?** (answer: yes, but read carefully)
 4. **What is consumer lag, and why does it matter?** (answer: it's the outage metric)
 5. **When is Kafka wrong for this job?** (answer: when you need multi-tenancy, or Pulsar's scaling model)
@@ -162,9 +162,12 @@ for tp in partitions:
 
 ### Ordering Guarantees
 
-**Within a partition:** Strict ordering (offset 0, 1, 2, 3, ...)
-
-**Across partitions:** No ordering guarantee.
+| Scope | Guarantee |
+|-------|-----------|
+| Kafka log within a partition | Ordered append/log sequence (offset 0, 1, 2, 3, ...) |
+| Across Kafka partitions | No global order |
+| Consumer processing | Depends on execution model |
+| End-to-end side effects | Depends on retries, parallelism and downstream system |
 
 ```
 Topic "orders" with 3 partitions
@@ -177,10 +180,10 @@ Consumer sees: [1, 2, 3, 4, 5, 6, 7, 8, 9] (if polling all partitions)
             or [1, 4, 7, 2, 5, 8, 3, 6, 9] (if fetching in round-robin)
             or any interleaving
 
-Only within partition is order guaranteed.
+Only the Kafka log within a partition is ordered. Consumer processing and downstream side effects are not automatic log-order guarantees.
 ```
 
-**How to get global order:** Use a single partition (kills parallelism, max throughput = 1 partition speed) or use an **ordering key** and route all orders for the same `order_id` to the same partition.
+**How to get a global Kafka log order:** a single partition. That kills parallelism (max throughput = one partition). An **ordering key** only colocates related records on one partition — per-key / per-partition log order, not global order, and still not a processing or downstream guarantee.
 
 ```go
 // Kafka producer routing by key
@@ -538,7 +541,7 @@ If queue > threshold: producer backed off or rejected
     1. **ISR ⊆ replicas.** `acks=all` waits for every current ISR member. `min.insync.replicas` is a floor (NotEnoughReplicas), not the ack count. Recipe: acks=all + min.isr=2 + RF=3 + unclean.leader.election.enable=false.
     2. **Eager rebalances stop the group** (often seconds). Cooperative sticky is better. Adding a broker is replica reassignment, not a group rebalance.
     3. **Consumer lag = health metric.** Lag growing = red flag. Set SLO (e.g., lag < 60 sec) and alert.
-    4. **Ordering is per-partition**, not global. Use a key to route related messages to same partition.
+    4. **Log order is per-partition**, not global. Use a key to route related messages to the same partition. Consumer processing and end-to-end side effects still depend on execution model, retries, and the downstream system.
     5. **Kafka 0.11+ EOS is within Kafka** (idempotent + transactional produce + sendOffsetsToTransaction). End-to-end across your DB is not; use at-least-once + an idempotent handler/sink.
     6. **Pulsar has stateless brokers** (no rebalancing) and multi-tenancy built-in.
     7. **Kafka simpler at small scale; Pulsar wins at multi-region/multi-tenant scale.**

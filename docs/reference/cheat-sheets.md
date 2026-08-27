@@ -16,10 +16,10 @@ Work the steps in order. Naming a database before you have a requirement is the 
 | # | Step | What to actually do | Time budget (45 min round) |
 |---|------|----------------------|------------------------------|
 | 1 | **Clarify requirements** | Functional (what does it do) + non-functional (consistency, latency, availability targets). Ask about read/write ratio, scale, and what "correct" means for this domain. | 5 min |
-| 2 | **Estimate scale** | Back-of-envelope: DAU, QPS (avg + peak), storage/day, bandwidth. See [Calculators](calculators.md). This decides "one Postgres box" vs "sharded cluster" before you draw anything. | 5 min |
+| 2 | **Estimate scale** | Back-of-envelope: DAU, QPS (avg + peak), storage/day, bandwidth. See [Calculators](calculators.md). This decides whether a naive single-node layout is still a safe default — not that sharding is mandatory. | 5 min |
 | 3 | **High-level design** | Draw boxes: client → LB → services → data stores. Get one end-to-end request working on the whiteboard before going deep. | 10 min |
 | 4 | **Deep dive** | Pick 1–2 components the interviewer cares about (usually the data model, the hot path, or a specific trade-off) and go deep — schema, algorithm, concurrency. | 15 min |
-| 5 | **Identify bottlenecks** | Say the number out loud: "at 50k QPS the single Postgres primary is the ceiling." Name the first thing that breaks, not the tenth. | 3 min |
+| 5 | **Identify bottlenecks** | Say the number out loud: "at this QPS, a conventional single-primary path is a hypothesis to benchmark, not a known ceiling." Name the first pressure, not the tenth box. | 3 min |
 | 6 | **Discuss trade-offs** | CP vs AP, SQL vs NoSQL, sync vs async — justify with the requirements from step 1, not with defaults. See the [Trade-off Matrix](tradeoff-matrix.md). | 5 min |
 | 7 | **Wrap up** | Summarize the design, name what you'd do differently with more time (monitoring, DR, cost), and flag known gaps. | 2 min |
 

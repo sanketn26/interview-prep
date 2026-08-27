@@ -529,7 +529,7 @@ LIMIT 10;
 |---|---|
 | "Our Postgres is getting slow. What's happening?" | "Check replication lag, bloat ratio, cache hit ratio, and slow query log. Likely: VACUUM falling behind (bloat), or shared_buffers too small (disk I/O). Look at WAL size — if it's huge, checkpoint is taking too long." |
 | "Can we scale reads?" | "Yes, read replicas are cheap. Each standby replicates from primary asynchronously. Reads scatter to replicas, primary handles all writes." |
-| "How do we scale writes?" | "Postgres doesn't scale writes past 5-15K TPS without sharding. At that point, Cassandra or a distributed database is cheaper. Before sharding, check: are you really CPU-bound, or is I/O the bottleneck? (usually I/O)." |
+| "How do we scale writes?" | "Typical interview shorthand: a well-tuned Postgres primary is often estimated around 5–15K TPS for simple transactions. That's an interview-estimation anchor, not a limit — pgbench and production capacity both move by orders of magnitude with transaction shape, concurrency, indexes, storage, durability settings, and contention. Before sharding, check whether you are CPU-bound, I/O-bound, or lock-bound, and evaluate batching, native partitioning, and write-path changes first." |
 | "How do we handle concurrent writes safely?" | "MVCC + transactions. Use Repeatable Read or Serializable for critical sections. Most apps use Read Committed (default) and handle potential conflicts in application logic." |
 | "What's the difference between indexes and partitioning?" | "Indexes speed up queries on a single table. Partitioning splits a large table into smaller physical pieces. Use both: partition large tables by date, then index within partitions." |
 

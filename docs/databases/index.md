@@ -1,11 +1,11 @@
 ---
 title: Databases at Scale
-description: Access patterns pick the store. Sharding is what you do when one primary cannot take the writes.
+description: Access patterns pick the store. Sharding is a last-resort write-scale step after indexes, partitioning, and I/O — not the first answer to a slow primary.
 ---
 
 # Databases at Scale
 
-Access patterns pick the store. Sharding is what you do when one primary cannot take the writes.
+Access patterns pick the store. Sharding is a last-resort write-scale step after indexes, partitioning, and I/O — not the first answer to a slow primary.
 
 ---
 
@@ -41,9 +41,9 @@ Scaling a database happens in a fixed order. Each step is cheap; each *next* ste
 ```
 
 !!! tip "The interview tell"
-    Candidates who jump straight to "shard it" have not understood the cost. Steps 2–4 solve **read** pressure. Only step 5 solves **write** pressure — which is why the diagnostic question is always *"are we read-limited or write-limited?"*
+    Candidates who jump straight to "shard it" have not understood the cost. Steps 2–4 absorb **read** pressure. Write pressure is a different ladder: batching, contention, native partitioning, storage/WAL/fsync, vertical I/O, then sharding. Caches and replicas do not absorb primary writes. The diagnostic question is always *"are we read-limited or write-limited?"*
 
-A single modern Postgres instance handles roughly 5–15K transactions/sec and comfortably stores single-digit terabytes. Below that, sharding is usually premature.
+Typical **interview-estimation anchors**, not database limits: a well-tuned Postgres instance is often quoted around 5–15K TPS for simple transactions, and single-digit terabytes of working data. Real capacity changes by orders of magnitude depending on transaction shape, concurrency, indexes, storage, durability settings, contention, and hardware. Below those anchors, application-level sharding is usually premature. Above them, pre-shard write levers (batching, contention, native partitioning, storage layout) still come before sharding; caches and replicas are read-path tools, not write-scale next steps.
 
 ---
 

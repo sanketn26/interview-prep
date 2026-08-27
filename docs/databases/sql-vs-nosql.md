@@ -46,7 +46,7 @@ The model you pick shapes how painful every future query, migration, and scale-o
     "Use Postgres unless you have a specific, named reason not to" is a defensible default answer — most workloads at most companies fit comfortably on a well-tuned relational database, and it keeps transactions and joins available for free.
 
 === "Production Reality"
-    A single "1.4M reads/sec" or "43.8 TB/year" figure never picks the database by itself — the actual ceiling depends on query complexity, index design, row size, working-set-vs-memory ratio, and consistency requirements (see [Foundations](../foundations/index.md#order-of-magnitude-anchors-benchmark-before-design)). BASE vs. ACID is a per-product choice, not a per-family one (see the note above) — know the specific product's guarantee, not the family's reputation.
+    A single "1.4M reads/sec" or "43.8 TB/year" figure never picks the database by itself — the actual ceiling depends on query complexity, index design, row size, working-set-vs-memory ratio, and consistency requirements (see [Foundations](../foundations/index.md#order-of-magnitude-anchors-benchmark-the-workload)). BASE vs. ACID is a per-product choice, not a per-family one (see the note above) — know the specific product's guarantee, not the family's reputation.
 
 === "Where This Stops Being True"
     Once a workload genuinely needs two access patterns that fight each other in the same store — e.g., high-cardinality graph traversal *and* strict transactional consistency *and* massive time-series ingest — no single family serves all of it well, and the honest answer becomes "we run more than one database," each earning its place the same way any component does: by eliminating a bottleneck the others can't.

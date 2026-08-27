@@ -45,6 +45,19 @@ The full Learn / Interview / Hint / Solution / Staff **tab switcher is not wired
 !!! warning "Common Mistake"
     Do not click through simulations without reading first. The simulation is for **verification** of your mental model, not a substitute for understanding.
 
+## How to Use the Labs
+
+Docker Compose (and one Terraform) environments live in [Labs](labs/index.md). Same cycle as a simulation, on a real process:
+
+**predict → run → compare → explain.**
+
+1. **Predict** the outcome before each command in the lab README
+2. **Run** it
+3. **Compare** the actual log/metric to the prediction
+4. **Explain** the gap, then re-read the paired concept page if you were surprised
+
+Do not rewrite the exercise after the fact to match the output — the surprise *is* the learning.
+
 ---
 
 ## System Design Practice Protocol
