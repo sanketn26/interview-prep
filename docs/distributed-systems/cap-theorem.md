@@ -68,11 +68,11 @@ Typical interview shorthand — not a permanent product identity. The same datab
 
 | Category | Guarantee | Systems commonly configured this way | Depends on | Use When |
 |----------|-----------|--------------|----------|----------|
-| **CP** | Consistent + Partition Tolerant | ZooKeeper, etcd, HBase, MongoDB (often CP-like) | Topology, election, read/write concern, quorum/fencing | Financial data, config, coordination |
+| **CP** | Consistent + Partition Tolerant | ZooKeeper, etcd, HBase (typically CP); MongoDB (often CP-like) | Consensus/quorum (etcd/ZK writes are not optional); Mongo topology and read/write concern | Financial data, config, coordination |
 | **AP** | Available + Partition Tolerant | Cassandra, CouchDB, DynamoDB (eventual mode) | Replication factor + chosen consistency level | Shopping carts, social feeds, DNS |
 | **CA** | Consistent + Available | Single-node RDBMS | Not a distributed system — partitions aren't tolerated | Single-node only |
 
-CP/AP here describes the behavior of a specific operation under a specific configuration during a partition — not a database's permanent identity. Every row above except CA is tunable per the table in [How Real Databases Behave](#how-real-databases-behave) below.
+CP/AP here describes the behavior of a specific operation under a specific configuration during a partition — not a database's permanent identity. Cassandra, DynamoDB, and MongoDB are tunable per the table in [How Real Databases Behave](#how-real-databases-behave). etcd/ZooKeeper writes are not optional CP knobs.
 
 !!! warning "Production Trap"
     "CA" systems don't truly exist in distributed systems. Any distributed system must tolerate network partitions — otherwise a partition causes complete system failure. CA means "single node" in practice.
@@ -161,8 +161,8 @@ Typical interview shorthand / common configuration — not a fixed product ident
 | DynamoDB | Often available (AP-like) | Often low latency (EL) | Per-request `ConsistentRead`; Global Tables stay eventually consistent |
 | Cassandra | Often available (AP-like) | Often low latency (EL) | Replication + chosen consistency level |
 | MongoDB | Often consistent (CP-like) | Often low latency (EL) | Topology, election, read/write concern |
-| Spanner | Typically consistent (CP-like) | Typically consistent (EC) | TrueTime / consensus configuration |
-| HBase | Typically consistent (CP-like) | Typically consistent (EC) | Region-server / ZooKeeper topology |
+| Spanner | Typically consistent (CP-like) | Typically consistent (EC) | TrueTime + consensus by design, not a user CAP dial; stale reads only if you opt out of strong reads |
+| HBase | Typically consistent (CP-like) | Typically consistent (EC) | Typically CP via ZooKeeper region assignment, not Cassandra-style consistency levels |
 
 !!! note "Interview Insight 🎯"
     PACELC is more useful in real design conversations than CAP alone because most distributed systems don't experience partitions often — the latency vs consistency trade-off (the "EL" part) dominates daily operation.

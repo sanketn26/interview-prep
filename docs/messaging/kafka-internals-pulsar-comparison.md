@@ -19,7 +19,7 @@ prerequisites:
 You know Kafka works. But when you're designing a system, you need to know:
 
 1. **How does Kafka actually guarantee order and durability?** (answer: in-sync replicas + leader)
-2. **What breaks during a rebalance?** (answer: eager rebalances can stop group consumption; cooperative rebalancing reduces that disruption; latency still spikes for moved partitions)
+2. **What breaks during a rebalance?** (answer: eager rebalances stop group consumption; cooperative rebalancing reduces that disruption; latency still spikes for moved partitions)
 3. **Can you get exactly-once semantics?** (answer: yes, but read carefully)
 4. **What is consumer lag, and why does it matter?** (answer: it's the outage metric)
 5. **When is Kafka wrong for this job?** (answer: when you need multi-tenancy, or Pulsar's scaling model)
@@ -183,7 +183,7 @@ Consumer sees: [1, 2, 3, 4, 5, 6, 7, 8, 9] (if polling all partitions)
 Only the Kafka log within a partition is ordered. Consumer processing and downstream side effects are not automatic log-order guarantees.
 ```
 
-**How to get global order:** Use a single partition (kills parallelism, max throughput = 1 partition speed) or use an **ordering key** and route all orders for the same `order_id` to the same partition.
+**How to get a global Kafka log order:** a single partition. That kills parallelism (max throughput = one partition). An **ordering key** only colocates related records on one partition — per-key / per-partition log order, not global order, and still not a processing or downstream guarantee.
 
 ```go
 // Kafka producer routing by key

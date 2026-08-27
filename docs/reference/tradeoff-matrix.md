@@ -79,7 +79,7 @@ See [Cache Strategies](../performance/cache-strategies.md) for implementation de
 |----------|------|------|----------|
 | **At-most-once** | Fastest, simplest (fire and forget) | Messages can be silently lost | Metrics/telemetry where occasional loss is fine |
 | **At-least-once** | No message loss | Consumers must handle duplicates (need idempotency) | The default for most systems — pair with idempotent writes |
-| **Exactly-once** | Kafka-centric consume/process/produce can coordinate offsets, output records, and Streams state atomically | Not a universal end-to-end guarantee: external DB/API/email/payment side effects still need their own idempotency; throughput cost | Kafka-internal pipelines where duplicates inside Kafka are unacceptable — still pair with idempotent sinks at the edges |
+| **Exactly-once** | Kafka-centric consume/process/produce can coordinate offsets and output records atomically (`isolation.level=read_committed`). Streams state is an extra Streams layer, not the producer API. | Not a universal end-to-end guarantee: external DB/API/email/payment side effects still need their own idempotency; throughput cost | Kafka-internal pipelines where duplicates inside Kafka are unacceptable — still pair with idempotent sinks at the edges |
 
 See [Message Queue Patterns](../messaging/patterns.md) and [Kafka Deep Dive](../messaging/kafka.md).
 

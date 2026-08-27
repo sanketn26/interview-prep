@@ -173,7 +173,7 @@ Partition 0: offset 0, 1, 2, 3, 4, 5, 6...
 
 When a consumer joins or leaves a group, Kafka triggers a **rebalance** and the group coordinator redistributes partitions.
 
-Eager rebalances can stop group consumption while assignments are revoked and redistributed (stop-the-world for the group). Cooperative/incremental rebalancing (Kafka 2.4+) reduces disruption by retaining unaffected assignments and moving partitions incrementally — consumers keep consuming partitions they still own.
+Eager rebalances stop group consumption while assignments are revoked and redistributed (stop-the-world for the group). Cooperative/incremental rebalancing (Kafka 2.4+) reduces disruption by retaining unaffected assignments and moving partitions incrementally — consumers keep consuming partitions they still own.
 
 ### Consumer Lag
 
@@ -311,7 +311,7 @@ Key metrics:
 === "Basic"
     **Q: How does Kafka ensure a message is processed exactly once?**
 
-    "Kafka transactions provide exactly-once processing semantics for Kafka-centric consume/process/produce flows by atomically coordinating consumed offsets, output records, and Kafka Streams state. External database/API/email/payment side effects still require their own idempotency or transactional integration. For most use cases, at-least-once with idempotent consumers is simpler and sufficient — for example, an upsert by message ID rather than a blind insert."
+    "Kafka transactions provide exactly-once processing semantics for Kafka-centric consume/process/produce flows by atomically coordinating consumed offsets and output records (`sendOffsetsToTransaction` + transactional produce; downstream `isolation.level=read_committed`). Kafka Streams additionally folds changelog/state-store updates into that transaction — that layer is Streams-specific, not a required part of the producer API. External database/API/email/payment side effects still require their own idempotency or transactional integration. For most use cases, at-least-once with idempotent consumers is simpler and sufficient — for example, an upsert by message ID rather than a blind insert."
 
 === "Senior"
     **Q: How do you handle a hot partition in Kafka?**
@@ -321,7 +321,7 @@ Key metrics:
 === "Staff"
     **Q: We're migrating from 3 to 30 partitions for a critical topic. What are the risks?**
 
-    "Key risk: increasing partition count triggers a consumer group rebalance. Eager rebalances can stop group consumption while assignments are revoked and redistributed; cooperative/incremental rebalancing reduces that disruption but the group still has to move partitions. For a critical topic this could mean seconds to minutes of lag buildup depending on protocol and data volume. Plan: (1) schedule during low-traffic window; (2) ensure downstream consumers can handle the backlog after rebalance; (3) understand that log order is per-partition — existing messages for a key may now be on a different partition than new messages. If you use key-based ordering, existing consumers processing an old partition will interleave with new producers writing to the new partition for the same key. This is an architectural risk for order-sensitive workflows. I'd also validate that all consumer configurations (max.poll.records, session.timeout) are tuned for the new throughput per consumer."
+    "Key risk: increasing partition count triggers a consumer group rebalance. Eager rebalances stop group consumption while assignments are revoked and redistributed; cooperative/incremental rebalancing reduces that disruption but the group still has to move partitions. For a critical topic this could mean seconds to minutes of lag buildup depending on protocol and data volume. Plan: (1) schedule during low-traffic window; (2) ensure downstream consumers can handle the backlog after rebalance; (3) understand that log order is per-partition — existing messages for a key may now be on a different partition than new messages. If you use key-based ordering, existing consumers processing an old partition will interleave with new producers writing to the new partition for the same key. This is an architectural risk for order-sensitive workflows. I'd also validate that all consumer configurations (max.poll.records, session.timeout) are tuned for the new throughput per consumer."
 
 ---
 
@@ -332,6 +332,6 @@ Key metrics:
     2. Each partition is consumed by exactly one consumer per group at a time
     3. The Kafka log is ordered only within a partition — use partition keys for related messages. Consumer processing and downstream side effects are not automatic log-order guarantees.
     4. Consumer lag = latest_offset − committed_offset. The rate difference (produce − consume) is d(lag)/dt, not lag itself. High lag = consumer behind.
-    5. Eager rebalances can stop group consumption while assignments are revoked and redistributed. Cooperative/incremental rebalancing reduces disruption by retaining unaffected assignments. Tune `max.poll.interval.ms` to avoid unnecessary rebalances.
+    5. Eager rebalances stop group consumption while assignments are revoked and redistributed. Cooperative/incremental rebalancing reduces disruption by retaining unaffected assignments. Tune `max.poll.interval.ms` to avoid unnecessary rebalances.
     6. Hot partitions require application-level fixes, not just Kafka configuration
 

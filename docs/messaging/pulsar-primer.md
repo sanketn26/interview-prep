@@ -222,7 +222,7 @@ for {
 | **Failover** | One active consumer; others are standbys | High availability without rebalance |
 | **Key_Shared** | Messages with same key always go to same consumer | Preserving order per key, no rebalance on consumer crash |
 
-**Key advantage:** Exclusive/Failover don't rebalance on consumer crash. Active consumer dies → standby takes over immediately (<1s). Kafka: eager rebalances can stop group consumption while assignments move (often seconds); cooperative/incremental rebalancing reduces that disruption.
+**Key advantage:** Exclusive/Failover don't rebalance on consumer crash. Active consumer dies → standby takes over immediately (<1s). Kafka: eager rebalances stop group consumption while assignments move (often seconds); cooperative/incremental rebalancing reduces that disruption.
 
 ---
 
@@ -464,7 +464,7 @@ journalFormatVersionToWrite=5  # Latest format
     
     **Q: What is a Pulsar subscription?**
     
-    "A subscription is how a consumer group tracks position in a topic. Subscription types: Exclusive (one consumer), Shared (multiple consumers share messages), Failover (one active + standbys), Key_Shared (key-routing, no rebalance on crash). Unlike Kafka eager rebalances (which can stop group consumption while assignments move), Exclusive/Failover don't rebalance when a consumer crashes—immediate failover."
+    "A subscription is how a consumer group tracks position in a topic. Subscription types: Exclusive (one consumer), Shared (multiple consumers share messages), Failover (one active + standbys), Key_Shared (key-routing, no rebalance on crash). Unlike Kafka eager rebalances (which stop group consumption while assignments move), Exclusive/Failover don't rebalance when a consumer crashes—immediate failover."
 
 === "Senior"
     **Q: Design a multi-tenant messaging system for a SaaS platform using Pulsar.**

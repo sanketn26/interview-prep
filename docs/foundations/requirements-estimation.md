@@ -228,7 +228,7 @@ Locks       row / global        → write QPS concentrated on one key
 ## Scaling Limits
 
 - A single 16-core app pod: ~5–15k simple QPS. 20k peak ⇒ more than one pod *before* Kafka.
-- One Postgres primary: low-single-digit k durable writes/s before you talk shards or a log.
+- One Postgres primary: often quoted in the low-single-digit k durable writes/s as an interview-estimation anchor, not a limit — real capacity depends on the workload; sharding or a log is not the automatic next step.
 - One Redis shard: 50–150k simple GET/s; hot key is the real limit, not the average.
 - NIC: 1–2 GB/s before you think "this is a CDN / blob problem."
 - File descriptors and conntrack fill before CPU at chat-scale connection counts.
