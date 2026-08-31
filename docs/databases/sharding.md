@@ -31,6 +31,20 @@ Single DB (vertical limit):         Sharded (horizontal):
 !!! note "Analogy"
     A single database is one giant library room — every book on one set of shelves, one librarian fetching everything. Sharding is splitting that collection across multiple rooms by some rule (author's last name, subject, accession number). Each room now has its own librarian and its own shelves, so lookups within a room get faster and rooms can be added independently — but a search that spans "everything starting with A through Z" now means checking every room. That's the shard-router hop and the cross-shard-query cost below, in one sentence.
 
+## Abstraction Levels
+
+=== "Mental Model"
+    Split rows across independent databases by a shard key so writes scale horizontally. Each shard is a full database, not a partition of one disk.
+
+=== "Interview Simplification"
+    "Hash on `user_id` so related rows land together; add shards when one primary cannot take the writes." Correct as the first sentence; the rest of the interview is the key and the hot shard.
+
+=== "Production Reality"
+    Average load per shard is a lie if one tenant is a whale. Resharding `hash % N` moves almost everything. Cross-shard joins on the request path will not survive dozens of shards — reporting belongs on a warehouse.
+
+=== "Where This Stops Being True"
+    A single hot key is a vertical problem; more shards do not help. If the access pattern has no co-location key, sharding just turns every query into scatter-gather.
+
 ---
 
 ## Sharding Strategies

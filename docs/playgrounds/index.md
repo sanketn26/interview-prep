@@ -7,6 +7,8 @@ description: Priority simulations plus DSA visualizers — what each teaches and
 
 Simulations live on the **host concept page**, next to the failure they illustrate. This hub does not duplicate canvases. Read the mental model, predict the log line, then press the dangerous button.
 
+Structured drills (hot partitions, replica loss, latency, packet loss, hot keys, …) on these same canvases: [Failure-injection tasks](failure-injection.md).
+
 | Simulation | What you learn | Host |
 |------------|----------------|------|
 | Consistent hashing ring | Add/remove a node; only a slice remaps | [Consistent hashing](../databases/consistent-hashing.md) |

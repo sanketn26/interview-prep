@@ -102,6 +102,8 @@ nav:
     - Interview Framework: interview-playbook/framework.md
     - Your Progress: dashboard.md
     - Project Status: project-status.md
+    - Quality matrix: quality-matrix.md
+    - Learning paths: learning-paths.md
     - Content review checklist: content-review.md
   - Learn:
     - Fundamentals:
@@ -110,6 +112,7 @@ nav:
       - Stateless vs Stateful: foundations/stateless-vs-stateful.md
       - API Design: foundations/api-design.md
       - System Design Framework: foundations/framework.md
+      - Reasoning transcripts: foundations/reasoning-transcripts.md
       - Engineering Mathematics: foundations/math.md
       - Architecture Decision Records: foundations/adrs.md
       - Architecture Reviews: foundations/architecture-reviews.md
@@ -216,6 +219,7 @@ nav:
   - Practice:
     - Design Exercises:
       - system-design-exercises/index.md
+      - Assessment rubric: system-design-exercises/assessment.md
       - Architectural Subtraction: system-design-exercises/architectural-subtraction.md
       - URL Shortener: system-design-exercises/url-shortener.md
       - Rate Limiter: system-design-exercises/rate-limiter.md
@@ -291,6 +295,7 @@ nav:
       - Advanced String Matching: dsa/advanced-string-matching.md
     - Simulations:
       - playgrounds/index.md
+      - Failure-injection tasks: playgrounds/failure-injection.md
     - Labs:
       - labs/index.md
       - Kafka Cluster: labs/kafka.md

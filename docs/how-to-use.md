@@ -5,6 +5,8 @@ description: Interview modes, three-level explanation model, and how to get the 
 
 # How to Study This Academy
 
+Pick a route on [Learning paths](learning-paths.md) (Senior Backend, Staff Distributed Systems, Platform, Data/Streaming, Interview Sprint, Production Debugging). Do not skip the four canonical modules named there.
+
 !!! warning "Prerequisite check"
     This academy assumes you already ship production code, know core data structures & algorithms, and are comfortable with OOP/API design/HTTP/SQL. It teaches distributed systems, scale, and failure reasoning **on top of** that — it does not teach the fundamentals themselves. See [Who This Is For](index.md#who-this-is-for) before you start if you're unsure this is the right level.
 

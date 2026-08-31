@@ -4,16 +4,11 @@ Thank you for contributing! This guide covers the standards and process for addi
 
 ## Quality Standard
 
-Before submitting, ask: *After reading this page, can the engineer:*
-- Explain it clearly in a 2-minute interview answer?
-- Recognize where it applies in a system design?
-- Identify when it fails / its limitations?
-- Debug a production issue involving this?
-- Explain the trade-offs vs alternatives?
+Before submitting, ask: *After this page, can the engineer explain it, apply it, say when it fails, debug it, and teach the trade-offs?* If **no** to any → improve before submitting.
 
-If **no** to any → improve before submitting.
+A module is **Complete** only when it is technically reviewed, intuitive, visual where useful, runnable where useful, contains reasoning/prediction, discusses failure and production caveats, has exit criteria, links exercises, and tests executable material. Finished prose is not Complete. The contract columns live in [`docs/quality-matrix.md`](docs/quality-matrix.md).
 
-Update [`docs/project-status.md`](docs/project-status.md) with every page. Never mark a stub complete. Do not add dozens of empty exercises for coverage.
+Update [`docs/project-status.md`](docs/project-status.md) with every page. Never mark a stub complete. Do not add dozens of empty exercises for coverage. Freeze expansion while existing Completes fail the matrix.
 
 ## Content Structure
 

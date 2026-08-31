@@ -330,4 +330,7 @@ Symptom: Ingress 502, Deployment 3/3
     4. `describe` + `logs --previous` + `endpoints` beat guessing
     5. Requests schedule; limits kill or throttle — set both on purpose
 
+!!! note "Version taught"
+    **Version taught / last verified:** 2026-08 (objects and request path: Deployment, Service, EndpointSlice, Ingress, probes, PVC/StatefulSet — stable APIs). **Current upstream:** Kubernetes **v1.37** (released 2026-08-26). **Compatibility:** this page does not depend on 1.37-only features. Probe semantics, empty Endpoints, and RWO attach delays are unchanged. Do not copy patch-level YAML from memory — `kubectl explain` the cluster in front of you.
+
 **Previous:** [HTTP & TCP](../networking/http-tcp.md) | **Next:** [Sagas](../architecture-patterns/sagas.md)

@@ -48,7 +48,7 @@ hide:
 -   :material-tools: **[How to Study](how-to-use.md)**
 
     ---
-    Interview modes, three-level explanation model, and how to navigate the academy.
+    Interview modes, three-level explanation model, and how to navigate the academy. Role-based routes: [Learning paths](learning-paths.md).
 
 -   :material-drawing-box: **[Learn — System Design](foundations/index.md)**
 

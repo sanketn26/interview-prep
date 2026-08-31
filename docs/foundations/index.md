@@ -153,8 +153,9 @@ Steps 1–4 are what separates senior from mid-level. Most candidates skip strai
 |------|--------|
 | [Requirements & capacity estimation](requirements-estimation.md) | First release — calculator |
 | [Stateless vs stateful applications](stateless-vs-stateful.md) | Complete |
-| [API Design](api-design.md) | **Complete** — REST verb contracts, idempotency keys, GraphQL trade-offs, API Gateway pattern |
+| [API Design](api-design.md) | Needs review — REST verb contracts, idempotency keys, GraphQL, API Gateway |
 | [System design framework](framework.md) | First release — 19-step method |
+| [Reasoning transcripts](reasoning-transcripts.md) | Complete — 10 short Requirement→V2 walkthroughs |
 | [Engineering mathematics](math.md) | Complete |
 | [Architecture Decision Records](adrs.md) | Complete — format, when to write one, superseding vs. deleting |
 | [Architecture Reviews](architecture-reviews.md) | Complete — the four-lens (scalability/reliability/security/cost) review framework |

@@ -23,6 +23,20 @@ Get this wrong and you ship bugs that only appear under concurrency: a user "los
 !!! tip "Mental Model"
     Picture a shared whiteboard with photocopies mailed to remote offices. **Linearizable** means everyone reads the whiteboard itself — one queue, real-time order, no stale copies. **Eventual** means everyone reads their own photocopy, updated whenever the mail arrives — fast, always available, but you might read yesterday's board. Everything in between is a rule about *whose* photocopy you're allowed to read and *when* it must be up to date.
 
+## Abstraction Levels
+
+=== "Mental Model"
+    Consistency is a spectrum of *what a read is allowed to see*, not a boolean. Stronger models look like one copy; weaker models look like delayed photocopies.
+
+=== "Interview Simplification"
+    "Linearizable for money, eventual for social counts, session guarantees (read-your-writes) for a logged-in user." Fine as a first pass if you can say *why* each workload needs that floor.
+
+=== "Production Reality"
+    Product names do not pick a model — `R`/`W`/quorum, isolation level, and client routing do. `R + W > N` is overlap, not linearizability; concurrent writes can still lose updates. Most user-visible bugs are missing *session* guarantees, not missing linearizability.
+
+=== "Where This Stops Being True"
+    Once you have client-side clocks, caches, or "read from the nearest replica" without a session stickiness rule, even a "strongly consistent" store will show the user a world that violates read-your-writes. The model only holds on the path you actually configured.
+
 ---
 
 ## The Spectrum
