@@ -30,6 +30,20 @@ Kafka (or SQS, or RabbitMQ) doesn't solve these for you — the *pattern* you bu
 !!! tip "Mental Model"
     Every messaging problem is answered by three questions: **who gets the message** (one consumer or many?), **what happens when a consumer fails** (retry, or dead-letter?), and **what does "delivered" promise** (at-most-once, at-least-once, or effectively-exactly-once?). Get the answers explicit before you draw a queue.
 
+## Abstraction Levels
+
+=== "Mental Model"
+    A queue is a buffer and a contract: who receives, what retry means, and whether "processed" is the same as "appended."
+
+=== "Interview Simplification"
+    "At-least-once plus idempotent consumers; DLQ for poison; outbox so DB commit and publish don't split." The right default sentence.
+
+=== "Production Reality"
+    Exactly-once is not a broker checkbox — it is idempotent side effects, or a transaction that only covers the log. Competing consumers share work; pub/sub copies it. A retry without a key is a double charge.
+
+=== "Where This Stops Being True"
+    Order across partitions is not a thing. Fan-out of a 10k-member group is not "one queue." If the consumer does async work after the ack, the log's order is no longer your processing order.
+
 ---
 
 ## Naive System → What Breaks

@@ -50,7 +50,7 @@ Study-first modules below. Much of the rest of the curriculum is also shipped (f
 
 ## How to study
 
-Read [How to Study](docs/how-to-use.md) and the [roadmap](docs/roadmap.md). Short version:
+Read [How to Study](docs/how-to-use.md), the [roadmap](docs/roadmap.md), and [learning paths](docs/learning-paths.md). Short version:
 
 1. Open with the problem, not the definition.
 2. Predict the simulation before you click.
@@ -108,7 +108,7 @@ PRs run [`.github/workflows/validate.yml`](.github/workflows/validate.yml): buil
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Quality gate:
 
-> After this page, can the engineer explain it, apply it, say when it fails, debug it, and teach the trade-offs? If not, it is not done.
+> A module is complete when it is technically reviewed, intuitive, visual where useful, runnable where useful, contains reasoning/prediction, discusses failure and production caveats, has exit criteria, links exercises, and tests executable material. If not, it is not done.
 
 Never mark a stub complete. Update `docs/project-status.md` with the page.
 

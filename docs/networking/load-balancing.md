@@ -29,6 +29,20 @@ A load balancer exists to hide a pool of backends behind one VIP. Everything int
 !!! tip "Mental Model"
     A nightclub bouncer with a clipboard. People (requests) arrive at one door. The bouncer picks a room (backend) using a rule. If a room's lights go out, the bouncer stops sending people — but only after the next walk-by. Anyone already inside is on their own.
 
+## Abstraction Levels
+
+=== "Mental Model"
+    One VIP, a pool of backends, a health check that is always slightly stale, and a rule for picking a room.
+
+=== "Interview Simplification"
+    "L4 for raw TCP, L7 for HTTP routing; least-conn or consistent hash for sticky-ish traffic; take dead nodes out via health checks." Fine as the opening.
+
+=== "Production Reality"
+    In-flight requests to a dead node error — the LB does not teleport TCP. Sticky sessions pin users to a corpse until the cookie dies. Least-conn lies if connections are long-lived (gRPC, websockets) and cheap.
+
+=== "Where This Stops Being True"
+    When the bottleneck is a *key* (one tenant) not a node, adding backends does nothing. When health checks hit a shared dependency, the whole pool goes unready together. DNS round-robin is not a load balancer.
+
 ---
 
 ## Architecture

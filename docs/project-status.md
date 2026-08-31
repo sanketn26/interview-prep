@@ -5,15 +5,15 @@ description: Honest completion tracker for the Senior Engineer Academy. Never tr
 
 # Project Status
 
-This page is the source of truth. A module is **Complete** only if it follows the concept or exercise template, has original diagrams, failure analysis, explicit trade-offs, and a working interactive piece where the first-release bar requires one.
+This page is the source of truth. A module is **Complete** only when it is technically reviewed, intuitive, visual where useful, runnable where useful, contains reasoning/prediction, discusses failure and production caveats, has exit criteria, links exercises, and tests executable material (CROSS-6). Finished prose is not Complete. The column-by-column audit is [`quality-matrix.md`](quality-matrix.md).
 
 | Status | Meaning |
 |--------|---------|
-| Complete | Gold-standard vertical slice. Usable in an interview tomorrow. |
+| Complete | Gold-standard vertical slice. Usable in an interview tomorrow. Meets CROSS-6, not merely “the page exists.” |
 | Interactive | Simulation/calculator exists and is wired. |
 | In progress | Real draft, missing sections or review. |
 | Planned | Nav placeholder or stub — do not study as if finished. |
-| Needs review | Content exists; quality pass outstanding. |
+| Needs review | Content exists; quality pass outstanding (often 3+ applicable gaps on the quality matrix). |
 
 ---
 
@@ -26,6 +26,9 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | MkDocs Material, search, Mermaid, Pages deploy | Complete | `mkdocs build --strict` + Actions |
 | Information architecture / nav | Complete | Concepts ≠ exercises ≠ playgrounds ≠ production |
 | How to study + roadmap | Complete | |
+| Learning paths + quality matrix | Complete | `learning-paths.md`, `quality-matrix.md` |
+| Reasoning transcripts + design assessment | Complete | `foundations/reasoning-transcripts.md`, `system-design-exercises/assessment.md` |
+| Failure-injection tasks | Complete | `playgrounds/failure-injection.md` — existing sims only |
 | Design methodology (19-step) | Complete | `foundations/framework.md` |
 | Capacity calculator | Interactive | `foundations/requirements-estimation.md`, `reference/calculators.md` |
 | CAP theorem | Complete | |
@@ -50,17 +53,17 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | K8s debugging intro + request-flow sim | Complete | |
 | Load balancer / DNS / TCP / Saga sims | Interactive | Host pages in networking / architecture-patterns |
 | Docker (images, layers, networking, multi-stage builds, security) | Complete | `cloud/docker.md` — no simulation |
-| Terraform (state, plan/apply, modules, drift, blast radius) | Complete | `cloud/terraform.md` — no simulation |
-| CI/CD (pipeline stages, artifact promotion, GitOps) | Complete | `cloud/cicd.md` — no simulation |
+| Terraform (state, plan/apply, modules, drift, blast radius) | Needs review | `cloud/terraform.md` — no numbers/V1/bottleneck chain |
+| CI/CD (pipeline stages, artifact promotion, GitOps) | Needs review | `cloud/cicd.md` — pipeline catalog, not a reasoning loop |
 | Deployment strategies (15, incl. canary, blue-green, expand-contract) | Complete | `cloud/deployment-strategies.md` — no simulation |
 | IAM & Managed Services (vendor-mapped IAM/DB/event-bus comparison) | Complete | `cloud/iam-managed-services.md` — no simulation |
 | FinOps (tagging, commitment models, rightsizing, cost debugging) | Complete | `cloud/finops.md` — no simulation |
 | AI-Native Model Serving (batching, KV cache, GPU autoscaling, quantization) | Complete | `ai-native/model-serving.md` — no simulation |
-| Microservices communication (8 patterns) | Complete | `architecture-patterns/microservices-communication.md` — no simulation |
-| Low-Level Design pillar (OOP, SOLID, patterns, concurrency) | Complete | `low-level-design/` — 4 pages, no simulation |
+| Microservices communication (8 patterns) | Needs review | `architecture-patterns/microservices-communication.md` — pattern list without V1/numbers/prediction |
+| Low-Level Design: OOP, SOLID, patterns, concurrency basics | Needs review | definition pages; missing prediction/numbers/V1 |
 | LLD problems: all 15 (Parking Lot → Task Scheduler) | Complete | `lld-exercises/` — 9-step approach, class diagrams, code, concurrency section per problem |
 | Stateless vs stateful applications | Complete | `foundations/stateless-vs-stateful.md` — no simulation |
-| Single points of failure | Complete | `reliability/single-points-of-failure.md` — no simulation |
+| Single points of failure | Needs review | `reliability/single-points-of-failure.md` — no prediction/numbers/V1 practice |
 | DSA: foundations, two pointers, binary search, pattern recognition | Complete | Written to sliding-window.md bar |
 | Distributed systems: consistency models, replication | Complete | Cross-linked with CAP / Raft |
 | Databases: indexing, SQL vs NoSQL | Complete | |
@@ -87,21 +90,21 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Distributed KV store (exercise) | Complete | Embeds `ConsistentHashingRing`; explicitly differentiated from distributed-cache |
 | Social feed / Twitter-X (exercise) | Complete | |
 | DDIA Concepts (storage engines, replication topologies, isolation mechanisms, CAP, 2PC, encoding, war-room runbook) | Complete | `databases/ddia-concepts.md` |
-| SQL Deep Dive | Complete | `databases/sql-deep-dive.md` |
+| SQL Deep Dive | Needs review | `databases/sql-deep-dive.md` — already Draft on the databases hub |
 | Performance Fundamentals (threads, memory, OS-level tuning) | Complete | `performance/fundamentals.md` |
-| Kafka Internals & Pulsar Comparison | Complete | `messaging/kafka-internals-pulsar-comparison.md` |
-| Pulsar Primer | Complete | `messaging/pulsar-primer.md` |
+| Kafka Internals & Pulsar Comparison | Needs review | `messaging/kafka-internals-pulsar-comparison.md` — internals dump |
+| Pulsar Primer | Needs review | `messaging/pulsar-primer.md` — ops dump |
 | Microservices vs Monolith (antipatterns and tradeoffs) | Complete | `architecture-patterns/microservices-vs-monolith.md` |
-| Modern Protocols & Service Mesh (HTTP/3, gRPC, Istio, eBPF) | Complete | `networking/modern-protocols-service-mesh.md` |
-| gRPC vs HTTP vs HTTP/2 (K8s, load balancing) | Complete | `networking/grpc-http-k8s-load-balancing.md` |
-| Authentication & Authorization Fundamentals | Complete | `security/authentication-authorization.md` |
-| Zero Trust Architecture | Complete | `security/zero-trust-architecture.md` — mTLS, SPIFFE/SPIRE, policy-as-code, migration sequencing |
+| Modern Protocols & Service Mesh (HTTP/3, gRPC, Istio, eBPF) | Needs review | `networking/modern-protocols-service-mesh.md` |
+| gRPC vs HTTP vs HTTP/2 (K8s, load balancing) | Needs review | `networking/grpc-http-k8s-load-balancing.md` |
+| Authentication & Authorization Fundamentals | Needs review | `security/authentication-authorization.md` |
+| Zero Trust Architecture | Needs review | `security/zero-trust-architecture.md` |
 | Threat Modeling | Complete | `security/threat-modeling.md` — trust boundaries, STRIDE, attack trees, risk scoring |
 | OAuth2 & OIDC Deep Dive | Complete | `security/oauth2-oidc.md` — Authorization Code + PKCE flow, token validation, refresh rotation, vulnerabilities |
 | Session Management Deep Dive | Complete | `security/session-management.md` — server-side sessions vs JWT, cookie security, fixation/hijacking, revocation problem |
 | Event-Driven Architecture | Complete | `architecture-patterns/event-driven-architecture.md` — choreography vs orchestration, notification vs state-transfer events, distributed-monolith antipattern |
 | Distributed Fundamentals: leases, gossip, Paxos vs Raft, service discovery | Complete | `distributed-systems/fundamentals.md` — extended from existing clocks/locks content |
-| API Design (REST verb contracts, idempotency keys, GraphQL, API Gateway pattern) | Complete | `foundations/api-design.md` |
+| API Design (REST verb contracts, idempotency keys, GraphQL, API Gateway pattern) | Needs review | `foundations/api-design.md` |
 | Production Reliability Practices (chaos engineering, capacity/load testing, blameless postmortems) | Complete | `observability/production-reliability-practices.md` |
 | Stream Processing (Flink, Kafka Streams, Spark Structured Streaming) | Complete | `architecture-patterns/stream-processing.md` — event time/watermarks/windowing, checkpointing, exactly-once |
 | Serverless vs Containers (monolith/microservices/serverless spectrum) | Complete | `architecture-patterns/serverless-vs-containers.md` — cold starts, cost model crossover |
@@ -121,13 +124,13 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | Multi-Region Architecture & Disaster Recovery | Complete | `distributed-systems/multi-region-dr.md` — RTO/RPO, the four DR tiers, hybrid cloud↔datacenter failover, failback |
 | Architecture Decision Records | Complete | `foundations/adrs.md` — format, when to write one, superseding vs. deleting |
 | Architecture Reviews | Complete | `foundations/architecture-reviews.md` — four-lens (scalability/reliability/security/cost) review framework |
-| Data Privacy & Compliance Architecture | Complete | `security/data-privacy-compliance.md` — PII classification, data residency, right-to-erasure across replicas/backups/event-sourced logs, key management |
+| Data Privacy & Compliance Architecture | Needs review | `security/data-privacy-compliance.md` |
 | Multi-Tenancy Design | Complete | `architecture-patterns/multi-tenancy.md` — silo/pool/bridge isolation, structural tenant_id enforcement, noisy-neighbor mitigation |
 | Testing Strategy for Distributed Systems | Complete | `observability/testing-strategy.md` — contract testing, the pyramid redrawn for services, feature flags as a testing tool |
-| Batch/ETL & Lambda vs. Kappa Architecture | Complete | `architecture-patterns/batch-etl-lambda-kappa.md` — DAG orchestration, backfills, Lambda's dual-implementation drift risk, Kappa's replay model |
-| Common Web Vulnerability Classes | Complete | `security/web-vulnerability-classes.md` — SQL injection, SSRF, CORS misconfiguration, WAF/DDoS as backstop not fix |
-| Real-Time Communication | Complete | `networking/realtime-communication.md` — WebSockets vs. long polling vs. SSE vs. webhooks, connection cost, event fan-out, reconnect behavior, webhook delivery semantics |
-| Release Engineering | Complete | `cloud/release-engineering.md` — semantic/API versioning, lockfiles and dependency hell, build-layer caching, cron vs. event-triggered scheduling |
+| Batch/ETL & Lambda vs. Kappa Architecture | Needs review | `architecture-patterns/batch-etl-lambda-kappa.md` |
+| Common Web Vulnerability Classes | Needs review | `security/web-vulnerability-classes.md` |
+| Real-Time Communication | Needs review | `networking/realtime-communication.md` |
+| Release Engineering | Needs review | `cloud/release-engineering.md` |
 | Growth Mindset (new top-level pillar) | Complete | `growth-mindset/` — 7 pages: self-respect, standing your ground, crucial conversations, protecting your sanity, boundaries (don't say yes to mean no), the strong engineer, seeing what others miss. Distinct from `behavioural/` — internalized judgement, not STAR-interview framing |
 | Concurrency Execution Models | Complete | `low-level-design/concurrency-execution-models.md` — language-agnostic thread pool/work-stealing/lightweight-thread comparison with per-language mapping table, a Visual Reference section (CAS retry loop, memory-visibility, optimistic/pessimistic, throughput-vs-threads, fencing-token diagrams), plus 10 expandable deep-dive questions |
 
@@ -191,4 +194,20 @@ Do **not** mass-generate these as stubs.
 
 ## Needs review
 
-Accuracy pass of 2026-08 is recorded in the [content review checklist](content-review.md) (factual errors, capacity math, cross-page contradictions, missing explanations). Remaining: further V1-first pedagogy on leftover architecture dumps; SQL/vendor DB deep-dives stay **Draft / needs review**; interview-mode tab UX, capstone, and Go example parity still Planned. Re-read after each content pass: are we still opening with a problem? Does every box in a design earn its existence? Are completion checkmarks honest?
+Accuracy pass of 2026-08 is recorded in the [content review checklist](content-review.md) (factual errors, capacity math, cross-page contradictions, missing explanations).
+
+**Quality-matrix demotions (2026-08, SEA-1):** Complete → Needs review because 3+ applicable contract columns were missing. See [quality matrix](quality-matrix.md) for the audit method.
+
+- `databases/sql-deep-dive.md` (already Draft on the databases hub)
+- `cloud/terraform.md`, `cloud/cicd.md`, `cloud/release-engineering.md`
+- `reliability/single-points-of-failure.md`
+- `architecture-patterns/microservices-communication.md`, `architecture-patterns/batch-etl-lambda-kappa.md`
+- `messaging/kafka-internals-pulsar-comparison.md`, `messaging/pulsar-primer.md`
+- `networking/modern-protocols-service-mesh.md`, `networking/grpc-http-k8s-load-balancing.md`, `networking/realtime-communication.md`
+- `foundations/api-design.md`
+- `low-level-design/oop-fundamentals.md`, `solid-principles.md`, `design-patterns.md`, `concurrency-basics.md`
+- `security/authentication-authorization.md`, `zero-trust-architecture.md`, `data-privacy-compliance.md`, `web-vulnerability-classes.md`
+
+Vendor DB pages stay **Draft / needs review**. Remaining: predict-before-click boxes on host sim pages; named exit criteria; DSA viz prediction; leftover V1-first pedagogy. Interview-mode tab UX, capstone UX, and Go example parity still Planned.
+
+Re-read after each content pass: are we still opening with a problem? Does every box in a design earn its existence? Are completion checkmarks honest?

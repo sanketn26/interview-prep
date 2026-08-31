@@ -23,6 +23,20 @@ Every answer to that question is a replication topology, and every topology trad
 !!! tip "Mental Model"
     Think of a single Google Doc (leader-follower), a group of people each editing their own offline copy and merging later (multi-leader), or a group text message where everyone can post and everyone reconciles who said what and when (leaderless). The topology you choose determines whether "who wins" is decided up front (one writer) or after the fact (conflict resolution).
 
+## Abstraction Levels
+
+=== "Mental Model"
+    Extra copies buy durability, availability, and locality. They force a rule for *who may write* and *when a read is allowed to be old*.
+
+=== "Interview Simplification"
+    "Primary + replicas for reads; sync if you cannot lose the last write, async if you need the write to be fast." Enough as a first sketch of leader-follower.
+
+=== "Production Reality"
+    Failover of an async replica can lose acknowledged writes. Multi-leader needs conflict resolution, not hope. Leaderless quorum (`W`/`R`/`N`) makes writes fail when `up < W` long before the cluster "looks down" — use the sim below.
+
+=== "Where This Stops Being True"
+    Stretching a two-AZ 2+1 replica set across regions is not DR; it is a majority trap. Replication is not a backup (delete replicates), and it is not a warehouse (OLTP replicas hate scatter-gather analytics).
+
 ---
 
 ## The Three Topologies

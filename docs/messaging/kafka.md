@@ -335,3 +335,6 @@ Key metrics:
     5. Eager rebalances stop group consumption while assignments are revoked and redistributed. Cooperative/incremental rebalancing reduces disruption by retaining unaffected assignments. Tune `max.poll.interval.ms` to avoid unnecessary rebalances.
     6. Hot partitions require application-level fixes, not just Kafka configuration
 
+!!! note "Version taught"
+    **Version taught / last verified:** 2026-08 (partitions, consumer groups, eager vs cooperative rebalance, ISR as a concept). **Current upstream:** Apache Kafka **4.3.1** (latest GA as of 2026-06; 4.4 was still RC in 2026-08). **Compatibility:** group parallelism = partitions still holds. KRaft is the default metadata path on 4.x — this page does not teach ZooKeeper-based controllers. Cooperative/incremental rebalancing is 2.4+; do not assume every cluster has it enabled.
+
