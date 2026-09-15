@@ -5,6 +5,9 @@ description: Complete guided design of a payment processing system — idempoten
 
 # Design: Payment Processing System
 
+!!! example "Hypothetical ambiguous payment"
+    The PSP charges a card and the network returns 504 before checkout receives the result. “Just retry” can double-charge the customer; “never retry” can leave a paid order marked failed. Design the state transition and idempotency boundary that make an unknown outcome recoverable.
+
 **Difficulty:** Senior/Staff | **Time:** 60–90 minutes
 
 !!! warning "This is hard. That's the point."

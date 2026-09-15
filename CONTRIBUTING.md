@@ -14,16 +14,36 @@ Update [`docs/project-status.md`](docs/project-status.md) with every page. Never
 
 Every concept page must include:
 
-1. **Why this exists** — the problem it solves (not a definition)
-2. **Mental model** — a simple analogy or visual explanation
-3. **Architecture** — Mermaid diagram
-4. **How it works internally** — mechanisms, not just what
-5. **Realistic example** — concrete numbers and context
-6. **Failure modes** — what breaks and why
-7. **Production debugging** — metrics, commands, decision trees
-8. **Trade-offs** — explicit comparison table
-9. **Interview questions** — Basic / Senior / Staff with sample answers
-10. **Key takeaways** — 5 bullet points max
+1. **Cold open** — when Story applies, carry a concrete actor or system through an observable, a decision, and a consequence before tabs or definitions
+2. **Why this exists** — establish the engineering problem, scope, and requirements
+3. **Naive move → break** — show the respectable first attempt and the concrete failure that earns the mechanism, where the topic naturally has one
+4. **Mental model** — a simple analogy or visual explanation
+5. **Architecture** — Mermaid diagram where it materially helps
+6. **How it works internally** — mechanisms, not just what
+7. **Realistic example** — concrete numbers and context
+8. **Failure modes** — what breaks and why
+9. **Production debugging** — metrics, commands, decision trees
+10. **Trade-offs** — explicit comparison table
+11. **Interview retell** — Basic / Senior / Staff answers should narrate the same reasoning, not introduce a disconnected example
+12. **Key takeaways** — 5 bullet points max
+
+Story is genre-applicable, not universal. It is required for tutorials, design/LLD exercises, DSA patterns, behavioural lessons, and labs. It is normally `—` for indexes, glossaries, catalogs, calculators, and process/reference pages. `Req` and `Story` are distinct: Req establishes the problem and scope; Story makes the decision chain concrete and memorable.
+
+### Truthful scenarios
+
+Specific detail must not masquerade as evidence. Every incident, timestamp, metric, quotation, and log line must be sourced and cited, identified as adapted, or labeled **Hypothetical** / **Illustrative**. Never present synthetic output as the exact output of a real product. Distinguish capacity assumptions from measured production results.
+
+Use one running scenario rather than adding a detachable “story” section. An incident admonition is optional:
+
+```markdown
+!!! example "Hypothetical incident"
+    **02:14:** Checkout p99 rises from 80 ms to 6 s while CPU stays at 40%.
+    **Naive move:** Retry Fraud three times; downstream load can rise to 4×.
+    **Decision:** Bound the wait, enforce a retry budget, then isolate the dependency.
+    **Retell:** “We were latched to a sick dependency; timeouts bounded the damage before the breaker isolated it.”
+```
+
+For every rewrite, preserve or improve the other quality-matrix dimensions, keep net word count within 110% unless a reviewer approves the growth, and have a technical reviewer check accuracy-sensitive claims.
 
 ## Adding a New Page
 

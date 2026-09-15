@@ -8,6 +8,9 @@ prerequisites:
 
 # Don't Say Yes When You Mean No
 
+!!! example "Illustrative workplace scene"
+    In planning, an engineer says yes to a Friday launch while privately expecting two more weeks. The apparent agreement removes the team's chance to trade scope, staffing, or date. A respectful boundary makes constraints discussable before silent resentment becomes delivery failure.
+
 **Prerequisites:** [Growth Mindset](index.md), [Protecting Your Sanity](sustainable-pace.md)
 
 [← Growth Mindset](index.md) | **Previous:** [Protecting Your Sanity](sustainable-pace.md) | **Next:** [The Strong Engineer](strong-engineer.md)

@@ -5,6 +5,9 @@ description: Guided design of an e-commerce platform — catalog, cart, checkout
 
 # Design: E-Commerce Platform (Amazon-style)
 
+!!! example "Hypothetical flash sale"
+    One item has 100 units and 50,000 buyers click purchase in a minute. A cached stock count makes checkout fast but can oversell; a global lock preserves stock and destroys throughput. Decide where inventory becomes a reservation.
+
 **Difficulty:** Senior/Staff | **Time:** 60–90 minutes
 
 !!! note "Instructions"

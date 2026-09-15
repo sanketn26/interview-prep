@@ -7,6 +7,9 @@ prerequisites:
 
 # Docker
 
+!!! example "Hypothetical environment gap"
+    The service passes locally and fails in CI because its runtime library and filesystem assumptions differ. Shipping source code did not ship the environment. Build one immutable image, then inspect what isolation it provides—and what it does not.
+
 **Prerequisites:** none strictly required — helpful to have seen a `Dockerfile` before.
 
 [← Cloud](index.md) | [Next: Infrastructure as Code →](infrastructure-as-code.md)

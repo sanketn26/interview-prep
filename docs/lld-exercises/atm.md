@@ -5,6 +5,9 @@ description: An ATM modeled as a state machine — card, PIN, and transaction fl
 
 # LLD: ATM
 
+!!! example "Hypothetical withdrawal"
+    The bank authorizes a withdrawal, the cash dispenser jams, and the ATM loses power before printing a receipt. The customer must not lose money or receive cash twice. Model the state transitions and compensation before choosing classes.
+
 **Difficulty:** Intermediate | **Time:** 40–50 minutes
 
 !!! note "Instructions"

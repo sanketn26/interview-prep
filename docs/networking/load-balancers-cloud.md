@@ -8,6 +8,9 @@ prerequisites:
 
 # Cloud Load Balancers: NLB, ALB, and Multi-Cloud
 
+!!! example "Hypothetical incident"
+    TLS termination, WebSockets, and source-IP requirements arrive in one migration plan. Choosing by cloud product name hides the actual layer and connection behavior. Start with the packet and request properties, then map them to each provider.
+
 **Prerequisites:** [Load Balancing](load-balancing.md), [Proxies & Ingress](proxies-ingress.md)
 
 [← Networking Overview](index.md)

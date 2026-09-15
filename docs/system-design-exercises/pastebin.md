@@ -5,6 +5,9 @@ description: Guided design of a text-snippet sharing service — from a single-r
 
 # Design: Pastebin
 
+!!! example "Hypothetical viral paste"
+    A burn-after-read paste is opened at the same moment a public paste goes viral. One requires an atomic first read and deletion; the other needs cacheable, high-volume delivery. The API looks like a URL shortener, but content size, visibility, and deletion semantics force a different design.
+
 **Difficulty:** Foundation | **Time:** 45–60 minutes
 
 !!! note "Instructions"

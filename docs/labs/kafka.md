@@ -5,6 +5,9 @@ description: A real 3-broker Kafka cluster in KRaft mode — kill a broker, watc
 
 # Lab: Kafka Cluster
 
+!!! example "Prediction checkpoint"
+    You will kill a broker while a consumer group is reading. First write down which replica should become partition leader and whether consumption pauses during reassignment. The leader-election and rebalance log lines are the evidence that confirms or rejects your model.
+
 **Pairs with:** [Kafka Deep Dive](../messaging/kafka.md)
 
 A 3-broker Kafka cluster in KRaft mode (no ZooKeeper). Create a real topic, kill a real broker mid-traffic, and watch a real leader election and consumer-group rebalance — not a canvas animation.

@@ -5,6 +5,9 @@ description: Multi-level parking lot with vehicle-size matching, pricing strateg
 
 # LLD: Parking Lot
 
+!!! example "Hypothetical Saturday rush"
+    Two gates see the last compact spot as free. A motorcycle already occupies a large spot while a truck waits, and both attendants allocate the compact spot at once. Model size rules, allocation, and concurrency before drawing classes.
+
 **Difficulty:** Beginner | **Time:** 30–40 minutes
 
 !!! note "Instructions"

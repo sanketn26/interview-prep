@@ -5,6 +5,9 @@ description: KMP and Rabin-Karp pattern matching algorithms with an interactive 
 
 # String Matching — KMP & Rabin-Karp
 
+!!! example "Illustrative interview"
+    A long prefix matches, the next character fails, and the naive matcher restarts from scratch. The discarded prefix already contains information about the next viable alignment. KMP records that information so the text pointer never moves backward.
+
 **Difficulty:** Hard | **Pattern Type:** Substring search
 
 [← DSA Overview](index.md) | [← Greedy Algorithms](greedy.md) | [Next: Advanced String Matching →](advanced-string-matching.md)

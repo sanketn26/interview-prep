@@ -5,6 +5,9 @@ description: Multi-branch vehicle rental with date-range availability, one-way r
 
 # LLD: Car Rental
 
+!!! example "Hypothetical double booking"
+    Two customers reserve the last SUV from different branches at the same time; one vehicle is returned damaged five minutes later. The model must separate vehicle availability, reservations, and rental state so a race cannot promise the same car twice.
+
 **Difficulty:** Intermediate | **Time:** 40–50 minutes
 
 !!! note "Instructions"

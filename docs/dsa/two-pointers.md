@@ -5,6 +5,9 @@ description: Master the two pointers DSA pattern — opposite-direction and fast
 
 # Two Pointers Pattern
 
+!!! example "Illustrative interview"
+    Given a sorted array and a target sum, the candidate tries every pair: `O(n²)` comparisons and no use of the ordering clue. Put one pointer at each end. Each comparison now proves an entire side cannot work, so one pointer moves and the search finishes in `O(n)`.
+
 **Difficulty:** Easy-Medium | **Pattern Type:** Array/Linked List optimization
 
 [← Sliding Window](sliding-window.md) | [Next: Binary Search →](binary-search.md)

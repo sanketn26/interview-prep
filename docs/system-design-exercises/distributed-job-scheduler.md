@@ -5,6 +5,9 @@ description: Guided design of a cron/Airflow-scale job scheduler — from an in-
 
 # Design: Distributed Job Scheduler (cron/Airflow at scale)
 
+!!! example "Hypothetical duplicate run"
+    A worker finishes payroll but loses its lease before acknowledging completion. Another worker receives the same job. The scheduler must recover work without pretending it can make arbitrary side effects exactly once.
+
 **Difficulty:** Senior → Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

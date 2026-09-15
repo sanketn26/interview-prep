@@ -5,6 +5,8 @@ description: Interview modes, three-level explanation model, and how to get the 
 
 # How to Study This Academy
 
+Read tutorials as decision chains, not chapter summaries. On pages with a running incident or scenario, pause after the observable and predict the first failure before revealing the mechanism. Then practice a one-sentence retell: actor/system → signal → decision → consequence. The scenario is a memory aid, not evidence; examples labeled Hypothetical or Illustrative must not be repeated as personal experience or real production history.
+
 Pick a route on [Learning paths](learning-paths.md) (Senior Backend, Staff Distributed Systems, Platform, Data/Streaming, Interview Sprint, Production Debugging). Do not skip the four canonical modules named there.
 
 !!! warning "Prerequisite check"

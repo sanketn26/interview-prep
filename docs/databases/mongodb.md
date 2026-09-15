@@ -5,6 +5,9 @@ description: Document model, schema validation, transactions, sharding, and oper
 
 # MongoDB Deep Dive: Document Database at Scale
 
+!!! example "Hypothetical incident"
+    A product document grows with every embedded event until updates become slow and migrations painful. Splitting everything into references fixes growth but adds request-time joins. Follow that modeling decision into indexes, replication, and sharding.
+
 MongoDB trades **SQL flexibility for developer ergonomics**. Instead of designing a schema with 10 normalized tables, you store a document (JSON-like) exactly as your application needs it.
 
 ---
@@ -509,4 +512,3 @@ changeStream.on("change", (change) => {
 - **Replication is asynchronous**: design for eventual consistency; use read preference carefully.
 - **Embedded arrays grow unbounded**: cap at 1000 items; split if needed.
 - **WiredTiger is B+tree-based by default**: an optional LSM access method exists but isn't the default; write-optimized via a write cache + journal; SSD is mandatory for sustained throughput.
-

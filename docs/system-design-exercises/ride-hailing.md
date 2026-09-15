@@ -5,6 +5,9 @@ description: Guided design of a ride-hailing platform — rider/driver matching,
 
 # Design: Uber / Ride-Hailing
 
+!!! example "Hypothetical stadium exit"
+    A match ends and 20,000 riders request cars in one geohash while driver locations change every few seconds. Stale proximity creates bad matches; globally current state cannot arrive cheaply. Decide where freshness matters and how a match becomes exclusive.
+
 **Difficulty:** Senior → Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

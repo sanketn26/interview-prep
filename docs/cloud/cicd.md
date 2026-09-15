@@ -7,6 +7,9 @@ prerequisites:
 
 # CI/CD
 
+!!! example "Hypothetical pipeline failure"
+    A green build reaches production with an untested migration and rollback cannot restore the old schema. More pipeline stages would add ceremony without proving safety. Start with the failure, then add the smallest gate that would have caught it.
+
 **Prerequisites:** [Docker](docker.md)
 
 [← Terraform](terraform.md) | [Next: Deployment Strategies →](deployment-strategies.md)

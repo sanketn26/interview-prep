@@ -5,6 +5,9 @@ description: Horizontal sharding — partitioning, routing, cross-shard queries,
 
 # Database Sharding
 
+!!! example "Hypothetical growth incident"
+    At 09:00 the users primary reaches its write ceiling: CPU is pinned, replication lag is climbing, and a larger instance will only buy one quarter. The team splits users by range. Writes recover—until every new signup lands on the newest range and that shard becomes hot. Sharding earns horizontal write capacity, but the shard key decides where the next failure lives.
+
 **Prerequisites:** [Consistent Hashing](consistent-hashing.md)
 
 ---

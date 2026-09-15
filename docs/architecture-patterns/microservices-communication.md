@@ -8,6 +8,9 @@ prerequisites:
 
 # Microservices Communication
 
+!!! example "Hypothetical order incident"
+    Checkout calls User and Inventory synchronously. Inventory slows from 40 ms to 4 s, checkout threads fill, and orders stop even though User and the database are healthy. Publishing everything as events would remove the wait but make confirmation and compensation harder. The communication pattern is earned by the latency and consistency the order flow can actually tolerate.
+
 **Prerequisites:** [Messaging patterns](../messaging/patterns.md), [Sagas](sagas.md)
 
 [← Sagas](sagas.md) | [Next: Circuit Breakers →](../reliability/circuit-breakers.md)

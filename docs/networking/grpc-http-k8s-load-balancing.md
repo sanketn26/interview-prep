@@ -9,6 +9,9 @@ prerequisites:
 
 # gRPC vs HTTP vs HTTP/2 in Production
 
+!!! example "Hypothetical incident"
+    A Kubernetes Service balances one long-lived HTTP/2 connection to a single pod while its siblings sit idle. Request-level load balancing never gets a chance to act. Trace connection lifetime and stream multiplexing before choosing where balancing belongs.
+
 **Prerequisites:** [HTTP & TCP](http-tcp.md), [Load Balancing](load-balancing.md), [Cloud Load Balancers](load-balancers-cloud.md)
 
 [← Networking Overview](index.md)
@@ -965,4 +968,3 @@ sum(grpc_server_started_total - grpc_server_handled_total) by (instance)
 ---
 
 **Previous:** [Modern Protocols & Service Mesh](modern-protocols-service-mesh.md)
-

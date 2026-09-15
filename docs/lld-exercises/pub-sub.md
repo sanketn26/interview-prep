@@ -5,6 +5,9 @@ description: An in-process publish-subscribe broker with thread-safe subscriber 
 
 # LLD: Pub/Sub
 
+!!! example "Hypothetical slow subscriber"
+    One subscriber stops acknowledging while two healthy subscribers keep up. Synchronous delivery lets the slow consumer block everyone; blind redelivery duplicates work. Model topics, subscriptions, offsets, and delivery policy before implementation.
+
 **Difficulty:** Advanced | **Time:** 40–50 minutes
 
 !!! note "Instructions"

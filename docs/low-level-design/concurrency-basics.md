@@ -7,6 +7,9 @@ prerequisites:
 
 # Concurrency Basics
 
+!!! example "Hypothetical race"
+    Two workers read inventory `1`, both decrement, and both confirm an order. Each line is correct in isolation; the interleaving is not. Make the invariant and atomic boundary visible before choosing a lock or optimistic retry.
+
 **Prerequisites:** [OOP Fundamentals](oop-fundamentals.md)
 
 [← Design Patterns](design-patterns.md) | [Next: Concurrency Execution Models →](concurrency-execution-models.md)

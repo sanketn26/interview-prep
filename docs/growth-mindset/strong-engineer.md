@@ -7,6 +7,9 @@ prerequisites:
 
 # The Strong Engineer — Characteristics and Conduct
 
+!!! example "Illustrative workplace scene"
+    An incident ends after a restart and the room wants to move on. A strong engineer restores service first, then preserves the timeline, tests the suspected cause, and turns the lesson into an owned change. Strength is repeatable judgment, not visible heroics.
+
 **Prerequisites:** [Growth Mindset](index.md)
 
 [← Growth Mindset](index.md) | **Previous:** [Don't Say Yes When You Mean No](boundaries.md) | **Next:** [Seeing What Others Miss](seeing-what-others-miss.md)

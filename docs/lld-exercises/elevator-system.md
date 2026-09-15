@@ -5,6 +5,9 @@ description: A multi-elevator system with a pluggable scheduling strategy, model
 
 # LLD: Elevator System
 
+!!! example "Hypothetical lobby surge"
+    Twenty riders call from the lobby while a car near the top floor is already moving upward. Serving requests in arrival order makes one rider wait indefinitely. Separate requests from scheduling policy so the system can change dispatch without rewriting elevator state.
+
 **Difficulty:** Intermediate | **Time:** 40–50 minutes
 
 !!! note "Instructions"

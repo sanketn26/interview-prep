@@ -5,6 +5,9 @@ description: Class-level notification service — Observer-based dispatch, per-c
 
 # LLD: Notification System
 
+!!! example "Hypothetical campaign"
+    A campaign targets email, SMS, and push, but one user opted out of SMS and the email provider is timing out. Nested channel conditionals turn every new provider into a risky edit. Model channel strategy, preference, retry, and delivery state separately.
+
 **Difficulty:** Advanced | **Time:** 40–50 minutes
 
 !!! note "Instructions"

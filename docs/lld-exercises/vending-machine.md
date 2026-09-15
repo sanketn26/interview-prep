@@ -5,6 +5,9 @@ description: A slot-based vending machine modeled as a state machine, coordinati
 
 # LLD: Vending Machine
 
+!!! example "Hypothetical vend failure"
+    A customer inserts money, selects the last item, and the dispenser jams after inventory is reserved. Returning change, restoring stock, and preventing a second selection require explicit states—not a long chain of conditionals.
+
 **Difficulty:** Intermediate | **Time:** 35–45 minutes
 
 !!! note "Instructions"

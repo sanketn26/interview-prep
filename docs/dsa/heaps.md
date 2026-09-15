@@ -5,6 +5,9 @@ description: Master min-heaps and priority queues with an interactive insert/ext
 
 # Heaps & Priority Queues
 
+!!! example "Illustrative interview"
+    A stream never ends, but the interviewer asks for its ten largest values at any moment. Sorting the whole history repeats work and requires storing everything. Keep only the boundary in a size-ten min-heap.
+
 **Difficulty:** Medium | **Pattern Type:** Priority-ordered access
 
 [← DSA Overview](index.md) | [← BFS & DFS](bfs-dfs.md) | [Next: Graph Algorithms →](graph-algorithms.md)

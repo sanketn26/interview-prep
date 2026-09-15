@@ -5,6 +5,9 @@ description: Guided design of a mapping and turn-by-turn navigation platform —
 
 # Design: Maps & Navigation (Google Maps)
 
+!!! example "Hypothetical road closure"
+    A road closes after thousands of drivers have cached routes through it. Recomputing every global route is too slow; ignoring the update sends cars into congestion. Separate map data, live traffic, route search, and incremental rerouting.
+
 **Difficulty:** Senior → Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

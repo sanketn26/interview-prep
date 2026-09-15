@@ -5,6 +5,9 @@ description: A complete guided system design exercise — URL shortener from req
 
 # Design: URL Shortener
 
+!!! example "Hypothetical launch"
+    Marketing needs `sho.rt/launch` live by Friday. The launch tweet produces 115,000 redirects per second while every request targets one celebrity code. A single database row is logically sufficient and operationally dangerous. Before drawing boxes, decide what must remain correct on the write path and what the read path may cache aggressively.
+
 **Difficulty:** Foundation | **Time:** 45–60 minutes
 
 !!! note "Instructions"

@@ -5,6 +5,9 @@ description: Guided design of a personalized recommendation system ('Videos for 
 
 # Design: Recommendation System (e.g. "Videos for you" / "Products you may like")
 
+!!! example "Hypothetical cold start"
+    A new user has no history and a newly uploaded item has no interactions. The most accurate offline model has nothing to score. Design candidate generation, fallback signals, ranking, and feedback without trapping users in the first guess.
+
 **Difficulty:** Senior/Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

@@ -5,6 +5,9 @@ description: Guided design of a video streaming platform — upload, transcoding
 
 # Design: YouTube / Netflix (Video Streaming Platform)
 
+!!! example "Hypothetical premiere"
+    A global premiere starts at the same minute for ten million viewers. Origin capacity is finite, bitrates vary, and one missing segment becomes visible as a stall. Design the path from upload to transcoding, CDN placement, and adaptive playback.
+
 **Difficulty:** Senior → Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

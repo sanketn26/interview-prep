@@ -5,6 +5,9 @@ description: Trie insert, search, and prefix search for autocomplete — with an
 
 # Tries (Prefix Trees)
 
+!!! example "Illustrative interview"
+    Autocomplete receives a prefix and must return suggestions without scanning every word. A hash set answers whole-word membership but not shared prefixes. Store characters along shared paths so lookup cost follows query length rather than dictionary size.
+
 **Difficulty:** Medium | **Pattern Type:** String prefix indexing
 
 [← DSA Overview](index.md) | [← Sorting](sorting.md) | [Next: Greedy Algorithms →](greedy.md)

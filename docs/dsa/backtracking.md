@@ -5,6 +5,9 @@ description: Backtracking and constraint satisfaction — N-Queens, Sudoku, subs
 
 # Backtracking & Constraint Satisfaction
 
+!!! example "Illustrative interview"
+    A placement choice blocks every completion several moves later. Copying every partial board wastes memory; keeping bad choices explores forever. Choose, test, recurse, and undo so constraints prune the search tree without corrupting sibling branches.
+
 **Difficulty:** Hard | **Pattern Type:** Exhaustive search with pruning
 
 [← DSA Overview](index.md) | [← Union-Find](union-find.md) | [Next: Sorting →](sorting.md)

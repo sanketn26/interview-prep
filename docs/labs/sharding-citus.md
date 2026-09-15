@@ -5,6 +5,9 @@ description: A real sharded Postgres cluster — query real shard placement, wat
 
 # Lab: Sharded Postgres (Citus)
 
+!!! example "Prediction checkpoint"
+    You will run a co-located query and then one that crosses shards. Predict which query stays on one worker and which requires coordination. The distributed plan—not elapsed time alone—shows whether the shard key served the access pattern.
+
 **Pairs with:** [Sharding](../databases/sharding.md)
 
 A real Citus cluster — 1 coordinator + 3 workers. Distribute a table by shard key, query `pg_dist_shard_placement` to see where data actually landed, compare a cross-shard query plan against a single-shard one, and reproduce a real hot shard with `docker stats` showing one container doing all the work.

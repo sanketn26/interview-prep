@@ -8,6 +8,9 @@ prerequisites:
 
 # Proxies, Ingress, and Egress Control
 
+!!! example "Hypothetical incident"
+    A request reaches the cluster but loops between an ingress rewrite and a service proxy until its deadline expires. Every hop claims the next one owns routing. Reconstruct the path and assign north-south and east-west policy deliberately.
+
 **Prerequisites:** [Load Balancing](load-balancing.md), [Kubernetes](../kubernetes/index.md)
 
 [← Networking Overview](index.md)

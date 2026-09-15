@@ -7,6 +7,9 @@ prerequisites:
 
 # SOLID Principles
 
+!!! example "Hypothetical change request"
+    A `Ticket` class prices, prints, persists, and notifies. Adding a new receipt format breaks database tests, and changing storage risks pricing. Follow this class through each SOLID pressure before learning the initials.
+
 **Prerequisites:** [OOP Fundamentals](oop-fundamentals.md)
 
 [← OOP Fundamentals](oop-fundamentals.md) | [Next: Design Patterns →](design-patterns.md)

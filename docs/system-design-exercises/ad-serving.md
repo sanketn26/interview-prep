@@ -5,6 +5,9 @@ description: Guided design of a real-time ad auction platform — from a synchro
 
 # Design: Ad Serving System
 
+!!! example "Hypothetical budget race"
+    A campaign has ₹1,000 left when thousands of auctions run concurrently. Stale budget checks can overspend; serializing every bid misses the latency budget. Decide what must be exact online and what can reconcile afterward.
+
 **Difficulty:** Senior → Staff | **Time:** 60 minutes
 
 !!! note "Instructions"

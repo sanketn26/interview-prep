@@ -8,6 +8,9 @@ prerequisites:
 
 # Load Balancing
 
+!!! example "Hypothetical incident"
+    All backends pass health checks, but one holds long requests and its queue grows while others idle. Round robin distributed requests, not work. The observed imbalance earns a policy that accounts for connection or latency state.
+
 **Prerequisites:** [HTTP & TCP](http-tcp.md), [Consistent Hashing](../databases/consistent-hashing.md)
 
 [← Networking Overview](index.md) | [Next: HTTP & TCP →](http-tcp.md)

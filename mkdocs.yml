@@ -105,6 +105,7 @@ nav:
     - Quality matrix: quality-matrix.md
     - Learning paths: learning-paths.md
     - Content review checklist: content-review.md
+    - Storytelling reader test: storytelling-reader-test.md
   - Learn:
     - Fundamentals:
       - foundations/index.md
@@ -331,6 +332,7 @@ nav:
     - Don't Say Yes When You Mean No: growth-mindset/boundaries.md
     - The Strong Engineer: growth-mindset/strong-engineer.md
     - Seeing What Others Miss: growth-mindset/seeing-what-others-miss.md
+    - Storytelling at Work: growth-mindset/storytelling-at-work.md
   - Reference:
     - reference/index.md
     - Cheat Sheets: reference/cheat-sheets.md

@@ -5,6 +5,9 @@ description: Guided design of a real-time video calling system — signaling, P2
 
 # Design: Video Calling (Zoom/Google Meet)
 
+!!! example "Hypothetical large call"
+    A two-person call works peer to peer; the tenth participant multiplies upload streams until laptops and networks fail. The first architecture cannot survive the room growing. Earn the SFU from that bandwidth break, then handle packet loss and regional latency.
+
 **Difficulty:** Senior/Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

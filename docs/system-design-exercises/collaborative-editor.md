@@ -5,6 +5,9 @@ description: Guided design of a real-time collaborative text editor — from a s
 
 # Design: Collaborative Document Editor (Google Docs)
 
+!!! example "Hypothetical concurrent edit"
+    Two editors insert text at the same position while one is briefly offline. Each local document looks correct, yet applying operations in arrival order produces different results. The design must converge without making typing wait for a round trip.
+
 **Difficulty:** Senior → Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

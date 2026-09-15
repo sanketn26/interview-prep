@@ -5,6 +5,9 @@ description: Dijkstra's shortest path, minimum spanning tree (Prim/Kruskal), and
 
 # Graph Algorithms — Shortest Path, MST, Topological Sort
 
+!!! example "Illustrative interview"
+    The shortest-looking edge leads to an expensive route later. A plain BFS ignores weights, while trying every path explodes. The graph's weight and cycle properties—not its business story—select the algorithm.
+
 **Difficulty:** Hard | **Pattern Type:** Weighted graph traversal / ordering
 
 [← DSA Overview](index.md) | [← Heaps](heaps.md) | [Next: Union-Find →](union-find.md)

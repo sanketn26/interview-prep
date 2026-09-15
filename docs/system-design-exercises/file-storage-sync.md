@@ -5,6 +5,9 @@ description: Guided design of a multi-device file sync service — from whole-fi
 
 # Design: Google Drive / Dropbox (File Storage & Sync)
 
+!!! example "Hypothetical offline edit"
+    A laptop edits a file offline while a phone renames it and another user deletes the shared folder. When all three reconnect, “latest timestamp wins” can discard valid work. Define identity, versioning, chunk transfer, and conflict behavior first.
+
 **Difficulty:** Senior | **Time:** 60–75 minutes
 
 !!! note "Instructions"

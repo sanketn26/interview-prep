@@ -8,6 +8,9 @@ prerequisites:
 
 # Real-Time Communication — WebSockets, Long Polling, SSE, Webhooks
 
+!!! example "Hypothetical incident"
+    A dashboard needs server updates every second, while a payment partner only needs durable callbacks. Polling wastes traffic for one; a permanent socket complicates delivery for the other. Choose from direction, latency, connection lifetime, and retry ownership.
+
 **Prerequisites:** [HTTP & TCP Deep Dive](http-tcp.md), [Load Balancing](load-balancing.md)
 
 [← Networking](index.md)

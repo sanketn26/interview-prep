@@ -5,6 +5,9 @@ description: Quicksort, merge sort, and heapsort compared visually — stability
 
 # Sorting Algorithms
 
+!!! example "Illustrative interview"
+    Records must be sorted under a memory limit, equal keys must preserve input order, and the data may already be nearly ordered. “Use quicksort” answers none of those constraints. Choose the algorithm from stability, worst case, memory, and input shape.
+
 **Difficulty:** Medium | **Pattern Type:** Comparison-based ordering
 
 [← DSA Overview](index.md) | [← Backtracking](backtracking.md) | [Next: Tries →](tries.md)

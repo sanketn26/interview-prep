@@ -8,6 +8,9 @@ prerequisites:
 
 # Crucial Conversations — Presenting Difficult Things
 
+!!! example "Illustrative workplace scene"
+    A design review has already converged when one engineer finds a data-loss path. Dropping “this is broken” into the meeting invites defense; hiding it protects harmony and risks users. Present the observable, consequence, and reversible next step without attacking the people who built it.
+
 **Prerequisites:** [Growth Mindset](index.md), [Standing Your Ground, Professionally](standing-your-ground.md)
 
 [← Growth Mindset](index.md) | **Previous:** [Standing Your Ground, Professionally](standing-your-ground.md) | **Next:** [Protecting Your Sanity](sustainable-pace.md)

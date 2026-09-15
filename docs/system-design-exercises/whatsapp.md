@@ -5,6 +5,9 @@ description: Guided design of a 1:1 and group messaging system — connections, 
 
 # Design: WhatsApp / Real-Time Messaging
 
+!!! example "Hypothetical delivery gap"
+    A message shows one tick in a 1:1 chat, then a 256-member group sends at once while half its members are offline. Online fan-out wants immediate delivery; offline queues want durable catch-up without duplicating messages. Before choosing storage, say exactly what sent, delivered, and read mean for one device and for a group.
+
 **Difficulty:** Senior/Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

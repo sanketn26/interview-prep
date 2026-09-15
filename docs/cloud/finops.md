@@ -7,6 +7,9 @@ prerequisites:
 
 # FinOps
 
+!!! example "Hypothetical cost incident"
+    The platform meets its SLO while the monthly bill doubles. One autoscaling group follows request count even when work per request falls. Cost becomes an engineering signal: attribute it, connect it to demand, then optimize without trading away reliability blindly.
+
 **Prerequisites:** none strictly required.
 
 [← IAM & Managed Services](iam-managed-services.md) | [Next: Kubernetes →](../kubernetes/index.md)

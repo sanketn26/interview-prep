@@ -5,6 +5,9 @@ description: Master binary search — classic search-in-sorted-array plus the se
 
 # Binary Search Pattern
 
+!!! example "Illustrative interview"
+    The array is not the interesting part: the interviewer asks for the smallest capacity that finishes shipping within `D` days. Trying every capacity repeats the same monotonic fact—once a capacity works, every larger one works too. Binary search the first true answer instead of enumerating the answer space.
+
 **Difficulty:** Easy (classic) / Medium-Hard (on the answer) | **Pattern Type:** Search space reduction
 
 [← Two Pointers](two-pointers.md) | [Next: BFS & DFS →](bfs-dfs.md)

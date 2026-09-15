@@ -53,8 +53,9 @@ The skill this whole section is built around is **calibration** — knowing whic
 | [Don't Say Yes When You Mean No](boundaries.md) | The compounding cost of a reflexive yes, and how to build the habit of a considered answer instead |
 | [The Strong Engineer](strong-engineer.md) | What separates a strong engineer from a merely skilled one — traits and conduct, and why they're not the same list |
 | [Seeing What Others Miss](seeing-what-others-miss.md) | The specific mental habits behind noticing the problem nobody else flagged, before it's an incident |
+| [Storytelling at Work](storytelling-at-work.md) | How to turn technical evidence into a clear decision narrative for reviews, incidents, proposals, and status updates—without embellishment or hidden trade-offs |
 
-Read them in whatever order matches what's live for you right now — this section isn't sequential the way a technical curriculum is. If you're about to walk into a hard conversation, start with [Standing Your Ground](standing-your-ground.md). If you're wondering whether the exhaustion you're feeling is normal, start with [Protecting Your Sanity](sustainable-pace.md).
+Read them in whatever order matches what's live for you right now — this section isn't sequential the way a technical curriculum is. If you're about to walk into a hard conversation, start with [Standing Your Ground](standing-your-ground.md). If you need a room to understand and act on a technical decision, start with [Storytelling at Work](storytelling-at-work.md). If you're wondering whether the exhaustion you're feeling is normal, start with [Protecting Your Sanity](sustainable-pace.md).
 
 ---
 

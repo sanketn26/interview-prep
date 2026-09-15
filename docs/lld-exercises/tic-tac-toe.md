@@ -5,6 +5,9 @@ description: An NxN tic-tac-toe engine designed around an O(1)-per-move win chec
 
 # LLD: Tic Tac Toe
 
+!!! example "Hypothetical rule change"
+    The familiar 3×3 game suddenly needs an `N×N` board and `K` marks to win. Hard-coded row checks collapse under the first variation. Separate board state, move validation, player turns, and winning strategy.
+
 **Difficulty:** Beginner | **Time:** 20–30 minutes
 
 !!! note "Instructions"

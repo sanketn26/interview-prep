@@ -5,6 +5,9 @@ description: Expense splitting across groups with pluggable split strategies, an
 
 # LLD: Splitwise
 
+!!! example "Hypothetical group expense"
+    One dinner is split equally, another by exact amounts, and a repayment arrives while balances are being simplified. Storing only a group total loses who owes whom. Model expenses as immutable inputs and derive balances through replaceable split strategies.
+
 **Difficulty:** Beginner | **Time:** 30–40 minutes
 
 !!! note "Instructions"

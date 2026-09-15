@@ -7,6 +7,9 @@ prerequisites:
 
 # Protecting Your Sanity
 
+!!! example "Illustrative workplace scene"
+    A team celebrates the third late-night save in a month while the same alert remains unactionable. Individual endurance is masking an operating-system defect. Sustainable pace means turning repeated heroics into priorities, ownership, and explicit capacity trade-offs.
+
 **Prerequisites:** [Growth Mindset](index.md)
 
 [← Growth Mindset](index.md) | **Previous:** [Crucial Conversations](crucial-conversations.md) | **Next:** [Don't Say Yes When You Mean No](boundaries.md)
