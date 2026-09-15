@@ -29,7 +29,7 @@ def body_lines(text: str) -> list[str]:
             continue
         if line.startswith(("**Prerequisites:**", "[←", "!!! note \"Instructions\"")):
             continue
-        lines.append(re.sub(r"[`*_>#\[\]()]", " ", line))
+        lines.append(re.sub(r"[`*_>#\[\]()]", " ", line).strip())
         if len(lines) == 12:
             break
     return lines
@@ -65,7 +65,7 @@ def main() -> None:
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
+        writer = csv.writer(handle, lineterminator="\n")
         writer.writerow(["path", "opening_type", "story_score", "actor", "observable", "stake", "opening"])
         for path in paths:
             opening = " ".join(body_lines(path.read_text(encoding="utf-8")))

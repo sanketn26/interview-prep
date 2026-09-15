@@ -82,57 +82,6 @@ If those six beats are present, the rest of the page can stay dense. Their absen
 
 **One plot per page.** Every later section is a beat of that plot, not a new chapter of a textbook.
 
-### Using storytelling at work
-
-Workplace storytelling is not performance or fiction. It is a compact way to help people understand **what changed, why it matters, what decision is needed, and what happens next**. Use it when a list of facts is accurate but does not give the audience a usable mental model.
-
-A reliable structure is:
-
-1. **Before** — the expected or normal state.
-2. **Change** — the observable event, constraint, or new evidence.
-3. **Consequence** — the user, business, or engineering impact.
-4. **Choice** — the options and their meaningful trade-offs.
-5. **Decision** — the recommendation, owner, and next checkpoint.
-
-Keep this to 30–90 seconds before supplying detailed tables, diagrams, or logs. The story creates orientation; the evidence earns the decision.
-
-!!! example "Hypothetical design-review example"
-    **Before:** Checkout called Inventory synchronously and stayed below its 300 ms p99 target.
-
-    **Change:** During the last promotion, Inventory p99 reached 2.8 seconds. Checkout threads filled even though checkout CPU remained below 45%.
-
-    **Consequence:** Customers could not place orders, and retries increased Inventory traffic by 2.3×.
-
-    **Choice:** We can increase checkout capacity, which does not remove dependency coupling, or place inventory reservations behind an asynchronous boundary, which adds temporary `PENDING` state and compensation work.
-
-    **Decision:** I recommend the asynchronous reservation path for promotional traffic, owned by Checkout and Inventory together. We will validate it at 10% traffic and stop if pending orders exceed 0.5% for five minutes.
-
-The weak version is: “Inventory was slow, so we should use Kafka.” It jumps from symptom to fashionable mechanism. The stronger version makes the failure and trade-off visible, so the mechanism is earned.
-
-#### Where to use it
-
-| Office situation | Opening story | Evidence that follows | End with |
-|------------------|---------------|-----------------------|----------|
-| Design review | Current request path → pressure → first component that fails | Capacity estimates, sequence diagram, alternatives | Decision and rejected trade-off |
-| Incident update | Normal state → first signal → current user impact | Timeline, metrics, confirmed facts vs hypotheses | Next action, owner, next update time |
-| Project proposal | User/team friction today → cost of leaving it unchanged | Usage data, effort, risks, options | Explicit approval or prioritization request |
-| Status update | Promised outcome → what changed → effect on date or scope | Milestones, dependencies, confidence | Recovery choice and accountable owner |
-| Technical disagreement | Shared goal → disputed assumption → evidence that changed the choice | Experiment, benchmark, operational history | Decision rule, not a winner and loser |
-| Postmortem | Expected defense → failure chain → why safeguards did not stop it | Timeline, contributing factors, counterfactual tests | Systemic actions with owners and dates |
-
-#### Office-use rules
-
-- Match the story to the audience. Executives need impact and the decision; operators need signals and the next diagnostic branch; engineers need mechanism and trade-offs.
-- Separate observation from interpretation: “p99 rose to 2.8 seconds” is observed; “the database is saturated” is a hypothesis until evidence confirms it.
-- Use real workplace facts only. Label rehearsals and teaching examples **Hypothetical** or **Illustrative**.
-- Do not manufacture a villain. Describe the constraint or failure chain, not a person to blame.
-- Do not hide uncertainty to make the narrative cleaner. State what is known, unknown, and what evidence will resolve it.
-- End with a decision, question, owner, or next checkpoint. A workplace story without an ask is merely an anecdote.
-
-#### Reusable spoken template
-
-> “We expected **[normal state]**. Then **[observable change]** happened, which caused **[specific impact]**. We tried or considered **[respectable first option]**, but it creates **[trade-off or failure]**. I recommend **[decision]** because **[evidence]**. **[Owner]** will do **[next step]** by **[time/checkpoint]**, and we will reconsider if **[exit condition]**.”
-
 ---
 
 ## Why the current contract produces this

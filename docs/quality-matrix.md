@@ -145,7 +145,7 @@ Not a close read. Sections found → ✓ or ~. Three-plus applicable ✗ still d
 | DSA written Complete (foundations, two pointers, binary search, pattern recognition) | ✓ problem/pattern; Pred ~; Fail/Mech/TO weak | Keep Complete as **DSA-bar** pages (same as sliding-window), not system-design-bar. Pred-before-viz is the remaining gap. |
 | Distributed fundamentals, multi-region DR, CRDTs, stream processing, serverless vs containers, multi-tenancy, microservices vs monolith | ✓ Req Fail Prod; Pred/V1 often ~ | Keep Complete. Not gold-slice. |
 | Observability: production reliability, testing strategy | ✓ Req Fail Prod; TO ~ | Keep Complete. |
-| Behavioural remaining 7 + growth-mindset remaining 6 | ✓ story/judgement; engineering columns — | Keep Complete. |
+| Behavioural remaining 7 + growth-mindset remaining 7 | ✓ story/judgement; engineering columns — | Keep Complete. |
 | Reference: cheat sheets, glossary, trade-off matrix | catalogs | Keep Complete as **reference**, not concept. Exit is weak (no “you can do X”). |
 | Performance fundamentals | ✓ numbers/fail; Viz ✗; Mech ~ | Keep Complete. |
 
