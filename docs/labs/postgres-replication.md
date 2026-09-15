@@ -5,6 +5,9 @@ description: A real primary + 2 streaming replicas — flip sync/async live, wat
 
 # Lab: Postgres Replication
 
+!!! example "Prediction checkpoint"
+    You will pause the replica, write to the primary, and read from both. Predict the visible values and the lag signal before each command. Then decide whether the application could safely serve that read from the replica.
+
 **Pairs with:** [Replication](../distributed-systems/replication.md)
 
 A real primary + 2 streaming replicas, cloned via `pg_basebackup`. Flip synchronous/asynchronous replication live, watch a synchronous write hang when its standby is down, and cause a real split-brain by running `pg_promote()` — the naive failover [Replication](../distributed-systems/replication.md#failover-mechanics) warns about.

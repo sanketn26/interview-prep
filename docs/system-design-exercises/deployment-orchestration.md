@@ -5,6 +5,9 @@ description: Guided design of a deployment orchestrator — from a script that p
 
 # Design: Code Deployment / Release Orchestration System
 
+!!! example "Hypothetical bad rollout"
+    A release passes health checks at 5% traffic and doubles checkout errors at 25%. Continuing is unsafe; rolling back a database migration may be worse. Design gates, evidence, pause, and rollback boundaries before the happy path.
+
 **Difficulty:** Senior → Staff | **Time:** 45–60 minutes
 
 !!! note "Instructions"

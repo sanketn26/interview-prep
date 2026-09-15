@@ -5,6 +5,9 @@ description: Guided design of an aggregator booking platform — date-range avai
 
 # Design: Hotel & Flight Booking (Expedia / Booking.com)
 
+!!! example "Hypothetical stale inventory"
+    Search shows the last room, but the supplier sells it before checkout returns. The aggregator cannot lock every external inventory system. Separate quoted availability from confirmed booking and make compensation explicit.
+
 **Difficulty:** Senior → Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

@@ -7,6 +7,9 @@ prerequisites:
 
 # Infrastructure as Code
 
+!!! example "Hypothetical drift"
+    An emergency console change fixes production and silently diverges from version control. The next deployment proposes to undo it. Infrastructure as code earns repeatability only when state, review, imports, and drift are part of the operating model.
+
 **Prerequisites:** none strictly required.
 
 [← Docker](docker.md) | [Next: Terraform →](terraform.md)

@@ -5,6 +5,9 @@ description: Guided design of a real-time bidding auction platform — from a si
 
 # Design: Online Auction (eBay-style bidding)
 
+!!! example "Hypothetical final second"
+    Two bids arrive in the final 50 ms from different regions. Each bidder sees itself winning, but only one ordering can set the price. Define authoritative order, extension rules, and notification lag before scaling reads.
+
 **Difficulty:** Senior | **Time:** 60–75 minutes
 
 !!! note "Instructions"

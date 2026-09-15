@@ -8,6 +8,9 @@ prerequisites:
 
 # HTTP & TCP Deep Dive
 
+!!! example "Hypothetical incident"
+    The API is “slow,” application traces are empty, and the client spends two seconds before sending HTTP bytes. DNS, connection establishment, TLS, and pooling each own a different interval. Locate the missing time before tuning the server.
+
 **Prerequisites:** Sockets at a glance, [Load Balancing](load-balancing.md)
 
 [← Load Balancing](load-balancing.md) | [Next: Kubernetes →](../kubernetes/index.md)

@@ -5,6 +5,9 @@ description: Understand consistent hashing — the foundation of distributed cac
 
 # Consistent Hashing
 
+!!! example "Hypothetical expansion"
+    An on-call schedules a fourth cache node for a 1 TB cluster. With `hash(key) % N`, changing three nodes to four remaps roughly 750 GB—enough churn to erase the capacity the new node was meant to add. The question is not how to hash keys evenly; it is how to change membership without moving almost every key.
+
 **Prerequisites:** [Database Sharding](sharding.md), Basic Hash functions
 
 [← Database Sharding](sharding.md) | [Next: SQL vs NoSQL →](sql-vs-nosql.md)
@@ -313,4 +316,3 @@ Fix:
     4. Rebalancing is the part that actually matters operationally — throttled, checkpointed migration (dual-read/dual-write) is what keeps that 1/N-scale move from becoming a self-inflicted outage
     5. Hot keys require separate solutions — consistent hashing doesn't help
     6. Used in: Cassandra (vnodes), Memcached, CDN routing. Redis Cluster uses hash slots, not a consistent-hash ring.
-

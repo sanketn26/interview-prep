@@ -5,6 +5,9 @@ description: Class-level rate limiter design — pluggable algorithm behind a St
 
 # LLD: Rate Limiter
 
+!!! example "Hypothetical boundary race"
+    Two threads observe one token remaining and both admit a request. A correct rate equation with a non-atomic update is still an incorrect limiter. Make the clock, algorithm, storage, and concurrency boundary explicit.
+
 **Difficulty:** Advanced | **Time:** 40–50 minutes
 
 !!! note "Instructions"

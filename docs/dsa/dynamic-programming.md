@@ -5,6 +5,9 @@ description: Derive DP from brute force — Fibonacci, knapsack, coin change, un
 
 # Dynamic Programming
 
+!!! example "Illustrative interview"
+    A recursive solution to a small counting problem looks elegant, but the trace recomputes the same state thousands of times. At `n = 45`, the clock expires before the program does. Write the state and transition first; caching repeated subproblems turns the recursion tree from exponential repetition into bounded work.
+
 **Difficulty:** Medium–Hard | **Pattern Type:** Overlapping subproblems
 
 [← BFS & DFS](bfs-dfs.md) | [DSA Overview](index.md)

@@ -5,6 +5,9 @@ description: Guided design of a seat-booking platform — from a single Postgres
 
 # Design: Ticket Booking (Ticketmaster / BookMyShow)
 
+!!! example "Hypothetical onsale"
+    Ten thousand buyers select the same seat when an onsale opens. Showing availability is not ownership, and charging before reservation risks refunds. Design a bounded hold that survives retries and expires cleanly.
+
 **Difficulty:** Senior | **Time:** 60–75 minutes
 
 !!! note "Instructions"

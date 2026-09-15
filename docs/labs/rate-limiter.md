@@ -5,6 +5,9 @@ description: Reproduce a real TOCTOU race and a real TTL-never-expires bug with 
 
 # Lab: Rate Limiter Races
 
+!!! example "Prediction checkpoint"
+    Two workers will consume the final allowance concurrently. Predict the accepted-request count for a read-then-write counter and for an atomic update. The mismatch between the configured limit and observed admissions is the race you must explain.
+
 **Pairs with:** [Rate Limiting](../reliability/rate-limiting.md)
 
 No app code needed — just concurrent shell processes hitting a real Redis instance. Reproduces two real races: a naive `INCR`+`EXPIRE` counter whose window never actually closes under continuous traffic, and a check-then-act limiter that lets 20 requests through a limit of 5 under real concurrency. Both get fixed with one atomic Lua script.

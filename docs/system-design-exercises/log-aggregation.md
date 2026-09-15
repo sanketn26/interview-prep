@@ -5,6 +5,9 @@ description: Guided design of a fleet-wide log aggregation and search system —
 
 # Design: Log Aggregation System (Splunk / ELK at scale)
 
+!!! example "Hypothetical outage search"
+    During an outage, log volume rises 20× precisely when engineers need search. Blocking applications to preserve logs spreads the failure; dropping everything erases evidence. Design buffering, backpressure, indexing, and retention by priority.
+
 **Difficulty:** Senior → Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

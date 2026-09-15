@@ -7,6 +7,9 @@ prerequisites:
 
 # API Design
 
+!!! example "Hypothetical duplicate charge"
+    A mobile client sends `POST /charge`, waits five seconds, and receives a 504. The payment processor completed the charge, but the client cannot know that, so it retries. A clean resource model is not enough: the API contract must make an ambiguous retry safe before the second request becomes a second charge.
+
 **Prerequisites:** [Stateless vs Stateful Applications](stateless-vs-stateful.md)
 
 [← Stateless vs Stateful](stateless-vs-stateful.md) | [Next: System Design Framework →](framework.md) | See also: [API Architectural Styles](../architecture-patterns/api-architectural-styles.md) for how REST and GraphQL compare against gRPC, SOAP, and webhooks

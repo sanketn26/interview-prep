@@ -8,6 +8,9 @@ prerequisites:
 
 # Standing Your Ground, Professionally
 
+!!! example "Illustrative workplace scene"
+    A launch owner asks to bypass an irreversible migration check to meet a date. The engineer does not merely say no: they name the failure, offer a reversible scope cut, and state who must explicitly accept the remaining risk.
+
 **Prerequisites:** [Growth Mindset](index.md), [Respect — Yourself and Others](self-respect.md)
 
 [← Growth Mindset](index.md) | **Previous:** [Respect — Yourself and Others](self-respect.md) | **Next:** [Crucial Conversations](crucial-conversations.md)

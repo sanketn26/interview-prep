@@ -5,6 +5,9 @@ description: Token bucket, leaky bucket, sliding window, fixed window — with i
 
 # Rate Limiting
 
+!!! example "Hypothetical overload"
+    One API key jumps to 40% of a 200,000 rps gateway. The application is healthy, but Redis—the shared limiter—crosses its latency budget and starts timing out. Failing closed turns the limiter into the outage; failing open exposes every backend. The design must bound one caller without making the enforcement point a new single point of failure.
+
 **Prerequisites:** [Reliability Overview](index.md)
 
 ---
@@ -358,4 +361,3 @@ Headers to include in 429 response:
     4. Distributed rate limiting requires centralized store (Redis) — fail-open on store failure
     5. Always return Retry-After header; clients must implement exponential backoff
     6. Layer rate limits: IP → API key → endpoint → tenant
-

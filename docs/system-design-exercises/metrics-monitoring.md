@@ -5,6 +5,9 @@ description: Guided design of a metrics and monitoring platform (Datadog / Prome
 
 # Design: Metrics & Monitoring System (Datadog / Prometheus at scale)
 
+!!! example "Hypothetical cardinality incident"
+    A deploy adds `user_id` as a metric label and cardinality jumps from thousands to millions. Ingestion survives briefly, then memory and query latency collapse. Design limits and aggregation before storage becomes the incident.
+
 **Difficulty:** Senior → Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

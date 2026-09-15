@@ -5,6 +5,11 @@ description: How to talk about production incidents — ownership, technical dep
 
 # Leading Through a Production Incident
 
+!!! example "Illustrative answer — replace with your own experience"
+    “On Black Friday, checkout success fell to 0%. As incident commander I opened one channel, assigned a scribe, separated mitigation from diagnosis, and gave stakeholders updates every ten minutes. An unindexed foreign key caused full scans under peak load; adding the index restored traffic. The follow-up added query-plan review and load tests for schema changes.”
+
+The useful pattern is coordinated mitigation → evidence-based diagnosis → systemic prevention. Do not claim this incident as your own; use the framework below to make your real decisions and results legible.
+
 **Theme:** Ownership & Reliability | **Seniority:** Senior → Staff
 
 ---

@@ -5,6 +5,9 @@ description: Real Terraform plan/apply/destroy against real containers — no cl
 
 # Lab: Terraform + Docker
 
+!!! example "Prediction checkpoint"
+    You will change managed infrastructure outside Terraform, then run a plan. Predict which drift is detected and whether apply replaces or updates the resource. Read the plan as a proposed state transition before approving it.
+
 **Pairs with:** [Infrastructure as Code](../cloud/infrastructure-as-code.md), [Terraform](../cloud/terraform.md)
 
 Real Terraform, managing real containers on your local Docker daemon via the [`kreuzwerker/docker`](https://registry.terraform.io/providers/kreuzwerker/docker/latest) provider. Every concept from the two pages above is reproducible here: `plan`/`apply`, idempotency, drift, forced replacement, blast radius via `count` — with zero AWS/GCP/Azure account needed.

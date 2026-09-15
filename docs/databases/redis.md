@@ -5,6 +5,9 @@ description: Data structures, persistence, clustering, eviction policies, and Lu
 
 # Redis Deep Dive: In-Memory Data Store
 
+!!! example "Hypothetical incident"
+    One hot key consumes a shard, then the primary fails while replicas are milliseconds behind. Low average latency hides both concentration and lost acknowledged writes. Follow the incident through data structures, expiration, persistence, and failover.
+
 Redis is the **in-memory data store** you reach for caching, sessions, rate limiting, and real-time analytics. It is not a database replacement — it is the **speed layer** in front of your database.
 
 ---
@@ -402,4 +405,3 @@ Key metrics:
 - **Pub/Sub is fire-and-forget**: use Streams for reliable delivery.
 - **Lua scripts guarantee atomicity**: use for rate limiting, locks, complex operations.
 - **Monitor hit rate and evictions**: < 90% hit rate = cache is too small or wrong.
-

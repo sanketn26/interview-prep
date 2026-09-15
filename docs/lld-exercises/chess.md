@@ -5,6 +5,9 @@ description: A two-player chess engine — polymorphic piece movement, check/che
 
 # LLD: Chess
 
+!!! example "Hypothetical game state"
+    A player attempts castling after the king crossed an attacked square, then asks to undo. A bag of piece classes cannot answer whether the move was legal. Model board state, move validation, history, and turn transitions explicitly.
+
 **Difficulty:** Intermediate | **Time:** 45–60 minutes
 
 !!! note "Instructions"

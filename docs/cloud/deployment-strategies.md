@@ -8,6 +8,9 @@ prerequisites:
 
 # Deployment Strategies
 
+!!! example "Hypothetical rollout"
+    Error rate stays flat at 5% traffic and jumps at 25% because only one customer cohort hits the changed path. A rollout percentage is not evidence by itself. Choose canary, blue-green, or rolling behavior around detection and reversal needs.
+
 **Prerequisites:** [CI/CD](cicd.md)
 
 [← CI/CD](cicd.md) | [Next: Kubernetes →](../kubernetes/index.md)

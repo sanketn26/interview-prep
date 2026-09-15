@@ -5,21 +5,21 @@ description: Validated audit of why the curriculum does not hold attention, and 
 
 # Storytelling pass — plan
 
-**Status:** Plan only. No page rewrites in this change.  
+**Status:** Implemented in the storytelling-pass branch; reader outcome validation remains external.
 **Date:** 2026-09-15  
 **Trigger:** Reader feedback — content is valued; it does not hold attention. Primary cause named by readers: **lack of storytelling**.
 
-This document is the scan, the verdict, the change list, and the execution order. Implement against it; do not start a free-form "make it more engaging" rewrite.
+This document is the scan, the verdict, the change contract, and the execution record. Use it to review the implemented pass; do not start a free-form "make it more engaging" rewrite.
 
 ---
 
 ## Verdict
 
-The feedback is **correct**, and it is **not a coverage or accuracy problem**.
+The feedback is **credible**. The strongest working hypothesis is an **attention and sequencing problem**, rather than a known coverage or accuracy problem.
 
 The academy already opens most concept pages on a problem (`Why This Exists`), already has V1 → bottleneck → V2 on design exercises, and already has STAR stories on behavioural pages. That is why readers appreciate the content.
 
-What they bounce on is the **texture after the first heading**: thesis, taxonomy, abstraction tabs, then a catalog. The page is a well-organized handbook. It is rarely a story with an actor, a clock, a stake, and a next beat.
+The reported friction is the **texture after the first heading**: thesis, taxonomy, abstraction tabs, then a catalog. The page is a well-organized handbook. It is rarely a story with an actor, a clock, a stake, and a next beat. The repository scan shows that this structure is common; it does **not**, by itself, prove that the structure caused readers to disengage. Phase 0 establishes a baseline and Phase 1 tests the hypothesis before the pattern is rolled out broadly.
 
 A 2026-08 accuracy pass (`content-review.md`) and a quality-matrix pedagogy pass (`quality-matrix.md`) already ran. Neither audited **attention**. This pass is the missing column.
 
@@ -27,13 +27,15 @@ A 2026-08 accuracy pass (`content-review.md`) and a quality-matrix pedagogy pass
 
 ## What we scanned
 
-Method (reproducible):
+Method (historical triage snapshot):
 
 1. Close-read gold vs weak openings across concept, design exercise, DSA, LLD, lab, behavioural, and vendor-DB pages.
-2. Score **210** `docs/**/*.md` pages (excluding `assets/` and the process pages `content-review.md`, `dashboard.md`, `project-status.md`, `quality-matrix.md`, `roadmap.md`, `how-to-use.md`) for story signals: scene words, incident blocks, analogy, V1/break arc, character ("you/I/we"), quoted dialogue, time/place, stakes in the opening.
+2. Score **210** `docs/**/*.md` pages. The snapshot excluded `assets/`, the site landing page `docs/index.md`, this plan (`storytelling-pass.md`), and the process pages `content-review.md`, `dashboard.md`, `project-status.md`, `quality-matrix.md`, `roadmap.md`, and `how-to-use.md`. It looked for story signals: scene words, incident blocks, analogy, V1/break arc, character ("you/I/we"), quoted dialogue, time/place, and stakes in the opening.
 3. Classify the first ~12 body lines as `scene/hook`, `problem-led`, `definition/meta`, or `mixed`.
 
-Heuristic grades are a **triage tool**, not a quality score. A page can be technically Complete and still be `weak` on story.
+Heuristic grades are a **triage tool**, not a quality score. A page can be technically Complete and still be `weak` on story. Cluster counts below include each cluster's `index.md`; implementation counts may exclude hubs, as the Labs and LLD phases already do.
+
+This historical run did not preserve a script, weights, thresholds, or a per-file classification artifact, so it is **not independently reproducible yet**. Do not use its totals as an acceptance test. Phase 0 must add a checked-in scanner (or documented commands), define how front matter/navigation/admonitions are stripped, define the four opening classes, record weights and grade thresholds, and emit a per-file CSV or Markdown table. A second human should review a sample of at least 20 pages and record disagreements before the baseline is accepted.
 
 | Signal | Result |
 |--------|--------|
@@ -41,6 +43,7 @@ Heuristic grades are a **triage tool**, not a quality score. A page can be techn
 | Opening type `definition/meta` | **144 / 210 (69%)** |
 | Opening type `scene/hook` | 21 |
 | Opening type `problem-led` | 20 |
+| Opening type `mixed` | 25 |
 | Pages with `!!! example "Incident narrative"` | **1** (`reliability/failure-library.md`) |
 | `## Why This Exists` (or pattern/question variant) | 111 |
 | V1 / bottleneck / "what breaks" language somewhere | 115 |
@@ -75,7 +78,7 @@ For this academy, a page has a story when a reader can answer, after the first s
 5. **What that move breaks** — with a number.
 6. **What mechanism is earned by that break.**
 
-If those six beats are present, the rest of the page can stay dense. If they are missing, diagrams and interview Q&A will not hold attention.
+If those six beats are present, the rest of the page can stay dense. Their absence is a plausible attention risk, not proof that diagrams and interview Q&A cannot hold attention.
 
 **One plot per page.** Every later section is a beat of that plot, not a new chapter of a textbook.
 
@@ -86,7 +89,7 @@ If those six beats are present, the rest of the page can stay dense. If they are
 Three process facts, not three author failures:
 
 1. **`CONTRIBUTING.md` mandates a 10-section handbook** (Why → Mental model → Architecture → Internals → Example → Failures → Debugging → Trade-offs → Interview Q → Takeaways). That is a completeness checklist. It is also a story-killer: authors satisfy the list instead of carrying one incident through the page.
-2. **`quality-matrix.md` scores Req / Pred / # / V1 / Fail / Mech / Viz / Prod / TO / Exit.** A page can tick every column and still open like a definition. There is no Story / cold-open column.
+2. **`quality-matrix.md` scores Req / Pred / # / V1 / Fail / Mech / Viz / Prod / TO / Exit.** A page can tick every column and still open like a definition. There is no Story / cold-open column. To avoid double-scoring the opening, redefine `Req` as establishing the engineering problem, scope, and requirements; define `Story` as carrying a concrete actor or system through observable → decision → consequence.
 3. **Abstraction Levels tabs** (`Mental Model` / `Interview Simplification` / `Production Reality` / `Where This Stops Being True`) often sit **immediately after the hook**, before the plot has a second beat. They are the right content in the wrong place — they belong after the first failure, as commentary on the story, not as a glossary interrupt.
 
 Design exercises have a fourth cause: the **interview protocol is the page outline** (clarifying questions → FR → NFR table → capacity). That is how you *practice*. It is not how you *enter*. Pastebin and food-delivery already prove you can keep the protocol *and* put a distinguishing insight in the problem statement; most exercises still open as "Design a URL shortening service (like bit.ly)."
@@ -131,7 +134,7 @@ Use existing pages as the style guide. Do not introduce a second authorial perso
 
 ## Change contract (new, additive)
 
-Add this as a **required beat**, not a 11th encyclopedia section. Update `CONTRIBUTING.md` and add a **Story** column to `quality-matrix.md` in Phase 0.
+Add this as a **genre-applicable beat**, not an 11th encyclopedia section. Update `CONTRIBUTING.md` and add a **Story** column to `quality-matrix.md` in Phase 0. Like the existing matrix columns, Story may be `—` where a narrative would distort the genre (reference pages, indexes, calculators, and some process pages).
 
 ### Cold open (first screen, before any tab set)
 
@@ -161,7 +164,29 @@ Keep diagrams, sims, trade-off tables, interview Qs, takeaways. Reorder so they 
     **Tell:** "We were latched to a sick dependency. Timeouts first, then a budget, then a breaker."
 ```
 
-One of these per concept page. Failure-library already has the voice.
+A concept page needs one concrete running scenario when Story is applicable; the admonition format itself is optional. Do not add a detached incident block that merely restates the surrounding page.
+
+### Truthfulness contract
+
+Concrete detail must not masquerade as evidence. Every incident, metric, timestamp, quotation, and log line must be one of:
+
+- sourced and cited;
+- adapted and identified as adapted; or
+- clearly labeled **Hypothetical** or **Illustrative**.
+
+Do not imply that synthetic log output is the exact output of a real product. Preserve technically meaningful numbers, but distinguish a capacity assumption from a measured production result.
+
+### Applicability by genre
+
+| Genre | Story expectation | Required shape |
+|-------|-------------------|----------------|
+| Concept tutorial | Usually ✓ | Running scenario; naive move and consequence where the concept naturally has one |
+| System-design / LLD exercise | ✓ | Product or interview cold open, then retain the practice protocol |
+| DSA pattern | ✓ | Concrete problem, failed/brute-force attempt, clue, mechanism |
+| Behavioural | ✓ | Clearly illustrative vignette or answer, followed by analysis; never invite candidates to copy invented experience |
+| Lab | ✓ | Stakes → prediction → observed evidence |
+| Catalog, glossary, index, calculator | — | Retrieval clarity; at most a short usage cue |
+| Process/reference page | Case by case | Use Story only if it improves the task the page supports |
 
 ### What not to add
 
@@ -237,7 +262,7 @@ Do this for all 15, but they are mechanical — one paragraph each. Do not rewri
 
 The stories already exist inside seniority tabs. The attention problem is **front-loading the rubric**.
 
-Change: **lead with the strongest story quote** (the Senior or Staff answer), then "here is why that scored," then STAR. Flip the current order on:
+Change: **lead with a concise, clearly illustrative story excerpt** from the strongest Senior or Staff answer, then "here is why that scored," then STAR. State that candidates must use their own facts and outcomes; the sample is a structure to analyze, not an experience to memorize. Flip the current order on:
 
 - `behavioural/technical-disagreement.md` (currently weak; Mongo vs Postgres quote is buried)
 - `behavioural/production-incident.md` (Staff Black Friday story should be beat 1)
@@ -271,7 +296,7 @@ Small PRs. Each PR is one cluster or the first-release slice, never "rewrite all
 
 | Phase | PR | Scope | Exit |
 |-------|----|-------|------|
-| **0** | Contract | `CONTRIBUTING.md` beat list; Story column on `quality-matrix.md`; 1 worked example of the incident block in CONTRIBUTING; link this page from Start Here | Authors cannot satisfy Complete without a cold open |
+| **0** | Contract + baseline | `CONTRIBUTING.md` beat list and truthfulness rule; distinct Req/Story definitions and applicable `—` rules in `quality-matrix.md`; 1 worked example; link this page from Start Here; checked-in scanner + per-file baseline; reader-test protocol | Authors cannot satisfy Complete when Story is applicable; baseline is reproducible and reader outcome is defined |
 | **1** | First-release concepts | CAP, sharding, consistent hashing, Kafka (light), stampede (light), circuit breaker (reorder only), Raft (light), tail latency (light), framework (light), debugging playbook (already gold — skip or incident-block only) | README vertical slice holds attention on first screen |
 | **2** | Flagship design exercises | URL shortener, rate limiter, WhatsApp, payments (+ pastebin light) | Cold open on all four README exercises |
 | **3** | First-release DSA + behavioural flip | sliding window, BFS/DFS, DP; technical disagreement; production incident | Pattern pages open on a TLE; behavioural pages open on the story |
@@ -290,21 +315,29 @@ A page is done when **all** of these are true:
 
 1. A reader who only sees the first screen can retell the plot in one spoken sentence.
 2. The term's definition is not sentence one.
-3. There is a naive move and a numbered break before the architecture diagram.
+3. Where applicable, there is a naive move and a concrete consequence before the architecture diagram; numbers must affect the decision, not exist as decoration.
 4. Abstraction Levels (if present) start *after* that break.
 5. Net word count ≤ 110% of the previous page (cut to add).
 6. No factual regression vs `content-review.md` (capacity math, CAP/Kafka shorthand, fencing, etc.).
 7. `mkdocs build --strict` still passes.
 8. Quality-matrix columns other than Story do not get worse (especially Pred, #, V1, Fail, TO).
+9. Synthetic incidents and outputs are labeled; sourced incidents are cited.
+10. The genre applicability table says Story is required for this page; otherwise it is explicitly `—`, not silently omitted.
 
 Spot-check by reading aloud the first 40 seconds. If it sounds like a lecture title, it is not done.
+
+Formatting compliance is not outcome validation. Before Phase 4, compare old and revised openings with representative readers. Record at least: first-screen continuation preference, one-sentence retell accuracy, and clarity/credibility ratings. Use scroll depth or completion data when available, but do not treat it as causal on its own. Proceed beyond the first-release slice only if the revised pages improve retell or continuation without reducing clarity or factual trust; otherwise revise the contract before scaling it.
+
+### Delivery controls
+
+Each implementation PR must name an author and a technical reviewer, label pages S/M/L, identify accuracy-sensitive claims, and attach the reader-check result for at least one page in the batch. Keep before/after word counts and the generated Story classifications in the PR. Pause the rollout if two consecutive batches fail to improve retell/continuation or reduce credibility; diagnose the template rather than producing more scenes.
 
 ---
 
 ## Tracker updates (when implementing, not in this plan commit beyond a Planned row)
 
 - `project-status.md` — Planned item: storytelling pass, Phases 0–3 required for first-release honesty.
-- `quality-matrix.md` — add Story column after Req; gold first-release rows should move from implicit ~ to ✓ as Phase 1 lands.
+- `quality-matrix.md` — separate Req from Story, add Story after Req, document applicable `—`, and move first-release rows from the reproducible baseline to ✓ as their phases land.
 - `how-to-use.md` — one paragraph: pages are meant to be read as incidents, not as chapter summaries; predict the break before the reveal.
 - `content-review.md` — do **not** mix this into the accuracy checklist. Accuracy and attention are different passes.
 
@@ -347,6 +380,14 @@ Spot-check by reading aloud the first 40 seconds. If it sounds like a lecture ti
 
 ## Appendix: how to re-run the heuristic scan
 
-The 2026-09-15 triage used opening-type classification plus weights for incident blocks, analogy, V1/break language, scene words, stakes, and quoted dialogue. Re-run after Phase 1: the first-release files above should move from `definition/meta` to `scene/hook` or `problem-led`, and `reliability/failure-library.md` should no longer be the only page with an incident admonition.
+The original 2026-09-15 weighted grades were not reproducible and remain labeled as a historical triage snapshot. The replacement scanner is checked in at `scripts/storytelling_scan.py`; it strips front matter, H1/navigation boilerplate and fenced code, reads the first 12 remaining body lines, and classifies openings using the actor, observable, stake, problem, and definition patterns in that file. It deliberately exposes simple rules rather than pretending they measure reader attention.
 
-Target after Phases 0–3: **definition/meta openings under 50%** of concept+exercise+DSA pages that students are told to study (the README table), not of the entire 210-file corpus. Reference and lab stubs will keep the corpus average down until Phases 6–7.
+Run:
+
+```bash
+python3 scripts/storytelling_scan.py --output docs/storytelling-baseline.csv
+```
+
+The committed CSV is the per-file artifact for the implemented repository state. Review a sample manually because the scanner is a routing aid, not a quality judge. Incident-admonition count is descriptive only: the contract requires a running scenario rather than a particular Markdown block.
+
+Diagnostic target after Phases 0–3: **definition/meta openings under 50%** of Story-applicable concept, exercise, and DSA pages that students are told to study (the README table), not of the entire 210-file historical corpus. This is a leading indicator, not the success metric; reader retell, continuation, clarity, and credibility decide whether the rollout continues. Reference pages and genre-exempt pages must not be counted against the target.

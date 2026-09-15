@@ -5,6 +5,9 @@ description: A real nginx upstream block in front of three real backends — swa
 
 # Lab: Load Balancer Algorithms
 
+!!! example "Prediction checkpoint"
+    One backend will become slow without becoming unhealthy. Predict how round-robin and least-connections distribute the next requests and which latency percentile moves first. Compare the observed assignment and timing before changing algorithms.
+
 **Pairs with:** [Load Balancing](../networking/load-balancing.md)
 
 Three real backends (two fast, one deliberately slow) behind a real nginx `upstream` block. Swap round robin for weighted or least-connections by editing config and reloading — the same way you would in production — kill a backend and watch nginx route around it with zero client-visible errors.

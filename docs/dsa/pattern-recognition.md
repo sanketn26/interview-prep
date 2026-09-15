@@ -5,6 +5,9 @@ description: A synthesis page mapping problem clues, keywords, and constraints t
 
 # DSA Pattern Recognition Guide
 
+!!! example "Illustrative interview"
+    The candidate can implement several algorithms but spends ten minutes choosing one. Underline the structural clues—contiguous, sorted, top K, connected, repeated state—then map each clue to the invariant an algorithm maintains.
+
 **Difficulty:** All levels | **Pattern Type:** Meta / Synthesis
 
 [← Dynamic Programming](dynamic-programming.md) | [DSA Overview](index.md)

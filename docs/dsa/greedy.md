@@ -5,6 +5,9 @@ description: Interval scheduling, Huffman coding, and activity selection — gre
 
 # Greedy Algorithms
 
+!!! example "Illustrative interview"
+    Choosing the meeting that starts first feels natural and leaves less room for everything after it. Choosing the one that finishes first preserves the largest remaining interval. A greedy rule is valid only when its local choice can be proved safe.
+
 **Difficulty:** Medium | **Pattern Type:** Locally optimal choices
 
 [← DSA Overview](index.md) | [← Tries](tries.md) | [Next: String Matching →](string-matching.md)

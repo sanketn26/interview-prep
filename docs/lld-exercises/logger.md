@@ -5,6 +5,9 @@ description: A logging library with multiple sinks, per-sink levels, and non-blo
 
 # LLD: Logger
 
+!!! example "Hypothetical logging burst"
+    A production error emits 50,000 log events while the file sink stalls. Blocking every caller spreads the outage; dropping everything removes the evidence. Model levels, sinks, buffering, and backpressure as replaceable policies.
+
 **Difficulty:** Advanced | **Time:** 35–45 minutes
 
 !!! note "Instructions"

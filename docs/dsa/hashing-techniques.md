@@ -5,6 +5,9 @@ description: Bloom filters, counting Bloom filters, cuckoo hashing, and HyperLog
 
 # Advanced Hashing Techniques
 
+!!! example "Illustrative interview"
+    Duplicate detection must answer quickly across millions of values. Comparing every pair is quadratic; remembering exact membership trades memory for constant-time lookup. The question becomes which identity to hash and how collisions affect correctness.
+
 **Difficulty:** Hard | **Pattern Type:** Probabilistic data structures / space-efficient hashing
 
 [← DSA Overview](index.md) | [← String Matching](string-matching.md) | [Next: Probabilistic Sketches →](probabilistic-sketches.md)

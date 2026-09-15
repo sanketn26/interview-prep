@@ -7,6 +7,9 @@ prerequisites:
 
 # OOP Fundamentals
 
+!!! example "Hypothetical change request"
+    A `Ticket` object calculates price, prints receipts, saves itself, and emails the buyer. One tax-rule change now touches persistence and delivery tests. Objects help when responsibilities and change boundaries become clearer—not because every noun deserves a class.
+
 **Prerequisites:** none beyond basic class syntax.
 
 [← Low-Level Design](index.md) | [Next: SOLID Principles →](solid-principles.md)

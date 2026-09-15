@@ -5,6 +5,9 @@ description: MVCC, indexes, query planning, and replication in production Postgr
 
 # PostgreSQL Deep Dive: The SQL Workhorse
 
+!!! example "Hypothetical incident"
+    A routine `UPDATE` stalls while read traffic climbs, even though CPU is low. The on-call follows snapshots, dead tuples, indexes, and pooled connections through one request path. PostgreSQL's parts matter because each explains a different place that apparently simple statement can wait.
+
 PostgreSQL is the default SQL database for most companies because it **balances generality with reliability**. It is not the fastest at anything, but it is fast enough at everything — and it will not surprise you at 3 AM.
 
 ---
@@ -544,4 +547,3 @@ LIMIT 10;
 - **Tune in order**: shared_buffers → work_mem → checkpoint settings. 80% of performance issues are config.
 - **PgBouncer is mandatory at scale**: 1000+ concurrent clients need connection pooling.
 - **VACUUM is not optional**: bloat compounds. Monitor it and tune autovacuum aggressively on high-churn tables.
-

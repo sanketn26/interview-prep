@@ -5,6 +5,9 @@ description: Aho-Corasick multi-pattern matching, Z-algorithm, suffix arrays, Bo
 
 # Advanced String Matching
 
+!!! example "Illustrative interview"
+    Thousands of patterns must be found in one log stream. Scanning once per pattern repeats the input thousands of times. Build shared prefixes and failure links so one pass preserves every partial match that still matters.
+
 **Difficulty:** Hard | **Pattern Type:** Multi-pattern / linear-time string algorithms
 
 [← DSA Overview](index.md) | [← Skip Lists & Range Trees](skip-lists-fenwick-segment-trees.md) | [Back to DSA Overview →](index.md)

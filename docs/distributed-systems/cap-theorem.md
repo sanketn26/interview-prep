@@ -8,6 +8,9 @@ prerequisites:
 
 # CAP Theorem
 
+!!! example "Hypothetical partition"
+    At 02:14, Node A accepts a checkout write but cannot reach Node B. A customer immediately reads from B and sees the old state. The on-call has one decision before more traffic arrives: reject operations until the link heals, or keep answering while replicas can disagree. CAP names the guarantee sacrificed by that decision; it does not let the operator avoid making it.
+
 **Prerequisites:** Replication basics, Network fundamentals
 
 [← Distributed Systems Overview](index.md) | [Next: Consistency Models →](consistency-models.md)

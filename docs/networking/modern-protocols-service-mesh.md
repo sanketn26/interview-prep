@@ -9,6 +9,9 @@ prerequisites:
 
 # Modern Protocols & Service Mesh
 
+!!! example "Hypothetical incident"
+    A retry policy copied into six clients multiplies traffic during one dependency failure. Moving policy to a mesh centralizes enforcement but adds another data and control plane to debug. Earn each layer from a named cross-service failure.
+
 [← Networking Overview](index.md)
 
 ---
@@ -792,4 +795,3 @@ Alert on anomalies:
 ---
 
 **Previous:** [Cloud Load Balancers](load-balancers-cloud.md)
-

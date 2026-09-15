@@ -23,7 +23,8 @@ Symbols: **✓** present and doing the job · **~** partial / implied · **✗**
 
 | Column | What “present” means |
 |--------|----------------------|
-| Req | Opens on a problem / requirements, not a definition |
+| Req | Establishes the engineering problem, scope, and requirements; this is independent of narrative treatment |
+| Story | Carries a concrete actor or system through observable → decision → consequence; `—` for catalogs, indexes, calculators, and other exempt genres |
 | Pred | Predict-before-reveal, reasoning exercise, or “predict the log line” |
 | # | Back-of-envelope or concrete numbers that change the design |
 | V1 | Simplest viable system (or brute force, for DSA) |
@@ -38,55 +39,55 @@ Symbols: **✓** present and doing the job · **~** partial / implied · **✗**
 
 ## First-release vertical slice (deep)
 
-| Module | Req | Pred | # | V1 | Fail | Mech | Viz | Prod | TO | Exit |
-|--------|:---:|:---:|:-:|:--:|:----:|:----:|:---:|:----:|:--:|:----:|
-| [Design methodology](foundations/framework.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Requirements & estimation](foundations/requirements-estimation.md) | ✓ | ~ | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ~ | ✓ |
-| [CAP theorem](distributed-systems/cap-theorem.md) | ✓ | ~ | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Sharding](databases/sharding.md) | ✓ | ✗ | ~ | ~ | ✓ | ~ | ✓ | ✓ | ✓ | ~ |
-| [Consistent hashing](databases/consistent-hashing.md) | ✓ | ✗ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
-| [Raft](distributed-systems/raft.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Kafka consumer groups](messaging/kafka.md) | ✓ | ✗ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Cache stampede](performance/cache-stampede.md) | ✓ | ~ | ✓ | ~ | ✓ | ✓ | ✓ | ~ | ✓ | ~ |
-| [Circuit breaker](reliability/circuit-breakers.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
-| [Tail latency](performance/tail-latency.md) | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
-| [URL shortener](system-design-exercises/url-shortener.md) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Rate limiter (exercise)](system-design-exercises/rate-limiter.md) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [WhatsApp](system-design-exercises/whatsapp.md) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ | ✓ |
-| [Payments](system-design-exercises/payment-processing.md) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Sliding window](dsa/sliding-window.md) | ✓ | ✗ | ~ | ✓ | — | ✓ | ✓ | — | ~ | ~ |
-| [BFS / DFS](dsa/bfs-dfs.md) | ✓ | ✗ | — | ✓ | — | ✓ | ✓ | — | ~ | ~ |
-| [Dynamic programming](dsa/dynamic-programming.md) | ✓ | ✗ | ~ | ✓ | — | ✓ | ✓ | — | ~ | ✓ |
-| [Technical disagreement](behavioural/technical-disagreement.md) | ✓ | — | — | — | ✓ | — | — | ✓ | ~ | ✓ |
-| [Production incident](behavioural/production-incident.md) | ✓ | — | — | — | ✓ | — | — | ✓ | — | ✓ |
-| [Debugging playbook](observability/debugging-playbook.md) | ✓ | ~ | ✓ | — | ✓ | ✓ | — | ✓ | ~ | ✓ |
-| [Kubernetes](kubernetes/index.md) | ✓ | ~ | ~ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Docker](cloud/docker.md) | ✓ | ✗ | ~ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
-| [Terraform](cloud/terraform.md) | ✓ | ~ | ✗ | ✗ | ✓ | ~ | ✓ | ✓ | ✓ | ~ |
-| [CI/CD](cloud/cicd.md) | ✓ | ✗ | ✗ | ✗ | ~ | ~ | ✓ | ✓ | ~ | ~ |
-| [Deployment strategies](cloud/deployment-strategies.md) | ✓ | ✗ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
-| [IAM & managed services](cloud/iam-managed-services.md) | ✓ | ✗ | ~ | ✗ | ✓ | ✓ | ~ | ✓ | ✓ | ~ |
-| [FinOps](cloud/finops.md) | ✓ | ~ | ✓ | — | ✓ | ~ | ~ | ✓ | ✓ | ~ |
-| [Model serving](ai-native/model-serving.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ~ |
-| [Microservices communication](architecture-patterns/microservices-communication.md) | ✓ | ✗ | ✗ | ✗ | ✓ | ~ | ✓ | ✓ | ✓ | ~ |
-| [Stateless vs stateful](foundations/stateless-vs-stateful.md) | ✓ | ✗ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Single points of failure](reliability/single-points-of-failure.md) | ✓ | ✗ | ✗ | ✗ | ✓ | ~ | ✓ | ✓ | ~ | ~ |
-| [Consistency models](distributed-systems/consistency-models.md) | ✓ | ✓ | ~ | — | ✓ | ~ | ✓ | ✓ | ✓ | ✓ |
-| [Replication](distributed-systems/replication.md) | ✓ | ~ | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Indexing](databases/indexing.md) | ✓ | ✓ | ✓ | — | ✓ | ✓ | ~ | ✓ | ✓ | ✓ |
-| [SQL vs NoSQL](databases/sql-vs-nosql.md) | ✓ | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Engineering mathematics](foundations/math.md) | ✓ | ~ | ✓ | — | ✓ | ✓ | ✓ | ~ | ~ | ✓ |
-| [Queue patterns](messaging/patterns.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Cache strategies](performance/cache-strategies.md) | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Failure library](reliability/failure-library.md) | ✓ | — | ✓ | — | ✓ | ✓ | — | ✓ | ~ | ~ |
-| [Distributed cache (ex)](system-design-exercises/distributed-cache.md) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Load balancer (ex)](system-design-exercises/load-balancer.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [API gateway (ex)](system-design-exercises/api-gateway.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
-| [Notification system (ex)](system-design-exercises/notification-system.md) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| [Web crawler (ex)](system-design-exercises/web-crawler.md) | ✓ | ~ | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ✓ | ~ |
-| [Autocomplete (ex)](system-design-exercises/autocomplete.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
-| [Distributed KV (ex)](system-design-exercises/distributed-kv-store.md) | ✓ | ~ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
-| [Social feed (ex)](system-design-exercises/social-feed.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Module | Req | Story | Pred | # | V1 | Fail | Mech | Viz | Prod | TO | Exit |
+|--------|:---:|:---:|:---:|:-:|:--:|:----:|:----:|:---:|:----:|:--:|:----:|
+| [Design methodology](foundations/framework.md) | ✓ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Requirements & estimation](foundations/requirements-estimation.md) | ✓ | ~ | ~ | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ~ | ✓ |
+| [CAP theorem](distributed-systems/cap-theorem.md) | ✓ | ✓ | ~ | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Sharding](databases/sharding.md) | ✓ | ✓ | ✗ | ~ | ~ | ✓ | ~ | ✓ | ✓ | ✓ | ~ |
+| [Consistent hashing](databases/consistent-hashing.md) | ✓ | ✓ | ✗ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
+| [Raft](distributed-systems/raft.md) | ✓ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Kafka consumer groups](messaging/kafka.md) | ✓ | ~ | ✗ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Cache stampede](performance/cache-stampede.md) | ✓ | ~ | ~ | ✓ | ~ | ✓ | ✓ | ✓ | ~ | ✓ | ~ |
+| [Circuit breaker](reliability/circuit-breakers.md) | ✓ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
+| [Tail latency](performance/tail-latency.md) | ✓ | ~ | ✓ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
+| [URL shortener](system-design-exercises/url-shortener.md) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Rate limiter (exercise)](system-design-exercises/rate-limiter.md) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [WhatsApp](system-design-exercises/whatsapp.md) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ | ✓ |
+| [Payments](system-design-exercises/payment-processing.md) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Sliding window](dsa/sliding-window.md) | ✓ | ✓ | ✗ | ~ | ✓ | — | ✓ | ✓ | — | ~ | ~ |
+| [BFS / DFS](dsa/bfs-dfs.md) | ✓ | ✓ | ✗ | — | ✓ | — | ✓ | ✓ | — | ~ | ~ |
+| [Dynamic programming](dsa/dynamic-programming.md) | ✓ | ✓ | ✗ | ~ | ✓ | — | ✓ | ✓ | — | ~ | ✓ |
+| [Technical disagreement](behavioural/technical-disagreement.md) | ✓ | ✓ | — | — | — | ✓ | — | — | ✓ | ~ | ✓ |
+| [Production incident](behavioural/production-incident.md) | ✓ | ✓ | — | — | — | ✓ | — | — | ✓ | — | ✓ |
+| [Debugging playbook](observability/debugging-playbook.md) | ✓ | ~ | ~ | ✓ | — | ✓ | ✓ | — | ✓ | ~ | ✓ |
+| [Kubernetes](kubernetes/index.md) | ✓ | ~ | ~ | ~ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Docker](cloud/docker.md) | ✓ | ✓ | ✗ | ~ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
+| [Terraform](cloud/terraform.md) | ✓ | ✓ | ~ | ✗ | ✗ | ✓ | ~ | ✓ | ✓ | ✓ | ~ |
+| [CI/CD](cloud/cicd.md) | ✓ | ✓ | ✗ | ✗ | ✗ | ~ | ~ | ✓ | ✓ | ~ | ~ |
+| [Deployment strategies](cloud/deployment-strategies.md) | ✓ | ✓ | ✗ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
+| [IAM & managed services](cloud/iam-managed-services.md) | ✓ | ~ | ✗ | ~ | ✗ | ✓ | ✓ | ~ | ✓ | ✓ | ~ |
+| [FinOps](cloud/finops.md) | ✓ | ✓ | ~ | ✓ | — | ✓ | ~ | ~ | ✓ | ✓ | ~ |
+| [Model serving](ai-native/model-serving.md) | ✓ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ~ |
+| [Microservices communication](architecture-patterns/microservices-communication.md) | ✓ | ✓ | ✗ | ✗ | ✗ | ✓ | ~ | ✓ | ✓ | ✓ | ~ |
+| [Stateless vs stateful](foundations/stateless-vs-stateful.md) | ✓ | ~ | ✗ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Single points of failure](reliability/single-points-of-failure.md) | ✓ | ~ | ✗ | ✗ | ✗ | ✓ | ~ | ✓ | ✓ | ~ | ~ |
+| [Consistency models](distributed-systems/consistency-models.md) | ✓ | ~ | ✓ | ~ | — | ✓ | ~ | ✓ | ✓ | ✓ | ✓ |
+| [Replication](distributed-systems/replication.md) | ✓ | ~ | ~ | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Indexing](databases/indexing.md) | ✓ | ~ | ✓ | ✓ | — | ✓ | ✓ | ~ | ✓ | ✓ | ✓ |
+| [SQL vs NoSQL](databases/sql-vs-nosql.md) | ✓ | ~ | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Engineering mathematics](foundations/math.md) | ✓ | ~ | ~ | ✓ | — | ✓ | ✓ | ✓ | ~ | ~ | ✓ |
+| [Queue patterns](messaging/patterns.md) | ✓ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Cache strategies](performance/cache-strategies.md) | ✓ | ~ | ✓ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Failure library](reliability/failure-library.md) | ✓ | ~ | — | ✓ | — | ✓ | ✓ | — | ✓ | ~ | ~ |
+| [Distributed cache (ex)](system-design-exercises/distributed-cache.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Load balancer (ex)](system-design-exercises/load-balancer.md) | ✓ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [API gateway (ex)](system-design-exercises/api-gateway.md) | ✓ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
+| [Notification system (ex)](system-design-exercises/notification-system.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| [Web crawler (ex)](system-design-exercises/web-crawler.md) | ✓ | ~ | ~ | ✓ | ✓ | ✓ | ~ | ✓ | ✓ | ✓ | ~ |
+| [Autocomplete (ex)](system-design-exercises/autocomplete.md) | ✓ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
+| [Distributed KV (ex)](system-design-exercises/distributed-kv-store.md) | ✓ | ~ | ~ | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ |
+| [Social feed (ex)](system-design-exercises/social-feed.md) | ✓ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 
 **First-release notes**
 
@@ -99,36 +100,36 @@ Symbols: **✓** present and doing the job · **~** partial / implied · **✗**
 
 ## Sampled Complete pillars
 
-| Module | Req | Pred | # | V1 | Fail | Mech | Viz | Prod | TO | Exit | Verdict |
-|--------|:---:|:---:|:-:|:--:|:----:|:----:|:---:|:----:|:--:|:----:|---------|
-| [OOP fundamentals](low-level-design/oop-fundamentals.md) | ✓ | ✗ | ✗ | ✗ | ~ | ~ | ~ | ~ | ✓ | ~ | Needs review |
-| [SOLID](low-level-design/solid-principles.md) | ✓ | ✗ | ✗ | ✗ | ~ | ~ | ~ | ~ | ✓ | ~ | Needs review |
-| [Design patterns](low-level-design/design-patterns.md) | ✓ | ✗ | ✗ | ✗ | ~ | ~ | ~ | ~ | ✓ | ~ | Needs review |
-| [Concurrency basics](low-level-design/concurrency-basics.md) | ✓ | ~ | ✗ | ✗ | ✓ | ~ | ✓ | ✓ | ✓ | ~ | Needs review |
-| [Concurrency execution models](low-level-design/concurrency-execution-models.md) | ✓ | ~ | ~ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
-| [Parking Lot (LLD)](lld-exercises/parking-lot.md) | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ | — | ✓ | ~ | Complete (sample of the 15) |
-| [OAuth2 & OIDC](security/oauth2-oidc.md) | ✓ | ~ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
-| [Session management](security/session-management.md) | ✓ | ~ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
-| [Threat modeling](security/threat-modeling.md) | ✓ | — | ~ | — | ✓ | ✓ | ✓ | ~ | ~ | ~ | Complete (process page) |
-| [AuthN/Z](security/authentication-authorization.md) | ✓ | ✗ | ✗ | ~ | ✗ | ✓ | ✓ | ✓ | ~ | ~ | Needs review |
-| [Zero Trust](security/zero-trust-architecture.md) | ✓ | ✗ | ✗ | ~ | ✓ | ✓ | ✓ | ✓ | ✗ | ~ | Needs review |
-| [Data privacy](security/data-privacy-compliance.md) | ✓ | ✗ | ✗ | ✗ | ~ | ~ | ✓ | ~ | ✗ | ~ | Needs review |
-| [Web vulns](security/web-vulnerability-classes.md) | ✓ | ~ | ~ | ✗ | ✓ | ✓ | ✓ | ✗ | ✗ | ~ | Needs review |
-| [Kafka internals / Pulsar](messaging/kafka-internals-pulsar-comparison.md) | ✓ | ✗ | ✗ | ✗ | ✓ | ~ | ✗ | ✓ | ✗ | ~ | Needs review |
-| [Pulsar primer](messaging/pulsar-primer.md) | ✓ | ✗ | ✗ | ✗ | ~ | ✓ | ✗ | ✓ | ✗ | ~ | Needs review |
-| [Event-driven architecture](architecture-patterns/event-driven-architecture.md) | ✓ | ~ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
-| [Batch/ETL Lambda vs Kappa](architecture-patterns/batch-etl-lambda-kappa.md) | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✗ | ~ | Needs review |
-| [gRPC vs HTTP in K8s](networking/grpc-http-k8s-load-balancing.md) | ✓ | ✗ | ✓ | — | ✓ | ✗ | ✓ | ✓ | ✗ | ~ | Needs review |
-| [Modern protocols / mesh](networking/modern-protocols-service-mesh.md) | ✓ | ✗ | ✗ | — | ✗ | ✗ | ✓ | ✓ | ~ | ~ | Needs review |
-| [Realtime communication](networking/realtime-communication.md) | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ | Needs review |
-| [API design](foundations/api-design.md) | ✓ | ~ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✗ | ~ | Needs review |
-| [ADRs](foundations/adrs.md) | ✓ | — | — | — | ✓ | ✓ | — | ✓ | ✓ | ~ | Complete (process) |
-| [Architecture reviews](foundations/architecture-reviews.md) | ✓ | — | ~ | — | ✓ | ✓ | — | ✓ | ✓ | ~ | Complete (process) |
-| [DDIA concepts](databases/ddia-concepts.md) | ✓ | ~ | ~ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
-| [SQL Deep Dive](databases/sql-deep-dive.md) | ✓ | ✗ | ✗ | ✗ | ~ | ~ | ✗ | ✗ | ~ | ~ | Needs review (already Draft on the hub) |
-| [Ad Serving (ex)](system-design-exercises/ad-serving.md) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete (V1-first sample of the 21) |
-| [Self-respect](growth-mindset/self-respect.md) | ✓ | — | — | — | ✓ | — | — | ✓ | ✓ | ~ | Complete (judgement, not STAR) |
-| [Release engineering](cloud/release-engineering.md) | ✓ | ✗ | ✗ | ~ | ✓ | ✓ | ✓ | ✓ | ✗ | ~ | Needs review |
+| Module | Req | Story | Pred | # | V1 | Fail | Mech | Viz | Prod | TO | Exit | Verdict |
+|--------|:---:|:---:|:---:|:-:|:--:|:----:|:----:|:---:|:----:|:--:|:----:|---------|
+| [OOP fundamentals](low-level-design/oop-fundamentals.md) | ✓ | ✓ | ✗ | ✗ | ✗ | ~ | ~ | ~ | ~ | ✓ | ~ | Needs review |
+| [SOLID](low-level-design/solid-principles.md) | ✓ | ✓ | ✗ | ✗ | ✗ | ~ | ~ | ~ | ~ | ✓ | ~ | Needs review |
+| [Design patterns](low-level-design/design-patterns.md) | ✓ | ✓ | ✗ | ✗ | ✗ | ~ | ~ | ~ | ~ | ✓ | ~ | Needs review |
+| [Concurrency basics](low-level-design/concurrency-basics.md) | ✓ | ✓ | ~ | ✗ | ✗ | ✓ | ~ | ✓ | ✓ | ✓ | ~ | Needs review |
+| [Concurrency execution models](low-level-design/concurrency-execution-models.md) | ✓ | ~ | ~ | ~ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
+| [Parking Lot (LLD)](lld-exercises/parking-lot.md) | ✓ | ✓ | ✓ | — | ✓ | ✓ | ✓ | ✓ | — | ✓ | ~ | Complete (sample of the 15) |
+| [OAuth2 & OIDC](security/oauth2-oidc.md) | ✓ | ~ | ~ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
+| [Session management](security/session-management.md) | ✓ | ~ | ~ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
+| [Threat modeling](security/threat-modeling.md) | ✓ | ~ | — | ~ | — | ✓ | ✓ | ✓ | ~ | ~ | ~ | Complete (process page) |
+| [AuthN/Z](security/authentication-authorization.md) | ✓ | ~ | ✗ | ✗ | ~ | ✗ | ✓ | ✓ | ✓ | ~ | ~ | Needs review |
+| [Zero Trust](security/zero-trust-architecture.md) | ✓ | ~ | ✗ | ✗ | ~ | ✓ | ✓ | ✓ | ✓ | ✗ | ~ | Needs review |
+| [Data privacy](security/data-privacy-compliance.md) | ✓ | ~ | ✗ | ✗ | ✗ | ~ | ~ | ✓ | ~ | ✗ | ~ | Needs review |
+| [Web vulns](security/web-vulnerability-classes.md) | ✓ | ~ | ~ | ~ | ✗ | ✓ | ✓ | ✓ | ✗ | ✗ | ~ | Needs review |
+| [Kafka internals / Pulsar](messaging/kafka-internals-pulsar-comparison.md) | ✓ | ~ | ✗ | ✗ | ✗ | ✓ | ~ | ✗ | ✓ | ✗ | ~ | Needs review |
+| [Pulsar primer](messaging/pulsar-primer.md) | ✓ | ~ | ✗ | ✗ | ✗ | ~ | ✓ | ✗ | ✓ | ✗ | ~ | Needs review |
+| [Event-driven architecture](architecture-patterns/event-driven-architecture.md) | ✓ | ~ | ~ | ~ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
+| [Batch/ETL Lambda vs Kappa](architecture-patterns/batch-etl-lambda-kappa.md) | ✓ | ~ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✗ | ~ | Needs review |
+| [gRPC vs HTTP in K8s](networking/grpc-http-k8s-load-balancing.md) | ✓ | ✓ | ✗ | ✓ | — | ✓ | ✗ | ✓ | ✓ | ✗ | ~ | Needs review |
+| [Modern protocols / mesh](networking/modern-protocols-service-mesh.md) | ✓ | ✓ | ✗ | ✗ | — | ✗ | ✗ | ✓ | ✓ | ~ | ~ | Needs review |
+| [Realtime communication](networking/realtime-communication.md) | ✓ | ✓ | ✗ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✓ | ~ | Needs review |
+| [API design](foundations/api-design.md) | ✓ | ✓ | ~ | ✗ | ✗ | ✓ | ✓ | ✓ | ✓ | ✗ | ~ | Needs review |
+| [ADRs](foundations/adrs.md) | ✓ | ~ | — | — | — | ✓ | ✓ | — | ✓ | ✓ | ~ | Complete (process) |
+| [Architecture reviews](foundations/architecture-reviews.md) | ✓ | ~ | — | ~ | — | ✓ | ✓ | — | ✓ | ✓ | ~ | Complete (process) |
+| [DDIA concepts](databases/ddia-concepts.md) | ✓ | ~ | ~ | ~ | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete |
+| [SQL Deep Dive](databases/sql-deep-dive.md) | ✓ | ~ | ✗ | ✗ | ✗ | ~ | ~ | ✗ | ✗ | ~ | ~ | Needs review (already Draft on the hub) |
+| [Ad Serving (ex)](system-design-exercises/ad-serving.md) | ✓ | ~ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | Complete (V1-first sample of the 21) |
+| [Self-respect](growth-mindset/self-respect.md) | ✓ | ✓ | — | — | — | ✓ | — | — | ✓ | ✓ | ~ | Complete (judgement, not STAR) |
+| [Release engineering](cloud/release-engineering.md) | ✓ | ✓ | ✗ | ✗ | ~ | ✓ | ✓ | ✓ | ✓ | ✗ | ~ | Needs review |
 
 ---
 

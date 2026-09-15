@@ -8,6 +8,9 @@ prerequisites:
 
 # Seeing What Others Miss
 
+!!! example "Illustrative workplace scene"
+    Everyone celebrates lower average latency after a cache rollout. One engineer asks why support tickets rose and segments the tail by tenant; a small cohort is now much worse. Seeing more begins with testing which aggregate is hiding the harmed user.
+
 **Prerequisites:** [Growth Mindset](index.md), [The Strong Engineer](strong-engineer.md)
 
 [← Growth Mindset](index.md) | **Previous:** [The Strong Engineer](strong-engineer.md)

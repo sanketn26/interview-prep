@@ -5,6 +5,9 @@ description: A library catalog with multi-copy books, member checkouts, a reserv
 
 # LLD: Library Management
 
+!!! example "Hypothetical last copy"
+    Two members try to borrow the last available copy while a third has an active hold. A `Book.available` boolean cannot represent copies, loans, reservations, and overdue state. Model those lifecycles before adding methods.
+
 **Difficulty:** Beginner | **Time:** 30–40 minutes
 
 !!! note "Instructions"

@@ -8,6 +8,9 @@ prerequisites:
 
 # Release Engineering — Versioning, Dependencies & Build Caching
 
+!!! example "Hypothetical release"
+    The same commit produces two different artifacts because an unpinned dependency changed overnight. Rebuilding is no longer recovery if the build is not reproducible. Trace source, dependency graph, cache key, artifact, and promotion as one chain of custody.
+
 **Prerequisites:** [CI/CD](cicd.md), [Docker](docker.md)
 
 [← Cloud & Kubernetes](index.md)

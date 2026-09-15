@@ -5,6 +5,9 @@ description: A real 3-node Sentinel quorum — kill the master and watch it elec
 
 # Lab: Redis Sentinel
 
+!!! example "Prediction checkpoint"
+    You will stop the primary while clients are writing. Predict which Sentinel declares failure, when a replica is promoted, and what happens to writes during the gap. Use role and failover output to reconstruct the timeline.
+
 **Pairs with:** [Replication](../distributed-systems/replication.md)
 
 One master, two async replicas, three Sentinels watching with quorum 2. Kill the master and watch a real quorum vote a new one in — and watch it reconfigure the old master as a replica automatically once it comes back, unlike the manual `pg_promote()` split-brain in the [Postgres replication lab](postgres-replication.md).

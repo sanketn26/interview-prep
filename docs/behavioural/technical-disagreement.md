@@ -5,6 +5,11 @@ description: How to handle technical disagreements — STAR framework, seniority
 
 # Handling Technical Disagreements
 
+!!! example "Illustrative answer — replace with your own experience"
+    “I disagreed with MongoDB for a transaction-history service. Instead of repeating my preference, I benchmarked our real query shapes: PostgreSQL was 3× faster and removed 40% of the application code. I presented the evidence in the design review, named the migration cost, and the team changed direction. The service launched at 45 ms p99 against a 150 ms target.”
+
+The useful pattern is evidence → respectful influence → measurable outcome. Do not present this sample as your experience; use the analysis below to structure an event that actually happened to you.
+
 **Theme:** Leadership & Influence | **Seniority:** Senior → Staff
 
 ---

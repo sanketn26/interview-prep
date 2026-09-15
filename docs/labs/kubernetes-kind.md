@@ -5,6 +5,9 @@ description: A real 3-node local Kubernetes cluster — break a Service selector
 
 # Lab: Kubernetes (kind)
 
+!!! example "Prediction checkpoint"
+    You will delete a serving pod while requests continue. Predict which component notices first, how long the endpoint remains routable, and whether the client sees an error. Then use events and endpoint state to explain the observed gap.
+
 **Pairs with:** [Kubernetes](../kubernetes/index.md)
 
 A real 3-node cluster (1 control-plane + 2 workers) with a real ingress controller. Break a Service selector and watch a stale keepalive connection survive it briefly before failing; break a readiness probe mid-rollout and watch Kubernetes correctly refuse to finish replacing working pods with broken ones — diagnosed with real `kubectl describe`, not a guess.

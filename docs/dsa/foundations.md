@@ -5,6 +5,9 @@ description: The repeatable process for approaching any DSA interview problem �
 
 # DSA Foundations
 
+!!! example "Illustrative interview"
+    A correct brute-force answer passes the sample and times out at `n = 100,000`. Before reaching for a named algorithm, translate the constraint into an operation budget and identify which repeated work must disappear.
+
 **Difficulty:** Foundational | **Pattern Type:** Process / Meta-skill
 
 [← DSA Overview](index.md) | [Next: Sliding Window →](sliding-window.md)

@@ -5,6 +5,9 @@ description: A real 3-node Raft quorum — kill a minority (writes keep working)
 
 # Lab: etcd Cluster
 
+!!! example "Prediction checkpoint"
+    You will stop one member while writes continue. Before running the lab, predict whether a three-member cluster can still commit, which metric shows quorum health, and what changes when a second member stops. Treat the observed term and leader output as evidence, not decoration.
+
 **Pairs with:** [Consensus & Raft](../distributed-systems/raft.md), [CAP Theorem](../distributed-systems/cap-theorem.md)
 
 A real 3-node etcd cluster — literally the "CP" example in [CAP Theorem](../distributed-systems/cap-theorem.md#how-real-databases-behave)'s database table. Kill a minority of nodes and writes keep working; kill a majority and writes cleanly refuse (never corrupt). Then run the exact `--consistency=serializable` vs. default-linearizable comparison that table describes.

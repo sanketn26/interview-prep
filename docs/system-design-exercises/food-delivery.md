@@ -5,6 +5,9 @@ description: Guided design of a food delivery platform — three-party order coo
 
 # Design: Food Delivery (DoorDash / Uber Eats)
 
+!!! example "Hypothetical dinner rush"
+    The restaurant says 15 minutes, the courier arrives in five, and the customer watches an ETA drift upward. Three parties update one order on different clocks. Design the state machine and dispatch loop before optimizing map queries.
+
 **Difficulty:** Senior → Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

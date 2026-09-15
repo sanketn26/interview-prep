@@ -7,6 +7,9 @@ prerequisites:
 
 # Terraform
 
+!!! example "Hypothetical state incident"
+    Two pipelines read the same state and both plan to replace a shared resource. The configuration is valid; coordination is not. State locking, plan review, and safe lifecycle rules are earned by that concurrent change.
+
 **Prerequisites:** [Infrastructure as Code](infrastructure-as-code.md) — the concepts (declarative vs. imperative, idempotency, drift) this page assumes.
 
 [← Infrastructure as Code](infrastructure-as-code.md) | [Next: CI/CD →](cicd.md)

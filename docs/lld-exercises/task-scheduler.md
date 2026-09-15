@@ -5,6 +5,9 @@ description: An in-process priority/delay-aware task scheduler backed by a min-h
 
 # LLD: Task Scheduler
 
+!!! example "Hypothetical missed run"
+    A worker crashes after executing a task but before acknowledging it, while a recurring run becomes due. Marking the task complete too early loses work; retrying blindly duplicates side effects. Model schedule, lease, attempt, and idempotency boundaries.
+
 **Difficulty:** Advanced | **Time:** 45–60 minutes
 
 !!! note "Instructions"

@@ -5,6 +5,9 @@ description: Union-Find with path compression and union by rank, visualized as a
 
 # Union-Find / Disjoint Set Union (DSU)
 
+!!! example "Illustrative interview"
+    Accounts arrive with overlapping email addresses, and each new pair asks whether two users are already connected. Re-running DFS over the growing graph repeats old work. Union-Find keeps one representative per component so `union` records a merge and `find` answers connectivity almost constantly after path compression.
+
 **Difficulty:** Medium | **Pattern Type:** Dynamic connectivity
 
 [← DSA Overview](index.md) | [← Graph Algorithms](graph-algorithms.md) | [Next: Backtracking →](backtracking.md)

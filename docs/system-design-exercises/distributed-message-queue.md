@@ -5,6 +5,9 @@ description: Guided design of a Kafka-like distributed message queue — from an
 
 # Design: Distributed Message Queue (Kafka-like)
 
+!!! example "Hypothetical broker failure"
+    A broker dies after acknowledging an order event but before followers confirm it. Producers cannot safely guess whether to retry, and consumers must resume without losing their place. Define durability, ordering scope, and acknowledgement semantics before partitions.
+
 **Difficulty:** Senior → Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

@@ -5,6 +5,9 @@ description: Partition keys, capacity modes, GSI, streams, and the hot partition
 
 # DynamoDB Deep Dive: Managed Serverless Scale
 
+!!! example "Hypothetical incident"
+    Total capacity is ample, yet one tenant's partition key throttles during a launch. Adding capacity does not distribute a hot key. Trace access patterns, partitioning, adaptive capacity, and conditional writes from that uneven workload.
+
 DynamoDB is AWS's **serverless key-value database**. You don't manage clusters or nodes — AWS handles replication, failover, and scaling transparently.
 
 ---
@@ -446,4 +449,3 @@ Read from nearest region → always fast
 - **Transactions are 2× cost**: use only when needed (multi-item atomicity).
 - **Streams + Lambda: powerful event-driven pattern**. Use for real-time sync to ES, caches, analytics.
 - **TTL is cheap**: auto-delete items without write cost.
-

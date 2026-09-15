@@ -5,6 +5,11 @@ description: "Growing a junior or mid engineer, delegating a stretch project, an
 
 # Mentorship
 
+!!! example "Illustrative answer — replace with your own experience"
+    A mentee's webhook consumer passed happy-path tests but failed whenever retries arrived with jitter. The mentor did not take over the fix: they drew the delivery timeline, asked the mentee to predict duplicate paths, and reviewed the idempotency test the next day. The durable result was better judgment, not one corrected pull request.
+
+Use this vignette to study the shape of a mentorship story. Your interview answer must use people, constraints, actions, and outcomes from your own experience.
+
 **Theme:** Growth & Leadership | **Seniority:** Senior → Staff
 
 ---

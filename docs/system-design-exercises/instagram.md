@@ -5,6 +5,9 @@ description: Guided design of a photo/video-sharing service — media storage an
 
 # Design: Instagram
 
+!!! example "Hypothetical launch"
+    A celebrity posts once and 30 million followers refresh together. Fan-out-on-write makes publishing explode; fan-out-on-read makes every feed request expensive. Decide where this account stops following the normal path.
+
 **Difficulty:** Senior/Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

@@ -5,6 +5,9 @@ description: Master the sliding window DSA pattern with interactive animation, m
 
 # Sliding Window Pattern
 
+!!! example "Illustrative interview"
+    The interviewer asks for the longest substring without repeated characters. Eight minutes disappear into nested loops; at `n = 100,000`, recomputing every substring cannot finish. The word **contiguous** is the clue: keep one moving window, update only what enters and leaves, and never rescan work the window already knows.
+
 **Difficulty:** Medium | **Pattern Type:** Array/String optimization
 
 [← DSA Overview](index.md) | [Next: Two Pointers →](two-pointers.md)
@@ -310,4 +313,3 @@ def robust_max_sum(arr, k):
     3. Key signal: "contiguous subarray/substring" + optimization goal → Sliding Window
     4. State tracking (sum, frequency map, set) is the variable that changes; update incrementally
     5. Template: `for right: add; while violated: remove left, left++; update result`
-

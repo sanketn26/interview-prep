@@ -7,6 +7,9 @@ prerequisites:
 
 # Design Patterns
 
+!!! example "Hypothetical change request"
+    Checkout gains a second payment provider and every caller grows another conditional. A Strategy earns its place by isolating that variation; naming the pattern before finding the pressure would only hide the coupling.
+
 **Prerequisites:** [SOLID Principles](solid-principles.md)
 
 [← SOLID Principles](solid-principles.md) | [Next: Concurrency Basics →](concurrency-basics.md)

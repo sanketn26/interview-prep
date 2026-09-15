@@ -5,6 +5,9 @@ description: Cuckoo / quotient / XOR filters, Count-Min Sketch, t-digest, and Mi
 
 # Probabilistic Sketches & Compact Filters
 
+!!! example "Illustrative interview"
+    Exact per-key counts no longer fit in memory, but the product only needs to reject definitely absent keys or estimate heavy hitters. A bounded error is cheaper than an exact answer the system cannot store. State which mistakes are allowed before choosing a sketch.
+
 **Difficulty:** Hard | **Pattern Type:** Probabilistic data structures / streaming summaries
 
 [← DSA Overview](index.md) | [← Advanced Hashing](hashing-techniques.md) | [Next: Skip Lists & Range Trees →](skip-lists-fenwick-segment-trees.md)

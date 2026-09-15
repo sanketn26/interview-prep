@@ -5,6 +5,9 @@ description: Guided design of a web search engine's indexing and query-serving l
 
 # Design: Web Search Engine
 
+!!! example "Hypothetical breaking query"
+    A breaking event changes what millions of users expect from the same query within minutes. Crawling everything again is impossible, while a stale index loses relevance. Design crawl priority, indexing, retrieval, and ranking as different freshness loops.
+
 **Difficulty:** Staff | **Time:** 60–75 minutes
 
 !!! note "Instructions"

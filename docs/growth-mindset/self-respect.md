@@ -7,6 +7,9 @@ prerequisites:
 
 # Respect — Yourself and Others
 
+!!! example "Illustrative workplace scene"
+    A senior reviewer dismisses a proposal with “you do not understand the system.” The author can submit, retaliate, or return to the decision: ask for the violated invariant, state the evidence, and require critique of the work rather than the person.
+
 **Prerequisites:** [Growth Mindset](index.md)
 
 [← Growth Mindset](index.md) | **Next:** [Standing Your Ground, Professionally](standing-your-ground.md)

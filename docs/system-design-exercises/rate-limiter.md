@@ -5,6 +5,9 @@ description: Guided design of a production rate limiter — from a single-proces
 
 # Design: Distributed Rate Limiter
 
+!!! example "Hypothetical noisy client"
+    One API key becomes 40% of traffic during a partner retry loop. Redis holds the shared counters, then Redis itself slows down. If gateways fail closed, healthy customers are blocked; if they fail open, the partner can overload every backend. Design the smallest limiter that contains both failures.
+
 **Difficulty:** Foundation → Senior | **Time:** 45–60 minutes
 
 !!! note "Instructions"

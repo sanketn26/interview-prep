@@ -5,6 +5,9 @@ description: O(1) get/put with a hash map plus a doubly linked list, and why exa
 
 # LLD: LRU Cache
 
+!!! example "Hypothetical eviction race"
+    The cache is full when one thread reads the least-recent key and another inserts a new value. A dictionary finds keys quickly but cannot maintain eviction order atomically. The design must make lookup, recency updates, and eviction one coherent operation.
+
 **Difficulty:** Advanced | **Time:** 30–40 minutes
 
 !!! note "Instructions"

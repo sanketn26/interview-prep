@@ -5,6 +5,9 @@ description: Master BFS and DFS with interactive graph visualizer, implementatio
 
 # BFS & DFS
 
+!!! example "Illustrative interview"
+    A grid contains a start, an exit, and blocked cells. The candidate follows one promising corridor deeply, reaches a dead end, and realizes the question asked for the *fewest* moves. The choice between a queue and a stack is not syntax: BFS earns shortest paths in an unweighted graph; DFS earns exhaustive reachability with less frontier state.
+
 **Difficulty:** Medium | **Pattern Type:** Graph / Tree Traversal
 
 [← DSA Overview](index.md) | [Next: Dynamic Programming →](dynamic-programming.md)
@@ -352,4 +355,3 @@ For a skewed tree: height = O(N), width = O(1).
     4. **Shortest path** → BFS. **All paths/combinations** → DFS.
     5. Mark nodes as visited **before enqueuing** (BFS) or at start of visit (DFS) to prevent cycles
     6. DFS on trees: in/pre/post-order are just DFS traversal orders with different yield positions
-

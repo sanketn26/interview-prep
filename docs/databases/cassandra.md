@@ -5,6 +5,9 @@ description: Peer-to-peer architecture, consistent hashing, quorum consistency, 
 
 # Cassandra Deep Dive: Distributed at Massive Scale
 
+!!! example "Hypothetical incident"
+    Writes stay fast while one dashboard query times out across the cluster. The table was modeled around entities instead of queries, so every read fans out. Cassandra earns its scale only when partition keys match the reads the application will actually issue.
+
 Cassandra is the **peer-to-peer distributed database** for when you need to write 1M+ events/second across multiple data centers and still maintain availability during outages.
 
 ---
@@ -440,4 +443,3 @@ nodetool flush
 - **Query flexibility is your tradeoff**: design your schema around queries, not data normalization.
 - **Hinted handoff: keeps data durable during failures**. Nodes catch up automatically.
 - **Repair is not optional**: run regularly to detect and fix data inconsistency.
-

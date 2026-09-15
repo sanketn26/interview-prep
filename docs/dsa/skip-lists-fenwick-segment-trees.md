@@ -5,6 +5,9 @@ description: Exact ordered maps and log-time range queries — skip lists, binar
 
 # Skip Lists, Fenwick Trees & Segment Trees
 
+!!! example "Illustrative interview"
+    Point updates and range queries alternate too often to recompute each range or rebuild prefix sums. The operation mix is the clue: store partial aggregates so an update and a query each touch logarithmically many nodes.
+
 **Difficulty:** Hard | **Pattern Type:** Ordered maps / range queries
 
 [← DSA Overview](index.md) | [← Probabilistic Sketches](probabilistic-sketches.md) | [Back to DSA Overview →](index.md)
