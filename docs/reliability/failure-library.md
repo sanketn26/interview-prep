@@ -13,6 +13,10 @@ description: A catalog of distributed-system failure modes — symptom, root cau
 
 ## Why This Exists
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/failure-families.svg" alt="Five failure families: cascade, exhaustion, partition, bad data shape, and a dead dependency.">
+</figure>
+
 Most engineers learn failure modes one incident at a time, over years, at whatever company happens to break in front of them. That's slow and it's biased toward whatever your stack does badly. This page is the shortcut: a catalog of the failure modes that recur across every distributed system, regardless of language or cloud provider, so you can **recognize the shape of a problem** before it finishes happening.
 
 This is not a deep-dive on any one mechanism — [Circuit Breakers](circuit-breakers.md) already does that for cascading failures. This is a field guide: symptom → root cause → mitigation, entry after entry, so that when a system starts behaving strangely at 2am (or in a system-design interview), you have a name for it and a shape for the fix.

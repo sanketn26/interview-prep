@@ -5,7 +5,11 @@ description: "Identity, encryption, and authorization. The primitives that keep 
 
 # Security
 
-Security is not an afterthought — it's baked into every design. This section covers the primitives that appear in every interview:
+Security is not an afterthought — it's baked into every design. This section is the interview-shaped security track on Senior Engineer Academy: STRIDE, OAuth2/OIDC, sessions, and Zero Trust as design questions. Detection engineering and the incident-response lab live on [Defensive Security Engineering](https://sanketn26.github.io/learn-security/).
+
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-security.svg" alt="Interview security in four questions: who is calling, how they prove it, what they may do, and what a stolen datastore reveals.">
+</figure>
 
 ---
 

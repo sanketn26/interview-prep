@@ -7,6 +7,10 @@ description: Requirements, capacity, and the 19-step method — the spine of eve
 
 Start here if you can ship an API + database and need a method for everything larger.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-foundations.svg" alt="Four steps: ask for requirements that change the drawing, count QPS and payload, name the bottleneck, then add only the boxes that fix it.">
+</figure>
+
 ---
 
 ## Why This Exists

@@ -24,6 +24,10 @@ The catch is that greedy is only correct when the problem has a specific structu
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-greedy.svg" alt="Three intervals on a line. Take the one that ends first and skip the one that overlaps it.">
+</figure>
+
 A greedy algorithm makes the choice that looks best **right now**, commits to it, and never reconsiders. This is valid exactly when the problem has:
 
 1. **Greedy choice property** — a locally optimal choice leads to a globally optimal solution; you never need to backtrack.

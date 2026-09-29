@@ -32,6 +32,10 @@ The deeper, senior-level insight: **binary search doesn't require an array at al
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-binary-search.svg" alt="The middle value is too small, so the search keeps only the right half of the range.">
+</figure>
+
 ### Classic: search in a sorted array
 
 ```

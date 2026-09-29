@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 260" role="img">
+<title>car is a word, and it is still a prefix of card and care.</title>
+<rect width="960" height="260" rx="16" fill="#f8fafc"/>
+<circle cx="70" cy="140" r="18" fill="#fff" stroke="#64748b" stroke-width="2"/>
+<text x="70" y="145" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">•</text>
+<line x1="88" y1="140" x2="130" y2="140" stroke="#64748b" stroke-width="2"/>
+<circle cx="150" cy="140" r="18" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+<text x="150" y="145" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">c</text>
+<line x1="168" y1="140" x2="210" y2="140" stroke="#64748b" stroke-width="2"/>
+<circle cx="230" cy="140" r="18" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+<text x="230" y="145" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">a</text>
+<line x1="248" y1="128" x2="310" y2="70" stroke="#64748b" stroke-width="2"/>
+<line x1="248" y1="152" x2="310" y2="180" stroke="#64748b" stroke-width="2"/>
+<circle cx="330" cy="70" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="330" y="75" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">t</text>
+<circle cx="330" cy="180" r="18" fill="#ffedd5" stroke="#d97706" stroke-width="2"/>
+<text x="330" y="185" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">r</text>
+<line x1="348" y1="168" x2="410" y2="130" stroke="#64748b" stroke-width="2"/>
+<line x1="348" y1="196" x2="410" y2="220" stroke="#64748b" stroke-width="2"/>
+<circle cx="430" cy="130" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="430" y="135" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">d</text>
+<circle cx="430" cy="220" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="430" y="225" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">e</text>
+<text x="500" y="74" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="start">t ends cat</text>
+<text x="500" y="150" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">r ends car</text>
+<text x="500" y="176" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="start">and still has children</text>
+<text x="500" y="210" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="start">d ends card, e ends care</text>
+<text x="500" y="240" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">A word mark does not stop the path.</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">car is a word, and it is still a prefix of card and care.</text>
+</svg>

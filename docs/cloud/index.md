@@ -9,6 +9,10 @@ A cloud platform is just someone else's API for compute, network, and storage. T
 
 This section covers the layer *below* Kubernetes (how your code becomes a runnable artifact and how that artifact gets to production) rather than vendor consoles.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-cloud.svg" alt="Code becomes an immutable image, a pipeline promotes that image, and an environment runs it.">
+</figure>
+
 ---
 
 ## The Path From Laptop to Production

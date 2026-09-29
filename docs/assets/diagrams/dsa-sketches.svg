@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 210" role="img">
+<title>Name the query first. The sketch is whichever structure answers that query.</title>
+<rect width="960" height="210" rx="16" fill="#f8fafc"/>
+<rect x="24" y="52" width="448" height="64" rx="10" fill="#fff" stroke="#0d9488" stroke-width="2"/>
+<text x="38" y="78" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">Might it be in the set?</text>
+<text x="38" y="100" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">Bloom, or a cuckoo filter if you delete</text>
+<rect x="492" y="52" width="448" height="64" rx="10" fill="#fff" stroke="#d97706" stroke-width="2"/>
+<text x="506" y="78" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">How often did this key appear?</text>
+<text x="506" y="100" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">Count-Min. Collisions only add.</text>
+<rect x="24" y="126" width="448" height="64" rx="10" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="38" y="152" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">Where is p99, without every sample?</text>
+<text x="38" y="174" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">t-digest or an HDR histogram</text>
+<rect x="492" y="126" width="448" height="64" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="2"/>
+<text x="506" y="152" fill="#7c3aed" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">How alike are these two sets?</text>
+<text x="506" y="174" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">MinHash estimates Jaccard</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Name the query first. The sketch is whichever structure answers that query.</text>
+</svg>

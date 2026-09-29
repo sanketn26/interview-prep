@@ -7,6 +7,10 @@ description: Pattern recognition and visual walkthroughs — not a random proble
 
 Clue → pattern. Code is **Python**; a few pages (mainly DP) also show Go. **Most** pattern pages have a visualizer (Run / Reset; some add Step / Auto Play). Foundations, two pointers, binary search, and the pattern-recognition index have **no** visualizer.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-dsa.svg" alt="Read the clue, name the pattern, pick the structure, then state time and space.">
+</figure>
+
 ---
 
 ## Why This Exists

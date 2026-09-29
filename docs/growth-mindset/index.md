@@ -7,6 +7,10 @@ description: The internal operating principles that don't show up as interview q
 
 Not a rehearsed story. The thing you actually do when nobody's grading you for it.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-growth.svg" alt="Notice the moment, name what is at stake, say one honest sentence, and hold the point without making it personal.">
+</figure>
+
 ---
 
 ## Why This Exists

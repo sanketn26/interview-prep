@@ -34,6 +34,10 @@ Instead of recalculating the sum each time (O(K)), we update it in O(1).
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-sliding-window.svg" alt="A window of three cells. The next step adds the cell that enters and drops the cell that leaves.">
+</figure>
+
 ```
 Array: [3, 1, 2, 5, 8, 2, 6, 1, 4, 9]  K=3
          ↑           ↑

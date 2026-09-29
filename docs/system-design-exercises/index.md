@@ -7,6 +7,10 @@ description: Guided designs. Architecture is revealed only after you have earned
 
 Work each exercise with the solution covered. V1 is always the simplest useful system. A component that does not kill a named bottleneck does not belong.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-exercises.svg" alt="Cover the solution, design the smallest V1, name the bottleneck, then make one justified change.">
+</figure>
+
 Score a mock with the [assessment rubric](assessment.md) — do **not** require matching a reference architecture. Short worked examples of the reasoning loop: [Reasoning transcripts](../foundations/reasoning-transcripts.md).
 
 !!! tip "Going past the checklist"

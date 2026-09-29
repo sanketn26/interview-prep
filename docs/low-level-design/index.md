@@ -11,6 +11,10 @@ prerequisites:
 
 [← System Design Framework](../foundations/framework.md) | [Next: OOP Fundamentals →](oop-fundamentals.md)
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-lld.svg" alt="Name the nouns that vary, hide them behind an interface, decide who owns the state, then ask what is shared across threads.">
+</figure>
+
 ---
 
 ## Why This Exists

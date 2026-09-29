@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 760" role="img">
+<title>Kubernetes service types</title>
+<rect width="1040" height="760" rx="20" fill="#f8fafc"/>
+<text x="36" y="46" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="750">Kubernetes service types</text>
+<text x="36" y="72" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="14">ClusterIP is the default. NodePort and LoadBalancer add a way in. Ingress is not a Service.</text>
+<rect x="28" y="96" width="312" height="280" rx="16" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+<rect x="28" y="96" width="312" height="8" rx="4" fill="#4f46e5"/>
+<text x="46" y="132" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">01  DEFAULT</text>
+<text x="46" y="156" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">ClusterIP</text>
+<text x="46" y="188" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Stable virtual IP inside the cluster</text>
+<text x="46" y="210" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">DNS: name.ns.svc.cluster.local</text>
+<text x="46" y="232" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">kube-proxy or eBPF picks a Ready pod</text>
+<text x="46" y="254" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">No public address</text>
+<text x="46" y="354" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">Only pods (and nodes) can call it</text>
+<rect x="356" y="96" width="312" height="280" rx="16" fill="#ffffff" stroke="#0d9488" stroke-width="2"/>
+<rect x="356" y="96" width="312" height="8" rx="4" fill="#0d9488"/>
+<text x="374" y="132" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">02  NODE</text>
+<text x="374" y="156" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">NodePort</text>
+<text x="374" y="188" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Opens one high port on every node</text>
+<text x="374" y="210" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Default range 30000–32767</text>
+<text x="374" y="232" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Still has a ClusterIP underneath</text>
+<text x="374" y="254" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">nodeIP:port → ClusterIP → pod</text>
+<text x="374" y="354" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">ClusterIP stays. It is not removed</text>
+<rect x="684" y="96" width="312" height="280" rx="16" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<rect x="684" y="96" width="312" height="8" rx="4" fill="#d97706"/>
+<text x="702" y="132" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">03  CLOUD</text>
+<text x="702" y="156" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">LoadBalancer</text>
+<text x="702" y="188" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Asks the cloud for an external IP</text>
+<text x="702" y="210" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">That IP targets the NodePort</text>
+<text x="702" y="232" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Which still targets the ClusterIP</text>
+<text x="702" y="254" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Pending forever with no provider</text>
+<text x="702" y="354" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">One Service often means one LB bill</text>
+<rect x="28" y="392" width="312" height="280" rx="16" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<rect x="28" y="392" width="312" height="8" rx="4" fill="#7c3aed"/>
+<text x="46" y="428" fill="#7c3aed" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">04  DNS ONLY</text>
+<text x="46" y="452" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">ExternalName</text>
+<text x="46" y="484" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">CNAME to a name outside the cluster</text>
+<text x="46" y="506" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">No ClusterIP and no endpoints</text>
+<text x="46" y="528" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">kube-proxy does not touch it</text>
+<text x="46" y="550" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">The client dials the external name</text>
+<text x="46" y="650" fill="#7c3aed" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">An alias, not a proxy</text>
+<rect x="356" y="392" width="312" height="280" rx="16" fill="#ffffff" stroke="#e11d48" stroke-width="2"/>
+<rect x="356" y="392" width="312" height="8" rx="4" fill="#e11d48"/>
+<text x="374" y="428" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">05  NO VIP</text>
+<text x="374" y="452" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">Headless</text>
+<text x="374" y="484" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">clusterIP: None</text>
+<text x="374" y="506" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">DNS returns pod IPs, not one VIP</text>
+<text x="374" y="528" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">No kube-proxy load balancing</text>
+<text x="374" y="550" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">The client chooses the pod</text>
+<text x="374" y="650" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">How StatefulSet peers find each other</text>
+<rect x="684" y="392" width="312" height="280" rx="16" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+<rect x="684" y="392" width="312" height="8" rx="4" fill="#0284c7"/>
+<text x="702" y="428" fill="#0284c7" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">06  NOT A SERVICE</text>
+<text x="702" y="452" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">Ingress</text>
+<text x="702" y="484" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">HTTP and HTTPS only</text>
+<text x="702" y="506" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Host, path, and TLS in one place</text>
+<text x="702" y="528" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">The controller forwards to a Service</text>
+<text x="702" y="550" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">A controller 404 is not your app</text>
+<text x="702" y="650" fill="#0284c7" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">Many apps, one external address</text>
+<text x="36" y="738" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="13">Internal VIP  →  node port  →  cloud LB  →  DNS alias  →  direct pod IPs  →  HTTP routes</text>
+</svg>

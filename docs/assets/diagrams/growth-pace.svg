@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 230" role="img">
+<title>Intensity is a budget with a recovery. Or it quietly becomes the baseline.</title>
+<rect width="960" height="230" rx="16" fill="#f8fafc"/>
+<rect x="30" y="52" width="440" height="150" rx="12" fill="#fff" stroke="#0d9488" stroke-width="2"/>
+<text x="48" y="82" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750" text-anchor="start">Healthy</text>
+<text x="48" y="112" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="650" text-anchor="start">Sprint, then recover, then sprint</text>
+<text x="48" y="138" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="500" text-anchor="start">Intensity stays episodic</text>
+<text x="48" y="164" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="500" text-anchor="start">You can name what the sprint was for</text>
+<rect x="490" y="52" width="440" height="150" rx="12" fill="#fff" stroke="#e11d48" stroke-width="2"/>
+<text x="508" y="82" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750" text-anchor="start">Burnout</text>
+<text x="508" y="112" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="650" text-anchor="start">Sprint, then sprint, then sprint</text>
+<text x="508" y="138" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="500" text-anchor="start">Intensity becomes the baseline</text>
+<text x="508" y="164" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="500" text-anchor="start">The original urgency is forgotten</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Intensity is a budget with a recovery. Or it quietly becomes the baseline.</text>
+</svg>

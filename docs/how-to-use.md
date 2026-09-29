@@ -29,12 +29,14 @@ Every concept has three levels of understanding. Switch between them based on co
 
 ## Interview Modes
 
-The full Learn / Interview / Hint / Solution / Staff **tab switcher is not wired** on concept pages — see [Project Status](project-status.md). Study like this instead:
+Concept pages do not have a Learn / Practice / Hint / Interview / Solution / Staff switcher yet. That tab pattern is still rolling out — see [Project Status](project-status.md). Use the six modes by hand:
 
-- **Learn** — the page as written is the default (three-level model: intuition → engineering → production).
+- **Learn** — read the page as written (intuition → engineering → production).
+- **Practice** — close the solution and work a design or reasoning question out loud.
 - **Hint** — exercises use `???` hint blocks; try before revealing.
-- **Solution** — design / LLD exercises have a worked solution after you attempt it.
-- **Staff** — some pages have Staff Q&A or seniority tabs (especially behavioural stories); **not** every concept page.
+- **Interview** — explain as if a stranger is scoring you. Check in after each major choice.
+- **Solution** — only after you have a design. Diff yours against the page.
+- **Staff** — some pages have Staff Q&A or seniority tabs (especially behavioural stories). That is not a Staff tab on every concept page.
 
 ---
 

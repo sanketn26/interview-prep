@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 270" role="img">
+<title>Same graph. BFS finishes a layer. DFS follows one branch to the end.</title>
+<rect width="960" height="270" rx="16" fill="#f8fafc"/>
+<line x1="150" y1="78" x2="80" y2="150" stroke="#94a3b8" stroke-width="2"/>
+<line x1="150" y1="78" x2="220" y2="150" stroke="#94a3b8" stroke-width="2"/>
+<line x1="80" y1="150" x2="30" y2="222" stroke="#94a3b8" stroke-width="2"/>
+<line x1="80" y1="150" x2="110" y2="222" stroke="#94a3b8" stroke-width="2"/>
+<line x1="220" y1="150" x2="190" y2="222" stroke="#94a3b8" stroke-width="2"/>
+<line x1="220" y1="150" x2="270" y2="222" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="150" cy="78" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="150" y="83" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">A</text>
+<circle cx="80" cy="150" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="80" y="155" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">B</text>
+<circle cx="220" cy="150" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="220" y="155" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">C</text>
+<circle cx="30" cy="222" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="30" y="227" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">D</text>
+<circle cx="110" cy="222" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="110" y="227" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">E</text>
+<circle cx="190" cy="222" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="190" y="227" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">F</text>
+<circle cx="270" cy="222" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="270" y="227" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">G</text>
+<text x="400" y="78" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">BFS  — one layer, then the next</text>
+<text x="400" y="108" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="start">A</text>
+<text x="400" y="132" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="start">then B, C</text>
+<text x="400" y="156" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="start">then D, E, F, G</text>
+<text x="400" y="196" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">DFS  — one branch, then back up</text>
+<text x="400" y="224" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="start">A → B → D, then E, then C → F, G</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Same graph. BFS finishes a layer. DFS follows one branch to the end.</text>
+</svg>

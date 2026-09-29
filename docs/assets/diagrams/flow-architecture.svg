@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 176" role="img">
+<title>Name the pressure before you name the pattern.</title>
+<rect width="960" height="176" rx="16" fill="#f8fafc"/>
+<text x="24" y="32" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750">Name the pressure before you name the pattern.</text>
+<rect x="24.0" y="52" width="207.0" height="96" rx="12" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+<text x="38.0" y="88" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750">Pressure</text>
+<text x="38.0" y="112" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12">The failure you already</text>
+<text x="38.0" y="130" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12">have</text>
+<path d="M237.0 100.0 H251.0" stroke="#94a3b8" stroke-width="2" fill="none"/>
+<path d="M247.0 96.0 L253.0 100.0 L247.0 104.0" fill="#94a3b8"/>
+<rect x="259.0" y="52" width="207.0" height="96" rx="12" fill="#ffffff" stroke="#0d9488" stroke-width="2"/>
+<text x="273.0" y="88" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750">Pattern</text>
+<text x="273.0" y="112" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12">The named response</text>
+<path d="M472.0 100.0 H486.0" stroke="#94a3b8" stroke-width="2" fill="none"/>
+<path d="M482.0 96.0 L488.0 100.0 L482.0 104.0" fill="#94a3b8"/>
+<rect x="494.0" y="52" width="207.0" height="96" rx="12" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<text x="508.0" y="88" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750">Win</text>
+<text x="508.0" y="112" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12">What you bought</text>
+<path d="M707.0 100.0 H721.0" stroke="#94a3b8" stroke-width="2" fill="none"/>
+<path d="M717.0 96.0 L723.0 100.0 L717.0 104.0" fill="#94a3b8"/>
+<rect x="729.0" y="52" width="207.0" height="96" rx="12" fill="#ffffff" stroke="#e11d48" stroke-width="2"/>
+<text x="743.0" y="88" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750">Cost</text>
+<text x="743.0" y="112" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12">The consistency you gave</text>
+<text x="743.0" y="130" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12">up</text>
+</svg>

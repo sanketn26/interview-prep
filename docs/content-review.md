@@ -117,10 +117,10 @@ Full-curriculum accuracy pass: factual mistakes, capacity math, contradictions, 
 
 - [x] README — rest of curriculum is shipped, not stubs
 - [x] `project-status.md` — LLD all 15 Complete; no “remaining 11”
-- [x] `how-to-use.md` — Learn/Interview/Staff tabs not wired
+- [x] `how-to-use.md` — six interview modes by hand; tab switcher still rolling out (Project Status)
 - [x] Story count = 6 on behavioural + how-to-use
 - [x] Production incident — reversible mitigation, then RCA
-- [x] Playgrounds / home — 15 priority sims + DSA visualizers
+- [x] Playgrounds / home / project status — 17 system simulations and 16 DSA visualizers, counted separately
 - [x] Glossary DSA terms + CQRS link
 - [x] Cheat sheet Dijkstra space, Timsort/Java, consistent hashing add vs remove
 - [x] Roadmap — start DSA patterns in week 1

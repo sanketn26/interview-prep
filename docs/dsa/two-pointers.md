@@ -32,6 +32,10 @@ This is the general shape of two pointers: **use a monotonic property of the dat
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-two-pointers.svg" alt="On a sorted array, the left pointer moves up when the sum is too small and the right pointer moves down when it is too big.">
+</figure>
+
 ### Opposite-direction pointers
 
 ```

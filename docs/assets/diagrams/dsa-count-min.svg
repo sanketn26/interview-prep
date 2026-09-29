@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 250" role="img">
+<title>cat was added twice. Each row stores 2. The estimate is the minimum, which is 2.</title>
+<rect width="960" height="250" rx="16" fill="#f8fafc"/>
+<rect x="70" y="52" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="93" y="78" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="122" y="52" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="145" y="78" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="174" y="52" width="46" height="40" rx="6" fill="#ffedd5" stroke="#d97706" stroke-width="2"/>
+<text x="197" y="78" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">2</text>
+<rect x="226" y="52" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="249" y="78" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="278" y="52" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="301" y="78" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="330" y="52" width="46" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+<text x="353" y="78" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">1</text>
+<rect x="382" y="52" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="405" y="78" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="434" y="52" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="457" y="78" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<text x="28" y="78" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="start">r0</text>
+<rect x="70" y="100" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="93" y="126" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="122" y="100" width="46" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+<text x="145" y="126" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">1</text>
+<rect x="174" y="100" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="197" y="126" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="226" y="100" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="249" y="126" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="278" y="100" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="301" y="126" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="330" y="100" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="353" y="126" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="382" y="100" width="46" height="40" rx="6" fill="#ffedd5" stroke="#d97706" stroke-width="2"/>
+<text x="405" y="126" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">2</text>
+<rect x="434" y="100" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="457" y="126" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<text x="28" y="126" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="start">r1</text>
+<rect x="70" y="148" width="46" height="40" rx="6" fill="#ffedd5" stroke="#d97706" stroke-width="2"/>
+<text x="93" y="174" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">2</text>
+<rect x="122" y="148" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="145" y="174" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="174" y="148" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="197" y="174" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="226" y="148" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="249" y="174" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="278" y="148" width="46" height="40" rx="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2"/>
+<text x="301" y="174" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">1</text>
+<rect x="330" y="148" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="353" y="174" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="382" y="148" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="405" y="174" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<rect x="434" y="148" width="46" height="40" rx="6" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="457" y="174" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="middle">0</text>
+<text x="28" y="174" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="start">r2</text>
+<text x="70" y="210" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="start">Query cat = min(row0[2], row1[6], row2[0]) = min(2, 2, 2) = 2.</text>
+<text x="70" y="234" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">Collisions only add, so the estimate is never below the true count.</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">cat was added twice. Each row stores 2. The estimate is the minimum, which is 2.</text>
+</svg>

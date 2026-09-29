@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 250" role="img">
+<title>Union links one root under the other. Find walks parent pointers to the root.</title>
+<rect width="960" height="250" rx="16" fill="#f8fafc"/>
+<text x="40" y="58" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="start">before union(1, 2)</text>
+<circle cx="80" cy="100" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="80" y="105" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">0</text>
+<circle cx="80" cy="170" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="80" y="175" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">1</text>
+<line x1="80" y1="118" x2="80" y2="152" stroke="#64748b" stroke-width="2"/>
+<circle cx="200" cy="100" r="18" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+<text x="200" y="105" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">2</text>
+<circle cx="200" cy="170" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="200" y="175" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">3</text>
+<line x1="200" y1="118" x2="200" y2="152" stroke="#64748b" stroke-width="2"/>
+<line x1="280" y1="130" x2="360" y2="130" stroke="#d97706" stroke-width="2"/>
+<path d="M352 126 L360 130 L352 134" fill="#d97706"/>
+<text x="420" y="58" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="start">after: root 2 hangs under root 0</text>
+<circle cx="520" cy="100" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="520" y="105" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">0</text>
+<circle cx="450" cy="180" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="450" y="185" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">1</text>
+<circle cx="590" cy="180" r="18" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+<text x="590" y="185" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">2</text>
+<circle cx="590" cy="220" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="590" y="225" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">3</text>
+<line x1="520" y1="118" x2="450" y2="162" stroke="#64748b" stroke-width="2"/>
+<line x1="520" y1="118" x2="590" y2="162" stroke="#64748b" stroke-width="2"/>
+<line x1="590" y1="198" x2="590" y2="202" stroke="#64748b" stroke-width="2"/>
+<text x="680" y="120" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">find(3) walks to 0</text>
+<text x="680" y="148" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">Same root, same set.</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Union links one root under the other. Find walks parent pointers to the root.</text>
+</svg>

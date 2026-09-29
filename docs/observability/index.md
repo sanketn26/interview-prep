@@ -7,6 +7,10 @@ description: You cannot debug what you cannot see. Start from the symptom, not t
 
 You cannot debug what you cannot see. Start from the symptom, not the dashboard wallpaper.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-observability.svg" alt="Start from the user symptom, walk one hop, read one signal, then name the cause.">
+</figure>
+
 ---
 
 ## Why This Exists

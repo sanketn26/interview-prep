@@ -7,6 +7,10 @@ description: Retries without a budget are an amplifier. Limiters and breakers ar
 
 Retries without a budget are an amplifier. Limiters and breakers are how you stay up.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-reliability.svg" alt="Timeout, a retry budget, a circuit breaker, then shed load so the dependency can recover.">
+</figure>
+
 ---
 
 ## Why This Exists

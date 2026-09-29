@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 200" role="img">
+<title>Pulsar: brokers do not store the log. Bookies do.</title>
+<rect width="960" height="200" rx="16" fill="#f8fafc"/>
+<rect x="40" y="60" width="280" height="100" rx="12" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="56" y="92" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750" text-anchor="start">Brokers</text>
+<text x="56" y="118" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">stateless</text>
+<text x="56" y="138" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">produce / consume</text>
+<line x1="330" y1="110" x2="400" y2="110" stroke="#0d9488" stroke-width="2"/>
+<path d="M392 106 L400 110 L392 114" fill="#0d9488"/>
+<rect x="410" y="60" width="280" height="100" rx="12" fill="#fff" stroke="#0d9488" stroke-width="2"/>
+<text x="426" y="92" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750" text-anchor="start">BookKeeper</text>
+<text x="426" y="118" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">ledgers on disk</text>
+<text x="426" y="138" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">the durable log</text>
+<text x="720" y="100" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">Add a broker</text>
+<text x="720" y="124" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">without moving</text>
+<text x="720" y="144" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">the segments.</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Pulsar: brokers do not store the log. Bookies do.</text>
+</svg>

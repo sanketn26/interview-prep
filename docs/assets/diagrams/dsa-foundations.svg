@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 180" role="img">
+<title>Read the constraint before you name an algorithm.</title>
+<rect width="960" height="180" rx="16" fill="#f8fafc"/>
+<rect x="24" y="56" width="216" height="90" rx="12" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="40" y="86" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">1  Clarify</text>
+<text x="40" y="114" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">n, and what correct means</text>
+<rect x="258" y="56" width="216" height="90" rx="12" fill="#fff" stroke="#0d9488" stroke-width="2"/>
+<text x="274" y="86" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">2  Brute</text>
+<text x="274" y="114" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">a solution you can defend</text>
+<rect x="492" y="56" width="216" height="90" rx="12" fill="#fff" stroke="#d97706" stroke-width="2"/>
+<text x="508" y="86" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">3  Budget</text>
+<text x="508" y="114" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">n = 10^5 cannot be n²</text>
+<rect x="726" y="56" width="216" height="90" rx="12" fill="#fff" stroke="#e11d48" stroke-width="2"/>
+<text x="742" y="86" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">4  Pattern</text>
+<text x="742" y="114" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">the family that fits the budget</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Read the constraint before you name an algorithm.</text>
+</svg>

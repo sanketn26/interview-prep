@@ -202,6 +202,11 @@
 .course-proof strong { display: block; color: var(--course-navy); font-size: 1.25rem; }
 .course-proof span { display: block; margin-top: 0.12rem; color: #64748b; font-size: 0.68rem; }
 
+.academy-figure { margin: 1.1rem 0 1.5rem; }
+.academy-figure img { display: block; width: 100%; height: auto; }
+.academy-figure figcaption { margin-top: 0.4rem; color: #64748b; font-size: 0.84rem; }
+[data-md-color-scheme="slate"] .academy-figure figcaption { color: #94a3b8; }
+
 [data-md-color-scheme="slate"] .course-hero h1,
 [data-md-color-scheme="slate"] .course-proof strong { color: #f8fafc; }
 [data-md-color-scheme="slate"] .course-hero__lead { color: #94a3b8; }

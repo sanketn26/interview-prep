@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 210" role="img">
+<title>A follower that is behind is still a replica. It is not in the ISR.</title>
+<rect width="960" height="210" rx="16" fill="#f8fafc"/>
+<rect x="40" y="60" width="250" height="110" rx="12" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+<text x="56" y="90" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">Leader  broker 0</text>
+<text x="56" y="116" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="start">offset 100</text>
+<text x="56" y="140" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="start">in the ISR</text>
+<rect x="320" y="60" width="250" height="110" rx="12" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+<text x="336" y="90" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">Follower  broker 1</text>
+<text x="336" y="116" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="start">offset 100</text>
+<text x="336" y="140" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="start">in the ISR</text>
+<rect x="600" y="60" width="320" height="110" rx="12" fill="#fff" stroke="#e11d48" stroke-width="2"/>
+<text x="616" y="90" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">Follower  broker 2</text>
+<text x="616" y="116" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="start">offset 95</text>
+<text x="616" y="140" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="start">replica, not in the ISR</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">A follower that is behind is still a replica. It is not in the ISR.</text>
+</svg>

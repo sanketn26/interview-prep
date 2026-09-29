@@ -95,6 +95,8 @@ graph LR
 
 **Try:** Add a node → observe that only some keys remapped. Remove a node → only those keys moved to the next node clockwise.
 
+MD5 in the snippet below is a **placement function**: it maps a key or vnode onto the ring. It is not a short-code generator. Truncating an MD5 hex digest to mint a URL code is a different job, and it fails for the reasons on the [URL shortener](../system-design-exercises/url-shortener.md).
+
 ---
 
 ## How It Works Internally

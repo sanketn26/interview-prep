@@ -19,6 +19,10 @@ description: Cuckoo / quotient / XOR filters, Count-Min Sketch, t-digest, and Mi
 
 ## Why These Structures Exist
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-sketches.svg" alt="Four queries: membership, frequency, a percentile, and set similarity. Each one has its own sketch.">
+</figure>
+
 A Bloom filter answers one question: *might this key be in the set?* That is the wrong tool for the next four questions production systems actually ask:
 
 ```
@@ -285,6 +289,10 @@ class XorFilter:
 ---
 
 ## Count-Min Sketch — "how often?"
+
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-count-min.svg" alt="cat was added twice. Each of the three hash rows stores 2, so the estimate is min(2, 2, 2).">
+</figure>
 
 ### Why it exists
 

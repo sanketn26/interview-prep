@@ -24,6 +24,10 @@ This is not Pulsar marketing. This is what you need to know to operate it in pro
 
 ## Architecture at a Glance
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/pulsar-brokers.svg" alt="Stateless Pulsar brokers in front of BookKeeper, which is where the log is stored.">
+</figure>
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ Pulsar Cluster                                          │

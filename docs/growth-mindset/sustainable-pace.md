@@ -26,6 +26,10 @@ This isn't an argument for working less, or for treating every deadline as negot
 
 ## Mental Model: Capacity Is a Budget, Not a Character Trait
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/growth-pace.svg" alt="A healthy pace is sprint, recover, sprint. Burnout is sprint after sprint until the urgency is forgotten.">
+</figure>
+
 ```
    Healthy pattern                        Burnout pattern
    ────────────────                       ────────────────

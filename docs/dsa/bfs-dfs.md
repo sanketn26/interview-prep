@@ -24,6 +24,10 @@ BFS and DFS are the two fundamental traversal strategies. Understanding *which o
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-bfs-dfs.svg" alt="BFS visits a graph layer by layer. DFS follows one path to the end, then the next branch.">
+</figure>
+
 **BFS (Breadth-First Search):** Explore layer by layer. Like ripples in a pond — all nodes at distance 1, then distance 2, then distance 3.
 
 **DFS (Depth-First Search):** Go as deep as possible before backtracking. Like exploring a maze — follow one path until you hit a dead end, then backtrack.

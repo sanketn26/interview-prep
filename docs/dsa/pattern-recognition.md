@@ -30,6 +30,10 @@ description: A synthesis page mapping problem clues, keywords, and constraints t
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-patterns.svg" alt="Constraints, then input shape, then a keyword, then a check that the structure really fits.">
+</figure>
+
 Think of pattern recognition as narrowing a funnel: constraints eliminate whole complexity classes, then keywords select the specific technique within what's left.
 
 ```

@@ -24,6 +24,10 @@ A **trie** (from re**trie**val) restructures a set of strings so that every pref
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-trie.svg" alt="The words cat and can share the prefix ca and split at the last letter.">
+</figure>
+
 Each node represents one character position; a path from the root spells out a prefix. Words that share a prefix share the path — "car," "card," and "care" all reuse the c→a→r nodes and only branch afterward.
 
 ```

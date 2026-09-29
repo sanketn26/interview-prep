@@ -7,6 +7,8 @@ description: Kafka consumer groups, partitions, ordering guarantees, rebalancing
 
 **Prerequisites:** [Message Queue Patterns](patterns.md), Basic distributed systems
 
+Already read [Data Engineering Phase 2](https://sanketn26.github.io/data-engineering/kafka/)? This page is the interview cut: consumer groups, per-partition order, rebalance, and where exactly-once stops.
+
 ---
 
 ## Why This Exists

@@ -7,6 +7,10 @@ description: Patterns you earn from a failure — not a catalog to sprinkle on e
 
 A pattern is a named response to a pressure you have already identified. If you cannot name the pressure, you do not get the box.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-architecture.svg" alt="Name the pressure, then the pattern, then what it buys and the consistency it costs.">
+</figure>
+
 ---
 
 ## Why This Exists

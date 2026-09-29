@@ -7,6 +7,10 @@ description: The request path before your code: DNS, TCP, TLS, then the load bal
 
 The request path before your code: DNS, TCP, TLS, then the load balancer.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-networking.svg" alt="A request spends its time in DNS, the TCP handshake, TLS, and the load balancer before the application handler.">
+</figure>
+
 ---
 
 ## Why This Exists

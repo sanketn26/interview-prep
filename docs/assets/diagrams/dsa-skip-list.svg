@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 250" role="img">
+<title>Search for 8. Jump on the top lane, then drop when the next key is too big.</title>
+<rect width="960" height="250" rx="16" fill="#f8fafc"/>
+<circle cx="50" cy="64" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="50" y="69" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">1</text>
+<line x1="66" y1="64" x2="314" y2="64" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="330" cy="64" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="330" y="69" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">7</text>
+<circle cx="50" cy="128" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="50" y="133" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">1</text>
+<line x1="66" y1="128" x2="174" y2="128" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="190" cy="128" r="18" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+<text x="190" y="133" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">4</text>
+<line x1="206" y1="128" x2="314" y2="128" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="330" cy="128" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="330" y="133" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">7</text>
+<line x1="346" y1="128" x2="454" y2="128" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="470" cy="128" r="18" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+<text x="470" y="133" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">9</text>
+<circle cx="50" cy="192" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="50" y="197" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">1</text>
+<line x1="66" y1="192" x2="104" y2="192" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="120" cy="192" r="18" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+<text x="120" y="197" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">2</text>
+<line x1="136" y1="192" x2="174" y2="192" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="190" cy="192" r="18" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+<text x="190" y="197" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">4</text>
+<line x1="206" y1="192" x2="244" y2="192" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="260" cy="192" r="18" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+<text x="260" y="197" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">5</text>
+<line x1="276" y1="192" x2="314" y2="192" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="330" cy="192" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="330" y="197" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">7</text>
+<line x1="346" y1="192" x2="384" y2="192" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="400" cy="192" r="18" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="400" y="197" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">8</text>
+<line x1="416" y1="192" x2="454" y2="192" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="470" cy="192" r="18" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+<text x="470" y="197" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">9</text>
+<line x1="50" y1="82" x2="50" y2="110" stroke="#0d9488" stroke-width="2"/>
+<line x1="50" y1="146" x2="50" y2="174" stroke="#0d9488" stroke-width="2"/>
+<line x1="330" y1="82" x2="330" y2="110" stroke="#0d9488" stroke-width="2"/>
+<line x1="330" y1="146" x2="330" y2="174" stroke="#0d9488" stroke-width="2"/>
+<text x="560" y="80" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">Top lane: 1 → 7</text>
+<text x="560" y="108" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600" text-anchor="start">7 → 9 would pass 8.</text>
+<text x="560" y="140" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="start">Drop at 7.</text>
+<text x="560" y="168" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="start">Bottom lane: 7 → 8.</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Search for 8. Jump on the top lane, then drop when the next key is too big.</text>
+</svg>

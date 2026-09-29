@@ -24,6 +24,10 @@ It underlies Kruskal's MST (reject an edge if it would cycle), cycle detection i
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-union-find.svg" alt="Two parent trees become one set when their roots are linked.">
+</figure>
+
 Each element starts as its own set (its own tree, pointing to itself). **Union** merges two trees by making one root point to the other. **Find** walks parent pointers up to the root — the root **is** the set's identity.
 
 ```
