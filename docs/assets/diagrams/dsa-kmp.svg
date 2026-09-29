@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 230" role="img">
+<title>Mismatch is c against d. The border of abab is ab, so the text pointer stays.</title>
+<rect width="960" height="230" rx="16" fill="#f8fafc"/>
+<rect x="70" y="56" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="93" y="82" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">a</text>
+<rect x="126" y="56" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="149" y="82" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">b</text>
+<rect x="182" y="56" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="205" y="82" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">a</text>
+<rect x="238" y="56" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="261" y="82" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">b</text>
+<rect x="294" y="56" width="46" height="40" rx="8" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+<text x="317" y="82" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">c</text>
+<text x="36" y="82" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="start">T</text>
+<rect x="70" y="120" width="46" height="40" rx="8" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="93" y="146" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">a</text>
+<rect x="126" y="120" width="46" height="40" rx="8" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="149" y="146" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">b</text>
+<rect x="182" y="120" width="46" height="40" rx="8" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="205" y="146" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">a</text>
+<rect x="238" y="120" width="46" height="40" rx="8" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="261" y="146" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">b</text>
+<rect x="294" y="120" width="46" height="40" rx="8" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+<text x="317" y="146" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">d</text>
+<text x="36" y="146" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="start">P</text>
+<text x="70" y="190" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">abab already matched. Its border is ab. Next compare stays on text c.</text>
+<text x="70" y="214" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">The text pointer never moves backward.</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Mismatch is c against d. The border of abab is ab, so the text pointer stays.</text>
+</svg>

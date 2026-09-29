@@ -5,6 +5,10 @@ description: Serving models is a systems problem — tokens, batching, KV cache,
 
 # AI-Native Design
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-ai.svg" alt="Requests arrive one by one, get batched, run on a GPU that holds weights and KV cache, and cost money per token.">
+</figure>
+
 ## Pages in This Section
 
 | Page | Covers |

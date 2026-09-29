@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 200" role="img">
+<title>Sorted array. Pair sum: move the small end up, or the large end down.</title>
+<rect width="960" height="200" rx="16" fill="#f8fafc"/>
+<rect x="180" y="70" width="46" height="40" rx="8" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="203" y="96" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">1</text>
+<rect x="236" y="70" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="259" y="96" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">3</text>
+<rect x="292" y="70" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="315" y="96" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">4</text>
+<rect x="348" y="70" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="371" y="96" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">7</text>
+<rect x="404" y="70" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="427" y="96" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">9</text>
+<rect x="460" y="70" width="46" height="40" rx="8" fill="#ffe4e6" stroke="#e11d48" stroke-width="2"/>
+<text x="483" y="96" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">12</text>
+<text x="203" y="132" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">L</text>
+<text x="483" y="132" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">R</text>
+<text x="560" y="88" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="start">1 + 12 = 13</text>
+<text x="560" y="114" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="start">Too big → move R left</text>
+<text x="560" y="136" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="start">Too small → move L right</text>
+<text x="22" y="178" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">Each step throws away an end that cannot be in the answer.</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Sorted array. Pair sum: move the small end up, or the large end down.</text>
+</svg>

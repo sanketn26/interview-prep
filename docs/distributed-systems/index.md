@@ -7,6 +7,10 @@ description: Partial failure is the default. Remote calls are not function calls
 
 A remote call can fail, time out, succeed after you gave up, run twice, or arrive out of order.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-distributed.svg" alt="A remote call: you send it, it times out, the outcome is unknown, and you still have to choose whether to retry.">
+</figure>
+
 ---
 
 ## Why This Exists

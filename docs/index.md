@@ -1,6 +1,6 @@
 ---
 title: Senior Engineer Academy
-description: A complete interactive learning environment for senior engineers targeting Staff / Senior / Lead roles.
+description: Interactive on priority topics for senior engineers targeting Staff / Senior / Lead roles. Tabs rolling out (Project Status).
 hide:
   - navigation
   - toc
@@ -10,7 +10,7 @@ hide:
   <div class="course-hero__content">
     <span class="course-eyebrow">System Design · DSA · Behavioural</span>
     <h1>Reason about systems<br><span>at Staff-engineer level.</span></h1>
-    <p class="course-hero__lead">A complete interactive learning environment for Senior/Staff/Lead engineering interviews. This academy teaches you to <strong>derive</strong> architectures from requirements, constraints, and failure modes — not memorize them.</p>
+    <p class="course-hero__lead">Interactive on priority topics. Tabs rolling out (<a href="project-status/">Project Status</a>). This academy teaches you to <strong>derive</strong> architectures from requirements, constraints, and failure modes — not memorize them.</p>
     <div class="course-actions">
       <a class="course-button course-button--primary" href="roadmap/">Start the roadmap <span aria-hidden="true">→</span></a>
       <a class="course-button course-button--secondary" href="how-to-use/">How to study</a>
@@ -31,7 +31,7 @@ hide:
 
 <div class="course-proof" aria-label="Academy overview">
   <div><strong>3</strong><span>Learning phases</span></div>
-  <div><strong>31</strong><span>Priority sims + DSA vizs</span></div>
+  <div><strong>17 · 16</strong><span>System sims · DSA vizs</span></div>
   <div><strong>40+</strong><span>System design exercises</span></div>
   <div><strong>Local</strong><span>Private progress tracking</span></div>
 </div>
@@ -43,7 +43,7 @@ hide:
 -   :material-map-marker-path: **[Start Here — Roadmap](roadmap.md)**
 
     ---
-    3-phase learning plan from "I can build an API" to "I can reason about planetary-scale systems."
+    Sprint 10–14 days, Senior about 3 months, Staff about 7–9 months. Same clocks as the [roadmap](roadmap.md#how-long).
 
 -   :material-tools: **[How to Study](how-to-use.md)**
 
@@ -73,7 +73,7 @@ hide:
 -   :material-play-circle: **[Simulations](playgrounds/index.md)**
 
     ---
-    15 priority simulations (hashing, Kafka, Raft, K8s, capacity, …) plus DSA visualizers on pattern pages.
+    17 system simulations (hashing, Kafka, Raft, K8s, capacity, …) and 16 DSA visualizers on pattern pages.
 
 -   :material-trophy-outline: **[Your Progress](dashboard.md)**
 
@@ -129,7 +129,7 @@ Every concept answers: **WHAT? WHY? HOW? WHEN? WHAT BREAKS? WHAT ARE THE TRADE-O
 ## Who This Is Not For
 
 - Engineers preparing for entry-level or new-grad interviews — the interview-question bar here starts at Senior and goes to Staff
-- Anyone looking for "definitions" or a glossary-first learning style — start with [Reference → Glossary](reference/glossary.md) elsewhere and come back
+- Anyone looking for definitions first — use the in-site [Glossary](reference/glossary.md), then come back to the concept pages
 - Anyone who wants memorized architectures for common systems — this academy deliberately makes you **derive** the design instead of handing you a finished diagram to memorize
 
 ## Priority Topics (Gold Standard Modules)

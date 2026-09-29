@@ -9,6 +9,11 @@ Work each exercise with the solution covered — design your own classes first, 
 
 Read [OOP Fundamentals](../low-level-design/oop-fundamentals.md), [SOLID](../low-level-design/solid-principles.md), [Design Patterns](../low-level-design/design-patterns.md), and [Concurrency Basics](../low-level-design/concurrency-basics.md) first — these exercises assume that vocabulary rather than re-teaching it each time.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-lld.svg" alt="Nouns that vary, an interface, who owns the state, and what is shared across threads.">
+</figure>
+
+
 ---
 
 ## Beginner

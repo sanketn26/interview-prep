@@ -30,6 +30,10 @@ This page teaches the mental model of where bottlenecks actually live, how to fi
 
 ## Mental Model: Where Performance Actually Matters
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/perf-where-time-goes.svg" alt="A slow request split into waiting for a thread, a lock, a synchronous log, a GC pause, and the handler.">
+</figure>
+
 ```
 ┌─────────────────────────────────┐
 │ User makes request (10 ms p99)  │

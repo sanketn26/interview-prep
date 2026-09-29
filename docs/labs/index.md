@@ -7,6 +7,10 @@ description: Docker Compose (and one Terraform) environments for the topics that
 
 The [Playgrounds](../playgrounds/index.md) simulate a mechanism in the browser, fast and safely. These are the next step: the same failure, on a real Kafka broker, a real Postgres replica, a real Kubernetes cluster — with the timing, edge cases, and outright bugs a JS model doesn't bother simulating.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-labs.svg" alt="Predict the outcome, break a real process, read the log, and compare it with the concept page.">
+</figure>
+
 Each lab's page here shows its actual `docker-compose.yml` (or Terraform/Kubernetes config) inline — always in sync with the real file, since the page pulls it in at build time rather than copy-pasting it. The step-by-step exercises are longer and live in the lab's own `README.md` in the repo's [`labs/`](https://github.com/sanketn26/interview-prep/blob/main/labs) directory, linked from each page below. Every lab in this list has actually been run end-to-end while building it, not just written.
 
 ## Requirements
@@ -26,7 +30,7 @@ Each lab's page here shows its actual `docker-compose.yml` (or Terraform/Kuberne
 | [Redis Sentinel](redis-cluster.md) | [Replication](../distributed-systems/replication.md) | Watch a 3-node quorum vote a new master in after killing the old one, and watch it reconfigure the old master as a replica automatically |
 | [Sharded Postgres (Citus)](sharding-citus.md) | [Sharding](../databases/sharding.md) | Query `pg_dist_shard_placement` to see real shard balance, watch a cross-shard query plan fan out, reproduce a real hot shard |
 | [etcd cluster](etcd-cluster.md) | [Raft](../distributed-systems/raft.md), [CAP Theorem](../distributed-systems/cap-theorem.md) | Kill a minority (writes keep working) vs. a majority (writes refuse, not corrupt) of a real Raft quorum; watch `--consistency=serializable` succeed without quorum while the default (linearizable) fails |
-| [Rate limiter races](rate-limiter.md) | [Rate Limiting](../reliability/rate-limiting.md) | Reproduce a real TOCTOU race that lets 20 requests through a limit of 5, and a real "TTL never expires" bug — then fix both with one atomic Lua script |
+| [Rate limiter races](rate-limiter.md) | [Rate Limiting](../reliability/rate-limiting.md), [design exercise](../system-design-exercises/rate-limiter.md) | Reproduce a real TOCTOU race that lets 20 requests through a limit of 5, and a real "TTL never expires" bug — then fix both with one atomic Lua script |
 | [Retry storm](retry-storm.md) | [Circuit Breakers](../reliability/circuit-breakers.md) | Inject a real fault with Toxiproxy and measure retry amplification directly: 10 client requests become ~40 real backend hits |
 | [Load balancer algorithms](load-balancer.md) | [Load Balancing](../networking/load-balancing.md) | Swap round robin / weighted / least-connections on a real nginx `upstream` block and watch the distribution actually change |
 | [Kubernetes (kind)](kubernetes-kind.md) | [Kubernetes](../kubernetes/index.md) | A real 3-node cluster: break a Service selector, break a readiness probe, diagnose both with real `kubectl` |

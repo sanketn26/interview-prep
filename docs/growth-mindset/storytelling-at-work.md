@@ -16,6 +16,10 @@ Use it when a list of facts is accurate but does not give the audience a usable 
 
 ## The Five-Beat Structure
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/growth-five-beats.svg" alt="Before, the change, the consequence, the real choices, and the decision.">
+</figure>
+
 1. **Before** — What was the expected or normal state?
 2. **Change** — What observable event, constraint, or evidence changed?
 3. **Consequence** — What user, business, or engineering outcome followed?

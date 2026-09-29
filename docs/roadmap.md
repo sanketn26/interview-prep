@@ -29,6 +29,16 @@ flowchart LR
     style D fill:#b71c1c,color:#fff
 ```
 
+## How long
+
+Three clocks. A 90-day pass is the Senior slice, not the whole academy.
+
+| Route | Duration | What you finish |
+|-------|----------|-----------------|
+| [Interview Sprint](learning-paths.md#interview-sprint) | 10–14 days | Fluent on the canonical loop, not encyclopedic |
+| Senior | about 3 months | Phase 1 below |
+| Staff | about 7–9 months | Phases 1–3 (2–3 + 2–3 + 3+ months) |
+
 ---
 
 ## Phase 1 — Foundations (2–3 months)
@@ -63,7 +73,6 @@ flowchart LR
 - [x] Saga Pattern (first-release orchestrator simulator)
 - [x] Distributed Transactions (2PC/3PC/TCC/XA) — `architecture-patterns/distributed-transactions.md`
 - [x] API Architectural Styles (REST/GraphQL/gRPC/SOAP/Webhooks) — `architecture-patterns/api-architectural-styles.md`
-- [x] Cache stampede + cache-strategy catalog (cache-aside/read-through/write-through/write-behind/write-around/refresh-ahead)
 - [x] Circuit breaker + retry storm + failure-mode library (cascading failures, resource exhaustion, split brain)
 - [x] API Gateway & Service Mesh — Modern Protocols & Service Mesh shipped; API Gateway pattern now covered in `foundations/api-design.md`, exercise-format deep dive in `system-design-exercises/api-gateway.md`
 - [x] Observability (metrics, tracing, SLI/SLO) — debugging playbook + production reliability practices (chaos engineering, load testing, postmortems) shipped
@@ -86,7 +95,7 @@ flowchart LR
 - [x] Tail latency (simulator + debugging playbook)
 - [x] Production debugging (high p99, Kafka lag)
 - [x] Cost Engineering & FinOps
-- [ ] AI-Native System Design — model serving shipped; RAG/vector DBs/agents deliberately out of scope, see `ai-native/index.md`
+- [ ] AI-Native System Design — [model serving](ai-native/model-serving.md) is in scope. RAG, vector DBs, and agents are out of scope here; they live in [AI Engineering](https://sanketn26.github.io/AIEngineering/).
 - [x] Architecture Reviews (scalability, reliability, security, cost)
 - [x] Architecture Decision Records (ADRs)
 

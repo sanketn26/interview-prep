@@ -19,7 +19,7 @@ This page is the source of truth. A module is **Complete** only when it is techn
 
 ## First release (vertical slice)
 
-Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12 gold-standard + K8s debugging intro + 15 priority simulations.
+Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12 gold-standard + K8s debugging intro + 17 system simulations and 16 DSA visualizers (same two counts as [Playgrounds](playgrounds/index.md)).
 
 | Item | Status | Notes |
 |------|--------|--------|
@@ -138,12 +138,18 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 
 ## Priority simulations (must work)
 
+Same inventory as [Playgrounds](playgrounds/index.md): **17 system simulations** and **16 DSA visualizers**. Do not add those two numbers together.
+
+### System simulations (17)
+
 | Simulation | Host page | Status |
 |------------|-----------|--------|
 | Consistent hashing ring | [Consistent hashing](databases/consistent-hashing.md) | Interactive |
+| Quorum replication | [Replication](distributed-systems/replication.md) | Interactive |
 | DB sharding | [Sharding](databases/sharding.md) | Interactive |
 | Kafka partitions & consumer groups | [Kafka](messaging/kafka.md) | Interactive |
 | Cache stampede | [Cache stampede](performance/cache-stampede.md) | Interactive |
+| Cache capacity | [Cache strategies](performance/cache-strategies.md) | Interactive |
 | Rate limiter | [Rate limiting](reliability/rate-limiting.md) | Interactive |
 | Load balancer | [Load balancing](networking/load-balancing.md) | Interactive |
 | Retry storm | [Circuit breakers](reliability/circuit-breakers.md) | Interactive |
@@ -155,6 +161,14 @@ Target: MkDocs + Pages + roadmap + design framework + capacity calculator + §12
 | TCP lifecycle | [HTTP & TCP](networking/http-tcp.md) | Interactive |
 | K8s request flow | [Kubernetes](kubernetes/index.md) | Interactive |
 | Capacity calculator | [Requirements & estimation](foundations/requirements-estimation.md) | Interactive |
+
+### DSA visualizers (16)
+
+| Visualizer | Host page | Status |
+|------------|-----------|--------|
+| Sliding window | [Sliding window](dsa/sliding-window.md) | Interactive |
+| BFS / DFS | [BFS & DFS](dsa/bfs-dfs.md) | Interactive |
+| Coin-change DP | [Dynamic programming](dsa/dynamic-programming.md) | Interactive |
 | Heap insert / extract-min | [Heaps & Priority Queues](dsa/heaps.md) | Interactive |
 | Dijkstra relaxation | [Graph Algorithms](dsa/graph-algorithms.md) | Interactive |
 | Union-Find path compression | [Union-Find](dsa/union-find.md) | Interactive |
@@ -186,7 +200,7 @@ Do **not** mass-generate these as stubs.
 - Storytelling pass — implemented across the first-release slice, all design and LLD exercises, DSA patterns, labs, vendor databases, networking, cloud Needs-review tutorials, and growth-mindset pages. Practical office guidance lives in [Storytelling at Work](growth-mindset/storytelling-at-work.md); the reproducible scanner/artifact and reader-test protocol remain checked in separately. Reader outcome validation remains a post-merge measurement; structural compliance is not treated as proof of engagement.
 - Capstone project; interview-mode tabs (Learn/Practice/Hint/Interview/Solution/Staff) as a reusable UX pattern; Go example parity for retry/queue/thread-pool/producer-consumer/distributed-lock/WebSocket/gRPC/REST
 - Deeper distributed-systems topics — vector clocks, gossip protocols, Paxos vs Raft, distributed locks, leases, and service discovery all now shipped in `distributed-systems/fundamentals.md`; CRDTs now also have a dedicated page (`architecture-patterns/crdts.md`), cross-linked from `databases/ddia-concepts.md`
-- DSA visualizers (heaps, Dijkstra, union-find, backtracking, sorting, tries, greedy, KMP/Rabin-Karp, Bloom filters, Aho-Corasick, Count-Min, skip list, Fenwick) — shipped; sketches + range-query pages at `dsa/probabilistic-sketches.md`, `dsa/skip-lists-fenwick-segment-trees.md`
+- DSA visualizers — the 16 listed above are shipped, including sketches and range-query pages at `dsa/probabilistic-sketches.md` and `dsa/skip-lists-fenwick-segment-trees.md`
 - Remaining behavioural themes — all seven now shipped (hiring, tech debt, influence without authority, mentorship, managing up, saying no, ambiguity)
 - Production/observability depth — SLI/SLO & error budgets and distributed tracing basics already covered in `observability/index.md`; chaos engineering, capacity/load testing, and blameless postmortems now shipped in `observability/production-reliability-practices.md`
 - Python/Go servers (WebSocket, gRPC) beyond the core library examples

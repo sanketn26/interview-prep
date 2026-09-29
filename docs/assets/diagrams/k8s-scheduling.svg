@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 760" role="img">
+<title>How a pod finds a node</title>
+<rect width="1040" height="760" rx="20" fill="#f8fafc"/>
+<text x="36" y="46" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="26" font-weight="750">How a pod finds a node</text>
+<text x="36" y="72" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="14">The scheduler only chooses. The kubelet is what actually starts the containers.</text>
+<rect x="28" y="96" width="312" height="280" rx="16" fill="#ffffff" stroke="#4f46e5" stroke-width="2"/>
+<rect x="28" y="96" width="312" height="8" rx="4" fill="#4f46e5"/>
+<text x="46" y="132" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">01  CREATE</text>
+<text x="46" y="156" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">API server</text>
+<text x="46" y="188" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">kubectl apply stores the pod</text>
+<text x="46" y="210" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">spec.nodeName is empty</text>
+<text x="46" y="232" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Phase is Pending</text>
+<text x="46" y="254" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">No container exists yet</text>
+<text x="46" y="354" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">Created is not placed</text>
+<rect x="356" y="96" width="312" height="280" rx="16" fill="#ffffff" stroke="#0d9488" stroke-width="2"/>
+<rect x="356" y="96" width="312" height="8" rx="4" fill="#0d9488"/>
+<text x="374" y="132" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">02  WATCH</text>
+<text x="374" y="156" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">Scheduler</text>
+<text x="374" y="188" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Watches pods with no node</text>
+<text x="374" y="210" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">One placement decision</text>
+<text x="374" y="232" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">schedulerName can point elsewhere</text>
+<text x="374" y="254" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">It never pulls an image</text>
+<text x="374" y="354" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">A decision, not a start</text>
+<rect x="684" y="96" width="312" height="280" rx="16" fill="#ffffff" stroke="#e11d48" stroke-width="2"/>
+<rect x="684" y="96" width="312" height="8" rx="4" fill="#e11d48"/>
+<text x="702" y="132" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">03  FILTER</text>
+<text x="702" y="156" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">Who can run it</text>
+<text x="702" y="188" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">CPU and memory requests must fit</text>
+<text x="702" y="210" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">nodeSelector and required affinity</text>
+<text x="702" y="232" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">A taint needs a toleration</text>
+<text x="702" y="254" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Volume zone, cordoned nodes</text>
+<text x="702" y="354" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">Fail here and the pod stays Pending</text>
+<rect x="28" y="392" width="312" height="280" rx="16" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+<rect x="28" y="392" width="312" height="8" rx="4" fill="#d97706"/>
+<text x="46" y="428" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">04  SCORE</text>
+<text x="46" y="452" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">Which fit is best</text>
+<text x="46" y="484" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Example scores, not a real cluster</text>
+<text x="46" y="506" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Node 1 scores 72</text>
+<text x="46" y="528" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Node 2 scores 91 and wins</text>
+<text x="46" y="550" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Node 3 scores 84</text>
+<text x="46" y="650" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">Free capacity, spread, preferred affinity</text>
+<rect x="356" y="392" width="312" height="280" rx="16" fill="#ffffff" stroke="#7c3aed" stroke-width="2"/>
+<rect x="356" y="392" width="312" height="8" rx="4" fill="#7c3aed"/>
+<text x="374" y="428" fill="#7c3aed" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">05  BIND</text>
+<text x="374" y="452" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">Write the node</text>
+<text x="374" y="484" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Before: nodeName empty</text>
+<text x="374" y="506" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">The scheduler writes a binding</text>
+<text x="374" y="528" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">After: nodeName is node-2</text>
+<text x="374" y="550" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Assigned still means not running</text>
+<text x="374" y="650" fill="#7c3aed" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">The API object changed. The node has not</text>
+<rect x="684" y="392" width="312" height="280" rx="16" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+<rect x="684" y="392" width="312" height="8" rx="4" fill="#0284c7"/>
+<text x="702" y="428" fill="#0284c7" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">06  KUBELET</text>
+<text x="702" y="452" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750">Run it</text>
+<text x="702" y="484" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">The kubelet on node-2 sees the bind</text>
+<text x="702" y="506" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Pull the image, start the containers</text>
+<text x="702" y="528" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Probes decide Ready, not the scheduler</text>
+<text x="702" y="550" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13">Running is the kubelet's word</text>
+<text x="702" y="650" fill="#0284c7" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="650">ImagePullBackOff happens after the bind</text>
+<text x="36" y="738" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="13">Create  →  filter  →  score  →  bind  →  kubelet runs the pod</text>
+</svg>

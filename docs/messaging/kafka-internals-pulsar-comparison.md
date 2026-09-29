@@ -32,6 +32,10 @@ This page teaches the internals, the failure modes, and the Pulsar alternative.
 
 ### In-Sync Replicas (ISR): The Source of Truth
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/kafka-isr.svg" alt="Two replicas caught up sit in the ISR. A third replica is behind and stays out until it catches up.">
+</figure>
+
 Every partition has **N replicas** distributed across N brokers. One is the **leader**; the rest are **followers**. The **ISR** is the subset of replicas that are fully caught up: **ISR ⊆ replicas**. A lagging follower is still a replica; it is **not** in the ISR until it catches up.
 
 ```

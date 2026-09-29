@@ -7,6 +7,10 @@ description: Caches hide load until they expire together. Averages hide outages.
 
 Caches hide load until they expire together. Averages hide outages.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-performance.svg" alt="A hot key hits the cache, then expires, and every miss lands on the database at once.">
+</figure>
+
 ---
 
 ## Why This Exists

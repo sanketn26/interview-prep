@@ -11,7 +11,7 @@ description: Guided design of a production rate limiter — from a single-proces
 **Difficulty:** Foundation → Senior | **Time:** 45–60 minutes
 
 !!! note "Instructions"
-    Cover each section and work it yourself first. The [Rate Limiting](../reliability/rate-limiting.md) concept page has the algorithm simulator; this page is the *system design* — where the limiter lives, how it fails, and how you operate it.
+    Cover each section and work it yourself first. The [Rate Limiting](../reliability/rate-limiting.md) concept page has the algorithm simulator; this page is the *system design* — where the limiter lives, how it fails, and how you operate it. After the design, run the [rate limiter lab](../labs/rate-limiter.md) and watch the same counters race on real Redis.
 
 ---
 

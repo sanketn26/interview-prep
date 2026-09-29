@@ -153,7 +153,7 @@ How do we generate `abc123`?
         h = hashlib.md5(long_url.encode()).hexdigest()
         return h[:7]  # take first 7 hex chars
     ```
-    **Do not ship 7 hex characters as the short code.** MD5 hex is base-16, so `h[:7]` is only \(16^7 \approx 268\) million codes — well below 100M URLs with no headroom, and birthday collisions show up far earlier. Two identical long URLs also collide by design (sometimes desired). If you hash, **base62-encode more bits** (e.g. 64+ bits of a cryptographic hash → 11 base62 chars, same length class as option B) rather than truncating hex.
+    **Do not ship 7 hex characters as the short code.** MD5 hex is base-16, so `h[:7]` is only \(16^7 \approx 268\) million codes — about 2.7× the 100M URL count, so the headroom is small, and birthday collisions start around 16K codes. Two identical long URLs also collide by design (sometimes desired). If you hash, **base62-encode more bits** (e.g. 64+ bits of a cryptographic hash → 11 base62 chars, same length class as option B) rather than truncating hex. MD5 on the [consistent-hashing](../databases/consistent-hashing.md) page is a different job: it places a key on a ring. It does not mint a short code.
 
 **Recommended:** Option B (auto-increment + Base62) with ID generation service. Hash-based is fine only after encoding enough bits; 7 hex chars is not a short-code scheme.
 

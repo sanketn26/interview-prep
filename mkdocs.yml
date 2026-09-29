@@ -1,8 +1,8 @@
 site_name: Senior Engineer Academy
 site_description: >-
-  A production-quality interactive learning environment for senior software engineers
-  targeting Staff / Senior / Lead roles — covering System Design, DSA, Distributed
-  Systems, and Behavioural interviews.
+  Interactive on priority topics for senior software engineers targeting
+  Staff / Senior / Lead roles — System Design, DSA, Distributed Systems, and
+  Behavioural interviews. Tabs rolling out (Project Status).
 site_url: https://sanketn26.github.io/interview-prep/
 repo_url: https://github.com/sanketn26/interview-prep
 repo_name: sanketn26/interview-prep
@@ -94,18 +94,21 @@ extra:
     provider: google
     property: !ENV [GOOGLE_ANALYTICS_KEY, ""]
 
+not_in_nav: |
+  quality-matrix.md
+  content-review.md
+  storytelling-reader-test.md
+  storytelling-pass.md
+
 nav:
   - Home: index.md
   - Start Here:
     - Roadmap: roadmap.md
     - How to Study: how-to-use.md
     - Interview Framework: interview-playbook/framework.md
+    - Learning paths: learning-paths.md
     - Your Progress: dashboard.md
     - Project Status: project-status.md
-    - Quality matrix: quality-matrix.md
-    - Learning paths: learning-paths.md
-    - Content review checklist: content-review.md
-    - Storytelling reader test: storytelling-reader-test.md
   - Learn:
     - Fundamentals:
       - foundations/index.md
@@ -217,6 +220,29 @@ nav:
       - Design Patterns: low-level-design/design-patterns.md
       - Concurrency Basics: low-level-design/concurrency-basics.md
       - Concurrency Execution Models: low-level-design/concurrency-execution-models.md
+    - Behavioural:
+      - behavioural/index.md
+      - Framework: behavioural/framework.md
+      - Technical Disagreement: behavioural/technical-disagreement.md
+      - Production Incident: behavioural/production-incident.md
+      - Failure & Learning: behavioural/failure-learning.md
+      - Hiring & Raising the Bar: behavioural/hiring.md
+      - Technical Debt: behavioural/technical-debt.md
+      - Influence Without Authority: behavioural/influence-without-authority.md
+      - Mentorship: behavioural/mentorship.md
+      - Managing Up: behavioural/managing-up.md
+      - Saying No: behavioural/saying-no.md
+      - Ambiguity: behavioural/ambiguity.md
+    - Growth Mindset:
+      - growth-mindset/index.md
+      - Respect — Yourself and Others: growth-mindset/self-respect.md
+      - Standing Your Ground, Professionally: growth-mindset/standing-your-ground.md
+      - Crucial Conversations: growth-mindset/crucial-conversations.md
+      - Protecting Your Sanity: growth-mindset/sustainable-pace.md
+      - Don't Say Yes When You Mean No: growth-mindset/boundaries.md
+      - The Strong Engineer: growth-mindset/strong-engineer.md
+      - Seeing What Others Miss: growth-mindset/seeing-what-others-miss.md
+      - Storytelling at Work: growth-mindset/storytelling-at-work.md
   - Practice:
     - Design Exercises:
       - system-design-exercises/index.md
@@ -309,30 +335,6 @@ nav:
       - Load Balancer Algorithms: labs/load-balancer.md
       - Kubernetes (kind): labs/kubernetes-kind.md
       - Terraform + Docker: labs/terraform-docker.md
-  - Behavioural:
-    - behavioural/index.md
-    - Framework: behavioural/framework.md
-    - Leadership:
-      - Technical Disagreement: behavioural/technical-disagreement.md
-      - Production Incident: behavioural/production-incident.md
-      - Failure & Learning: behavioural/failure-learning.md
-      - Hiring & Raising the Bar: behavioural/hiring.md
-      - Technical Debt: behavioural/technical-debt.md
-      - Influence Without Authority: behavioural/influence-without-authority.md
-      - Mentorship: behavioural/mentorship.md
-      - Managing Up: behavioural/managing-up.md
-      - Saying No: behavioural/saying-no.md
-      - Ambiguity: behavioural/ambiguity.md
-  - Growth Mindset:
-    - growth-mindset/index.md
-    - Respect — Yourself and Others: growth-mindset/self-respect.md
-    - Standing Your Ground, Professionally: growth-mindset/standing-your-ground.md
-    - Crucial Conversations: growth-mindset/crucial-conversations.md
-    - Protecting Your Sanity: growth-mindset/sustainable-pace.md
-    - Don't Say Yes When You Mean No: growth-mindset/boundaries.md
-    - The Strong Engineer: growth-mindset/strong-engineer.md
-    - Seeing What Others Miss: growth-mindset/seeing-what-others-miss.md
-    - Storytelling at Work: growth-mindset/storytelling-at-work.md
   - Reference:
     - reference/index.md
     - Cheat Sheets: reference/cheat-sheets.md

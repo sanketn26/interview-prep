@@ -24,6 +24,10 @@ Any time the clue is **"top k"**, **"k-th smallest/largest"**, **"merge k sorted
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-heap.svg" alt="A min-heap drawn as a tree and as the same tree stored in level order in an array.">
+</figure>
+
 A binary heap is a **complete binary tree stored in an array**. "Complete" means every level is full except possibly the last, which fills left to right — that's what lets it live in an array with no pointers:
 
 ```

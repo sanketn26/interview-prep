@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 200" role="img">
+<title>DP stores an answer the next cell will ask for again.</title>
+<rect width="960" height="200" rx="16" fill="#f8fafc"/>
+<rect x="40" y="80" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="63" y="106" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">0</text>
+<text x="63" y="140" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle">F0</text>
+<rect x="110" y="80" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="133" y="106" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">1</text>
+<text x="133" y="140" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle">F1</text>
+<rect x="180" y="80" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="203" y="106" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">1</text>
+<text x="203" y="140" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle">F2</text>
+<rect x="250" y="80" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="273" y="106" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">2</text>
+<text x="273" y="140" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle">F3</text>
+<rect x="320" y="80" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="343" y="106" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">3</text>
+<text x="343" y="140" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle">F4</text>
+<rect x="390" y="80" width="46" height="40" rx="8" fill="#e0e7ff" stroke="#4f46e5" stroke-width="2"/>
+<text x="413" y="106" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">?</text>
+<text x="413" y="140" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600" text-anchor="middle">F5</text>
+<line x1="296" y1="100" x2="386" y2="100" stroke="#d97706" stroke-width="2"/>
+<path d="M378 96 L386 100 L378 104" fill="#d97706"/>
+<line x1="366" y1="112" x2="386" y2="112" stroke="#0d9488" stroke-width="2"/>
+<path d="M378 108 L386 112 L378 116" fill="#0d9488"/>
+<text x="500" y="90" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="750" text-anchor="start">F5 = F4 + F3</text>
+<text x="500" y="116" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="start">3 + 2, already computed</text>
+<text x="500" y="140" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="start">Do not recompute F4 from scratch</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">DP stores an answer the next cell will ask for again.</text>
+</svg>

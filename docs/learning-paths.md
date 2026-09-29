@@ -83,7 +83,7 @@ Goal: logs, consumers, batch vs stream, hot partitions.
 
 ## Interview Sprint
 
-Goal: 10–14 days to be fluent, not encyclopedic.
+Goal: 10–14 days to be fluent, not encyclopedic. Senior is Phase 1 (about 3 months). Staff is the full [roadmap](roadmap.md#how-long) (about 7–9 months).
 
 **Days 1–2.** [How to Study](how-to-use.md) · [Framework](foundations/framework.md) · [Estimation](foundations/requirements-estimation.md) · [Math](foundations/math.md)
 

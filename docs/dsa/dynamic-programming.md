@@ -34,6 +34,10 @@ For `n=40` this is tens of millions of calls. The call tree is exponential, but 
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-dp.svg" alt="Fibonacci cell F5 is the sum of the two cells already stored beside it.">
+</figure>
+
 You are **filling a table of answers to smaller questions**, in an order that guarantees those answers already exist.
 
 ```

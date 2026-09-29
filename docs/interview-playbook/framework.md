@@ -1,6 +1,6 @@
 ---
 title: Interview Framework
-description: How senior interviews are actually scored — reasoning, trade-offs, ambiguity, and how to use Learn / Practice / Hint / Interview / Solution / Staff as study modes (the tab switcher is not wired on every page).
+description: How senior interviews are actually scored — reasoning, trade-offs, ambiguity, and how to use Learn / Practice / Hint / Interview / Solution / Staff by hand while the tab switcher is still rolling out.
 ---
 
 # Interview Framework

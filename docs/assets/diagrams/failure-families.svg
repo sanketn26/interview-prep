@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 210" role="img">
+<title>Name the shape. The mitigation depends on which family you are in.</title>
+<rect width="960" height="210" rx="16" fill="#f8fafc"/>
+<rect x="20" y="64" width="176" height="100" rx="12" fill="#fff" stroke="#e11d48" stroke-width="2"/>
+<text x="32" y="98" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Cascade</text>
+<text x="32" y="124" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">retries amplify</text>
+<text x="32" y="142" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">a slow dependency</text>
+<rect x="208" y="64" width="176" height="100" rx="12" fill="#fff" stroke="#d97706" stroke-width="2"/>
+<text x="220" y="98" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Exhaust</text>
+<text x="220" y="124" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">threads, memory</text>
+<text x="220" y="142" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">disk, and ports</text>
+<rect x="396" y="64" width="176" height="100" rx="12" fill="#fff" stroke="#7c3aed" stroke-width="2"/>
+<text x="408" y="98" fill="#7c3aed" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Partition</text>
+<text x="408" y="124" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">a network cut</text>
+<text x="408" y="142" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">or two primaries</text>
+<rect x="584" y="64" width="176" height="100" rx="12" fill="#fff" stroke="#0284c7" stroke-width="2"/>
+<text x="596" y="98" fill="#0284c7" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Data</text>
+<text x="596" y="124" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">hot key, skew</text>
+<text x="596" y="142" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">or the wrong owner</text>
+<rect x="772" y="64" width="176" height="100" rx="12" fill="#fff" stroke="#0d9488" stroke-width="2"/>
+<text x="784" y="98" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Dependency</text>
+<text x="784" y="124" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">you need it</text>
+<text x="784" y="142" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500" text-anchor="start">and it is gone</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Name the shape. The mitigation depends on which family you are in.</text>
+</svg>

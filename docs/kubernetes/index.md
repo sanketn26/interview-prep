@@ -60,6 +60,31 @@ This page is a field guide: the objects, the path, the probes, then a diagnosis 
 
 ---
 
+## Service Types
+
+<figure class="academy-figure">
+  <img src="../assets/diagrams/k8s-service-types.svg" alt="Six panels: ClusterIP, NodePort, LoadBalancer, ExternalName, headless Service, and Ingress. Ingress is marked as not a Service.">
+  <figcaption>ClusterIP is the default. NodePort and LoadBalancer add a way in on top of it. Ingress routes HTTP to a Service. It is not a Service type.</figcaption>
+</figure>
+
+A Service is a stable name and, usually, a virtual IP. The `type` field changes **who can open that name**. It does not run the container.
+
+| Type | What you actually get | Who can call it | The mistake |
+|------|----------------------|-----------------|-------------|
+| **ClusterIP** | VIP + DNS `name.ns.svc.cluster.local` | Pods in the cluster (and the nodes) | Treating it as a public address |
+| **NodePort** | That ClusterIP, **plus** one high port on every node | `nodeIP:30000–32767`, and still the ClusterIP | "NodePort means there is no ClusterIP" |
+| **LoadBalancer** | ClusterIP + NodePort + an external IP from the cloud | The cloud IP, from outside | One Service per microservice, and a load-balancer bill for each |
+| **ExternalName** | A CNAME. No VIP, no endpoints, no kube-proxy | Whoever resolves the Service name | Expecting the cluster to proxy the bytes |
+| **Headless** | `clusterIP: None`. DNS returns pod IPs | Clients that want to pick a pod | Thinking "headless" means "no DNS" |
+
+**Headless with a selector** publishes each Ready pod as an address (`db-0.db.ns.svc.cluster.local` on a StatefulSet). **Headless without a selector** is how you attach your own Endpoints to an IP that lives outside the cluster. Neither case is load-balanced by kube-proxy. The client, or a StatefulSet peer, chooses.
+
+**LoadBalancer with no cloud controller** stays `<pending>`. The ClusterIP still works from inside the cluster. The default NodePort range is `30000–32767` (`--service-node-port-range`). Do not memorize a port from a diagram onto a cluster that changed the range.
+
+**Ingress** is the HTTP front door: host, path, TLS, then a Service name. A 404 from the controller never reached your process. Gateway API is the newer object with the same job; the hop you debug is still "which Service did this route name?"
+
+---
+
 ## Request Flow
 
 ```mermaid
@@ -105,6 +130,22 @@ If Endpoints is empty, the Service still has an IP. Packets go to a black hole o
 
 **Try:** Fail readiness, then Send request. The pod is still "there." The Service will not send it work.
 
+## How the packet actually moves
+
+<figure class="academy-figure">
+  <img src="../assets/diagrams/k8s-networking.svg" alt="Six panels: pod-to-pod across the CNI, pod-to-Service via a ClusterIP, Ingress, NetworkPolicy, CoreDNS, and traffic from outside the cluster.">
+  <figcaption>Every pod has an IP. A Service is a stable name in front of the Ready ones. Traffic from outside lands on a node or a controller, then uses that same Service.</figcaption>
+</figure>
+
+Read the symptom against the panel, not against "Kubernetes networking" as one blob.
+
+- **Pod IP to pod IP fails, Service DNS still resolves.** CNI or a NetworkPolicy. The Service object is not the broken part.
+- **The name resolves, curl to the ClusterIP times out.** Empty EndpointSlice, or a policy that allows DNS and drops the app port.
+- **The FQDN works and the short name does not.** Search path. `ndots: 5` tries several `svc.cluster.local` suffixes before it treats a name as absolute.
+- **You can open the node and you cannot open the pod IP from your laptop.** That is the design. Pod CIDRs are not the public address. HTTP from users goes through Ingress or a cloud load balancer, then a Service.
+
+NetworkPolicy is off until a policy **selects** the pod. The first rule people forget is egress to CoreDNS on UDP and TCP 53. The error is `lookup ... i/o timeout`, and the policy object does not mention DNS.
+
 !!! tip "Run it yourself"
     [`labs/kubernetes-kind`](https://github.com/sanketn26/interview-prep/blob/main/labs/kubernetes-kind) is a real 3-node cluster with a real ingress controller — break a Service selector and watch a stale keepalive connection survive it for a request or two before failing cleanly, or break a readiness probe mid-rollout and watch Kubernetes correctly refuse to finish replacing your working pods with broken ones.
 
@@ -141,9 +182,34 @@ kubectl get svc,ing,ep -o wide
 
 ---
 
+## How a Pod Finds a Node
+
+<figure class="academy-figure">
+  <img src="../assets/diagrams/k8s-scheduling.svg" alt="Six steps: API server creates a Pending pod, the scheduler watches it, filters nodes, scores the rest, binds a node name, and the kubelet starts containers.">
+  <figcaption>The scheduler only writes a node name. The kubelet pulls the image and starts the containers. The scores in the diagram are an example of the ranking step, not kubectl output.</figcaption>
+</figure>
+
+`kubectl apply` stores a pod with an empty `spec.nodeName`. Phase is Pending. Nothing is running.
+
+1. **Filter.** Nodes that cannot take the pod are out: requests larger than allocatable CPU or memory, `nodeSelector`, required affinity, a taint with no toleration, a cordoned node, a volume that cannot attach in that zone.
+2. **Score.** The survivors are ranked. Remaining capacity, topology spread, and preferred affinity are the usual reasons. A required rule that matches nobody never reaches this step.
+3. **Bind.** The scheduler writes the node name. Assigned is not Running.
+4. **Kubelet.** The kubelet on that node pulls the image, starts the containers, and runs probes. `Ready` is a probe result. The scheduler does not know if your process listens.
+
+| Event | Stage | What it means |
+|-------|--------|----------------|
+| `FailedScheduling` | Filter | No node fit. Read the line. It names the predicate. |
+| `Scheduled` | Bind | `nodeName` is set. Placement succeeded. |
+| `Pulling`, `ImagePullBackOff` | Kubelet | The node was chosen. The registry or the tag was not. |
+| `Started`, then `Unhealthy` | Kubelet | The container is up. A probe is failing. |
+
+`spec.schedulerName` points at a custom scheduler. If that controller is down, the pod stays Pending and the **default** scheduler logs nothing, because it is not watching that pod.
+
+---
+
 ## Guided Diagnosis
 
-Work top-down: **schedule → pull → start → live → ready → route → serve**.
+Work top-down: **schedule → pull → start → live → ready → route → serve**. The picture above is the first three of those words.
 
 ### Pending
 - **Look:** `describe pod` → `FailedScheduling`.
@@ -297,7 +363,9 @@ Symptom: Ingress 502, Deployment 3/3
 | Many small Deployments | Independent rollout | Mesh, DNS, and on-call surface |
 | Tight memory limits | Predictable nodes | OOM on legitimate spikes |
 | Deep readiness | Don't take traffic broken | Coupled outages |
-| ClusterIP + Ingress | Standard | Extra hop, extra timeout to tune |
+| ClusterIP + Ingress | One HTTP front door, many Services | Extra hop, extra timeout to tune |
+| NodePort as the public API | Works with no cloud LB | A high port on every node, including ones you did not mean to expose |
+| LoadBalancer per Service | A stable external IP | A cloud LB, and a bill, per Service |
 | HPA on CPU | Simple | Wrong signal for queue-based apps |
 
 ---
@@ -329,8 +397,9 @@ Symptom: Ingress 502, Deployment 3/3
     3. Liveness restarts the process; readiness only removes traffic. Do not ping Redis on liveness. Dependencies on readiness only if the instance is useless without them.
     4. `describe` + `logs --previous` + `endpoints` beat guessing
     5. Requests schedule; limits kill or throttle — set both on purpose
+    6. NodePort and LoadBalancer keep the ClusterIP. Ingress is not a Service. The scheduler binds a node; the kubelet runs the pod.
 
 !!! note "Version taught"
-    **Version taught / last verified:** 2026-08 (objects and request path: Deployment, Service, EndpointSlice, Ingress, probes, PVC/StatefulSet — stable APIs). **Current upstream:** Kubernetes **v1.37** (released 2026-08-26). **Compatibility:** this page does not depend on 1.37-only features. Probe semantics, empty Endpoints, and RWO attach delays are unchanged. Do not copy patch-level YAML from memory — `kubectl explain` the cluster in front of you.
+    **Version taught / last verified:** 2026-09 (request path, Service types, pod networking, scheduling filter/score/bind, probes, PVC/StatefulSet — stable APIs). **Current upstream:** Kubernetes **v1.37** (released 2026-08-26). **Compatibility:** this page does not depend on 1.37-only features. Service types, empty Endpoints, and the scheduler/kubelet split are unchanged. The NodePort range and score-plugin weights are cluster settings — `kubectl explain` the cluster in front of you.
 
 **Previous:** [HTTP & TCP](../networking/http-tcp.md) | **Next:** [Sagas](../architecture-patterns/sagas.md)

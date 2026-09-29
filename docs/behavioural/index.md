@@ -7,6 +7,10 @@ description: STAR + Reflection. Engineering judgement, not corporate storytellin
 
 One story, three seniority levels. Measure impact. Own the failure class, not just the ticket.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-behavioural.svg" alt="A behavioural story: the constraint, the action you took, a measured result, and what you changed afterwards.">
+</figure>
+
 ---
 
 ## Why This Exists

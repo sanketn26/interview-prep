@@ -24,6 +24,10 @@ Python's built-in `sorted()`/`.sort()` uses **Timsort** (a hybrid of merge sort 
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-sorting.svg" alt="Quicksort, mergesort, and heapsort, and the one cost each of them refuses to pay.">
+</figure>
+
 Three families, three trade-offs:
 
 ```

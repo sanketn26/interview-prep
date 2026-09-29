@@ -7,6 +7,10 @@ description: Priority simulations plus DSA visualizers — what each teaches and
 
 Simulations live on the **host concept page**, next to the failure they illustrate. This hub does not duplicate canvases. Read the mental model, predict the log line, then press the dangerous button.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-playgrounds.svg" alt="Read the failure, predict the log line, run the simulation, then explain the gap.">
+</figure>
+
 Structured drills (hot partitions, replica loss, latency, packet loss, hot keys, …) on these same canvases: [Failure-injection tasks](failure-injection.md).
 
 | Simulation | What you learn | Host |

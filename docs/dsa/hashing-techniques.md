@@ -29,6 +29,10 @@ The structures on this page all make the same trade: **give up exactness, in a w
 
 ## Bloom Filter
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-bloom.svg" alt="Three bits set in a Bloom filter. A later query is absent only if one of its bits is still zero.">
+</figure>
+
 ### Mental Model
 
 A Bloom filter is a bit array of size `m`, all zeros to start, plus `k` independent hash functions. To **add** an item, hash it `k` ways and set those `k` bits to 1. To **query** an item, hash it the same `k` ways and check whether all `k` bits are set.

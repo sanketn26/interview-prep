@@ -2,7 +2,9 @@
 
 A guided learning platform for senior / staff / lead engineers targeting ₹40–70+ LPA-equivalent roles. Three tracks: **System Design & Distributed Systems**, **DSA**, and **Behavioural / Leadership**.
 
-This is not a pile of interview notes. It is an interactive textbook + design lab + troubleshooting handbook: you learn to **derive** architectures (requirements → constraints → scale → data model → interfaces → bottlenecks → reliability → cost → evolution), not memorize boxes.
+This is not a pile of interview notes. It is an interactive textbook + design lab + troubleshooting handbook: you learn to **derive** architectures (requirements → constraints → scale → data model → interfaces → bottlenecks → reliability → cost → evolution), not memorize boxes. Interactive on priority topics. Tabs are still rolling out — see [project status](docs/project-status.md).
+
+**How long:** [Interview Sprint](docs/learning-paths.md) is 10–14 days. Senior is Phase 1, about 3 months. Staff is the full roadmap, about 7–9 months. A 90-day pass is the Senior slice, not the whole academy. Details on the [roadmap](docs/roadmap.md).
 
 [![Deploy to GitHub Pages](https://github.com/sanketn26/interview-prep/actions/workflows/deploy.yml/badge.svg)](https://github.com/sanketn26/interview-prep/actions/workflows/deploy.yml)
 [![Validate PR](https://github.com/sanketn26/interview-prep/actions/workflows/validate.yml/badge.svg)](https://github.com/sanketn26/interview-prep/actions/workflows/validate.yml)
@@ -44,7 +46,7 @@ Study-first modules below. Much of the rest of the curriculum is also shipped (f
 | [Technical disagreement](docs/behavioural/technical-disagreement.md), [production incident](docs/behavioural/production-incident.md) | Behavioural |
 | [Debugging high p99 / Kafka lag](docs/observability/debugging-playbook.md), [K8s debugging](docs/kubernetes/index.md) | Production |
 
-**15 priority simulations** (hash ring, sharding, Kafka, stampede, rate limiter, load balancer, retry storm, circuit breaker, Raft, saga, tail latency, DNS, TCP, K8s flow, capacity calculator) plus **DSA visualizers** on most pattern pages — indexed from [Playgrounds](docs/playgrounds/index.md).
+**17 system simulations** (hash ring, quorum replication, sharding, Kafka, stampede, cache capacity, rate limiter, load balancer, retry storm, circuit breaker, Raft, saga, tail latency, DNS, TCP, K8s flow, capacity calculator) and **16 DSA visualizers** — indexed from [Playgrounds](docs/playgrounds/index.md).
 
 ---
 

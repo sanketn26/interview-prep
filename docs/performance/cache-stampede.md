@@ -21,6 +21,10 @@ This is a **cache stampede** (also called **thundering herd**).
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/cache-stampede.svg" alt="A hot key expires and every client misses at once. Lock, jitter, or serve stale while one refresh runs.">
+</figure>
+
 ```
 Normal operation:                  After hot key expires:
 

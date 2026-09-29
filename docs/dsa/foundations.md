@@ -30,6 +30,10 @@ description: The repeatable process for approaching any DSA interview problem â€
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-foundations.svg" alt="Four moves: clarify the constraint, state a brute force, read the operation budget, then pick a pattern.">
+</figure>
+
 Think of every problem as a pipeline. Skipping a stage is where candidates lose points, even when the final code is correct.
 
 ```

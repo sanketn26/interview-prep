@@ -87,8 +87,8 @@ graph LR
 
 **Try:** Inject a burst of 200 requests. Observe how token bucket handles it vs fixed window.
 
-!!! tip "Run it yourself"
-    [`labs/rate-limiter`](https://github.com/sanketn26/interview-prep/blob/main/labs/rate-limiter) reproduces two real races with plain `redis-cli`: a naive `INCR`+`EXPIRE` counter whose window never actually closes under continuous traffic, and a check-then-act limiter that lets 20 requests through a limit of 5 under real concurrency — then fixes both with one atomic Lua script.
+!!! tip "Concept, exercise, lab"
+    Algorithms and the simulator are this page. The system design — where the limiter sits, and fail-open versus fail-closed — is the [distributed rate limiter exercise](../system-design-exercises/rate-limiter.md). The Redis races (a window that never closes, and a check-then-act that admits 20 through a limit of 5) are the [rate limiter lab](../labs/rate-limiter.md).
 
 ---
 

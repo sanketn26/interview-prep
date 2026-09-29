@@ -38,6 +38,10 @@ They show up in **system** interviews too: Redis `ZSET` is a skip list + hash ta
 
 ## Skip List
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-skip-list.svg" alt="A skip list with three layers. Search jumps on the top layer, then drops down to find 8.">
+</figure>
+
 ### Why it exists
 
 AVL/red-black trees keep O(log n) by **rotations**. Those are easy to get wrong and unpleasant to lock. A skip list keeps several linked-list levels: layer 0 is every node; each higher layer is a random subset that skips ahead. Search walks right on the highest level until the next key would overshoot, then drops down. Expected search/insert/delete is O(log n) with **no rotations** — just coin flips at insert.
@@ -148,6 +152,10 @@ class SkipList:
 
 ## Fenwick Tree (Binary Indexed Tree)
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-fenwick.svg" alt="Sum through 7 reads three Fenwick cells: index 4 covers 1 through 4, index 6 covers 5 through 6, and index 7 covers 7.">
+</figure>
+
 ### Why it exists
 
 Prefix sums: build `pref[i] = a[1]+…+a[i]` in O(n), range sum `[L,R]` in O(1), then someone says "now support point updates." Rebuilding is O(n) per update.
@@ -219,6 +227,10 @@ class Fenwick:
 ---
 
 ## Segment Tree
+
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-segment.svg" alt="A segment tree node for every dyadic range. The query for 5 through 6 is a single node.">
+</figure>
 
 ### Why it exists
 

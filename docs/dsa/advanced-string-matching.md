@@ -29,6 +29,10 @@ Each algorithm below is the answer to one of those shapes. They're grouped here,
 
 ## Aho-Corasick (Multi-Pattern Matching)
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-aho.svg" alt="One trie holding he and she, with a failure link from the second h back to the first.">
+</figure>
+
 ### Mental Model
 
 Aho-Corasick answers: **given a fixed set of patterns, find every occurrence of every pattern in one linear pass over the text.** Running KMP once per pattern would cost O(k·(n+m)) for k patterns — Aho-Corasick does it in O(n + Σm + z) regardless of k, where z is the number of matches found.

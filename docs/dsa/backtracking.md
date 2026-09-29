@@ -24,6 +24,10 @@ Some problems have no shortcut — you genuinely must try combinations to find o
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-backtracking.svg" alt="A decision tree that includes an item or skips it, then undoes the choice.">
+</figure>
+
 Think of it as **DFS over a decision tree**, where each node is a partial solution and each edge is one choice. At every node:
 
 1. **Choose** — make a candidate choice.

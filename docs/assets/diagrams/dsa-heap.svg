@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 280" role="img">
+<title>Min-heap: parent ≤ children. The array is that tree, level by level.</title>
+<rect width="960" height="280" rx="16" fill="#f8fafc"/>
+<line x1="150" y1="78" x2="80" y2="150" stroke="#94a3b8" stroke-width="2"/>
+<line x1="150" y1="78" x2="220" y2="150" stroke="#94a3b8" stroke-width="2"/>
+<line x1="80" y1="150" x2="40" y2="222" stroke="#94a3b8" stroke-width="2"/>
+<line x1="80" y1="150" x2="120" y2="222" stroke="#94a3b8" stroke-width="2"/>
+<line x1="220" y1="150" x2="180" y2="222" stroke="#94a3b8" stroke-width="2"/>
+<line x1="220" y1="150" x2="260" y2="222" stroke="#94a3b8" stroke-width="2"/>
+<circle cx="150" cy="78" r="18" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+<text x="150" y="83" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">2</text>
+<circle cx="80" cy="150" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="80" y="155" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">4</text>
+<circle cx="220" cy="150" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="220" y="155" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">5</text>
+<circle cx="40" cy="222" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="40" y="227" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">12</text>
+<circle cx="120" cy="222" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="120" y="227" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">9</text>
+<circle cx="180" cy="222" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="180" y="227" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">15</text>
+<circle cx="260" cy="222" r="18" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="260" y="227" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="700" text-anchor="middle">7</text>
+<rect x="400" y="90" width="46" height="40" rx="8" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+<text x="423" y="116" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">2</text>
+<text x="423" y="152" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="middle">0</text>
+<rect x="474" y="90" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="497" y="116" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">4</text>
+<text x="497" y="152" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="middle">1</text>
+<rect x="548" y="90" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="571" y="116" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">5</text>
+<text x="571" y="152" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="middle">2</text>
+<rect x="622" y="90" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="645" y="116" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">12</text>
+<text x="645" y="152" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="middle">3</text>
+<rect x="696" y="90" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="719" y="116" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">9</text>
+<text x="719" y="152" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="middle">4</text>
+<rect x="770" y="90" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="793" y="116" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">15</text>
+<text x="793" y="152" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="middle">5</text>
+<rect x="844" y="90" width="46" height="40" rx="8" fill="#fff" stroke="#cbd5e1" stroke-width="2"/>
+<text x="867" y="116" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">7</text>
+<text x="867" y="152" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="600" text-anchor="middle">6</text>
+<text x="400" y="190" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700" text-anchor="start">Index 0 is the minimum.</text>
+<text x="400" y="216" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="start">parent(i) = (i − 1) / 2</text>
+<text x="400" y="240" fill="#334155" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="start">children are 2i+1 and 2i+2</text>
+<text x="400" y="264" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">9 and 12 are not ordered.</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Min-heap: parent ≤ children. The array is that tree, level by level.</text>
+</svg>

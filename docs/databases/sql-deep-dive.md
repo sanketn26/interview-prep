@@ -25,6 +25,10 @@ Most performance problems are not "no index" — they're bad schema design, miss
 
 ## Part 1: Query Execution and EXPLAIN
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/sql-plan.svg" alt="SQL text becomes a parse tree, then a plan that chooses an index or a sequential scan, then an execution.">
+</figure>
+
 ### EXPLAIN: Reading the Execution Plan
 
 ```sql

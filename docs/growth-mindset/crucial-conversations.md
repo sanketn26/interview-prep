@@ -25,6 +25,10 @@ prerequisites:
 
 ## The Core Structure: Facts, Then Impact, Then the Ask
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/growth-facts-impact-ask.svg" alt="Say the observable facts, then the impact, then the ask.">
+</figure>
+
 The single most common failure in a hard conversation is leading with the conclusion instead of the evidence — "this isn't working" lands as a judgment with nothing to engage with. **Leading with the specific, observable facts, then the impact, then what you want to happen, gives the other person something to actually respond to** rather than something to just absorb or defend against.
 
 ```

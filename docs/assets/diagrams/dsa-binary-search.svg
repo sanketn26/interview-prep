@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 210" role="img">
+<title>Binary search keeps one inclusive range and throws half away.</title>
+<rect width="960" height="210" rx="16" fill="#f8fafc"/>
+<rect x="80" y="78" width="46" height="40" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+<text x="103" y="104" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">2</text>
+<rect x="138" y="78" width="46" height="40" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+<text x="161" y="104" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">5</text>
+<rect x="196" y="78" width="46" height="40" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+<text x="219" y="104" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">8</text>
+<rect x="254" y="78" width="46" height="40" rx="8" fill="#ffedd5" stroke="#d97706" stroke-width="2"/>
+<text x="277" y="104" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">11</text>
+<rect x="312" y="78" width="46" height="40" rx="8" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+<text x="335" y="104" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">14</text>
+<rect x="370" y="78" width="46" height="40" rx="8" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+<text x="393" y="104" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">20</text>
+<rect x="428" y="78" width="46" height="40" rx="8" fill="#ccfbf1" stroke="#0d9488" stroke-width="2"/>
+<text x="451" y="104" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="700" text-anchor="middle">23</text>
+<text x="277" y="140" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="middle">mid</text>
+<text x="335" y="140" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="middle">new lo</text>
+<text x="451" y="140" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700" text-anchor="middle">hi</text>
+<text x="80" y="178" fill="#64748b" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="500" text-anchor="start">Target is 14. a[mid] = 11 is too small, so lo becomes mid + 1. Grey cells are gone.</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Binary search keeps one inclusive range and throws half away.</text>
+</svg>

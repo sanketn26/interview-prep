@@ -7,6 +7,10 @@ description: 1 producer → 1 partition → 1 consumer works until it does not.
 
 1 producer → 1 partition → 1 consumer works until it does not.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-messaging.svg" alt="A producer appends to a log. Two consumer groups read the same log at their own offsets.">
+</figure>
+
 ---
 
 ## Why This Exists

@@ -31,6 +31,10 @@ All three show up constantly in system design (routing, network cost minimizatio
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-dijkstra.svg" alt="Dijkstra settles A, then C. The path A to C to B costs 3 and beats the direct edge of weight 4.">
+</figure>
+
 **Dijkstra:** Best-first search with a **min-heap**, not FIFO BFS. Always expand the *closest unvisited* node next, and **relax** (try to improve) the distance to its neighbors. Once a node is popped as the minimum, its distance is final — it can never be improved later, because all other paths to it would have to go through a farther node first.
 
 ```

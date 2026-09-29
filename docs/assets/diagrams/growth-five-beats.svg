@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 170" role="img">
+<title>Five beats, then the evidence. The story only orients the room.</title>
+<rect width="960" height="170" rx="16" fill="#f8fafc"/>
+<rect x="20" y="64" width="172" height="64" rx="12" fill="#fff" stroke="#4f46e5" stroke-width="2"/>
+<text x="106" y="102" fill="#4f46e5" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="middle">Before</text>
+<rect x="208" y="64" width="172" height="64" rx="12" fill="#fff" stroke="#0d9488" stroke-width="2"/>
+<text x="294" y="102" fill="#0d9488" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="middle">Change</text>
+<rect x="396" y="64" width="172" height="64" rx="12" fill="#fff" stroke="#d97706" stroke-width="2"/>
+<text x="482" y="102" fill="#d97706" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="middle">Consequence</text>
+<rect x="584" y="64" width="172" height="64" rx="12" fill="#fff" stroke="#7c3aed" stroke-width="2"/>
+<text x="670" y="102" fill="#7c3aed" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="middle">Choice</text>
+<rect x="772" y="64" width="172" height="64" rx="12" fill="#fff" stroke="#e11d48" stroke-width="2"/>
+<text x="858" y="102" fill="#e11d48" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="750" text-anchor="middle">Decision</text>
+<text x="22" y="28" fill="#0f172a" font-family="Inter, system-ui, sans-serif" font-size="15" font-weight="750" text-anchor="start">Five beats, then the evidence. The story only orients the room.</text>
+</svg>

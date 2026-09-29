@@ -30,6 +30,10 @@ The naive way to find a pattern of length m inside a text of length n checks eve
 
 ## Mental Model
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/dsa-kmp.svg" alt="Pattern ababd mismatches text ababc on the last character. The border of the matched abab is ab, and the text pointer stays put.">
+</figure>
+
 **KMP's insight:** when a mismatch occurs after matching some prefix of the pattern, you already know exactly what the last few text characters were — they equal the pattern's prefix up to the mismatch. If that prefix has a shorter substring that is *both* a prefix and a suffix of itself, you can resume matching from there instead of restarting the pattern at position 0 and re-scanning text you already saw.
 
 ```

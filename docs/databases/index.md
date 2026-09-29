@@ -7,6 +7,10 @@ description: Access patterns pick the store. Sharding is a last-resort write-sca
 
 Access patterns pick the store. Sharding is a last-resort write-scale step after indexes, partitioning, and I/O — not the first answer to a slow primary.
 
+<figure class="academy-figure">
+  <img src="../assets/diagrams/flow-databases.svg" alt="Order of work: name the access pattern, add an index, partition a table, and shard only when writes still do not fit.">
+</figure>
+
 ---
 
 ## Why This Exists
